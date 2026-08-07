@@ -5,100 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Thêm truyện mới</title>
     <style>
-        body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; margin: 0; padding: 20px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
-        .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 20px; }
-        .title { font-size: 18px; font-weight: 700; margin-bottom: 20px; text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; }
-        input, textarea { width: 100%; background: #1e1e22; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; font-size: 13px; box-sizing: border-box; outline: none; }
-        textarea { height: 90px; resize: none; }
-        .submit-btn { width: 100%; background: #d95a52; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; font-size: 14px; }
-        .preview-container { text-align: center; margin-bottom: 15px; }
-        .preview-img { width: 80px; height: 110px; object-fit: cover; border-radius: 6px; border: 1px solid #444; display: none; margin: 0 auto; }
+        body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; margin: 0; padding: 16px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
+        .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 16px; }
+        .page-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+        
+        .form-group { margin-bottom: 14px; }
+        .form-label { font-size: 12px; color: #aaa; display: block; margin-bottom: 6px; }
+        .form-input, .form-textarea { width: 100%; background: #1c1c24; border: 1px solid #2d2d38; color: #fff; padding: 10px; border-radius: 8px; font-size: 13px; box-sizing: border-box; outline: none; }
+        .form-textarea { resize: vertical; height: 90px; }
+        .form-input:focus, .form-textarea:focus { border-color: #d95a52; }
+
+        .submit-btn { width: 100%; background: #d95a52; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 10px; }
+        .submit-btn:hover { background: #e06d67; }
     </style>
 </head>
 <body>
 
     <a href="index.html" class="back-btn">&#8592; Quay lại</a>
-    <div class="title">Thêm Truyện Audio Mới</div>
+    <div class="page-title">Thêm bộ truyện mới</div>
 
     <div class="form-group">
-        <label>Tên truyện</label>
-        <input type="text" id="storyName" placeholder="Nhập tên truyện...">
-    </div>
-
-    <div class="form-group">
-        <label>Tác giả</label>
-        <input type="text" id="storyAuthor" placeholder="Nhập tên tác giả...">
+        <label class="form-label">Tên truyện</label>
+        <input type="text" class="form-input" id="storyNameInput" placeholder="Nhập tên truyện...">
     </div>
 
     <div class="form-group">
-        <label>Thể loại (Tag)</label>
-        <input type="text" id="storyTag" placeholder="VD: Tiên Hiệp, Ngôn Tình...">
+        <label class="form-label">Tác giả</label>
+        <input type="text" class="form-input" id="storyAuthorInput" placeholder="Nhập tên tác giả...">
     </div>
 
     <div class="form-group">
-        <label>Chọn file ảnh bìa từ máy</label>
-        <input type="file" id="coverFileInput" accept="image/*" onchange="previewImage(event)">
-    </div>
-
-    <div class="preview-container">
-        <img id="imagePreview" class="preview-img" alt="Xem trước ảnh bìa">
+        <label class="form-label">Thể loại / Thẻ</label>
+        <input type="text" class="form-input" id="storyTagInput" placeholder="VD: Tiên Hiệp, Ngôn Tình...">
     </div>
 
     <div class="form-group">
-        <label>Tóm tắt nội dung</label>
-        <textarea id="storySummary" placeholder="Nhập tóm tắt ngắn về truyện..."></textarea>
+        <label class="form-label">Ảnh bìa truyện</label>
+        <input type="file" class="form-input" id="storyCoverInput" accept="image/*">
     </div>
 
-    <button class="submit-btn" onclick="saveNewStory()">Lưu và Thêm Truyện</button>
+    <div class="form-group">
+        <label class="form-label">Tóm tắt nội dung</label>
+        <textarea class="form-textarea" id="storySummaryInput" placeholder="Nhập tóm tắt sơ lược về truyện..."></textarea>
+    </div>
+
+    <button class="submit-btn" onclick="saveNewStory()">Lưu bộ truyện</button>
 
     <script>
-        let base64CoverImage = '';
-
-        function previewImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    base64CoverImage = e.target.result;
-                    const preview = document.getElementById('imagePreview');
-                    preview.src = base64CoverImage;
-                    preview.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
+        // Khởi tạo IndexedDB chung cho toàn ứng dụng (Dùng chung tên 'AudioBookDB')
+        function openDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('AudioBookDB', 1);
+                request.onupgradeneeded = function(e) {
+                    let db = e.target.result;
+                    if (!db.objectStoreNames.contains('audios')) db.createObjectStore('audios');
+                    if (!db.objectStoreNames.contains('stories')) db.createObjectStore('stories');
+                };
+                request.onsuccess = function(e) { resolve(e.target.result); };
+                request.onerror = function(e) { reject(e.target.error); };
+            });
         }
 
-        function saveNewStory() {
-            const name = document.getElementById('storyName').value.trim();
-            const author = document.getElementById('storyAuthor').value.trim();
-            const tag = document.getElementById('storyTag').value.trim();
-            const summary = document.getElementById('storySummary').value.trim();
+        async function saveNewStory() {
+            const name = document.getElementById('storyNameInput').value.trim();
+            const author = document.getElementById('storyAuthorInput').value.trim();
+            const tag = document.getElementById('storyTagInput').value.trim();
+            const summary = document.getElementById('storySummaryInput').value.trim();
+            const coverInput = document.getElementById('storyCoverInput');
 
             if (!name) {
                 alert('Vui lòng nhập tên truyện!');
                 return;
             }
 
-            const cover = base64CoverImage || 'https://via.placeholder.com/300x400/222222/D95A52?text=Bia';
+            let coverUrl = 'https://via.placeholder.com/120x165/333/fff?text=No+Cover';
+
+            if (coverInput.files && coverInput.files[0]) {
+                const file = coverInput.files[0];
+                // Chuyển ảnh bìa nhỏ thành Base64 (Ảnh dung lượng nhỏ nên lưu localStorage hoặc IndexedDB đều tốt)
+                coverUrl = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+            }
 
             const newStory = {
                 id: 'story_' + Date.now(),
                 name: name,
                 author: author || 'Đang cập nhật',
-                tag: tag || 'Tổng hợp',
-                cover: cover,
+                tag: tag || 'Truyện Audio',
                 summary: summary || 'Chưa có tóm tắt.',
+                cover: coverUrl,
                 episodes: []
             };
 
-            let stories = JSON.parse(localStorage.getItem('app_stories')) || [];
-            stories.unshift(newStory);
-            localStorage.setItem('app_stories', JSON.stringify(stories));
+            try {
+                // Lưu danh sách truyện qua localStorage kết hợp tối ưu danh sách nhẹ gọn
+                let stories = JSON.parse(localStorage.getItem('app_stories')) || [];
+                stories.unshift(newStory);
+                localStorage.setItem('app_stories', JSON.stringify(stories));
 
-            alert('Thêm truyện thành công!');
-            window.location.href = 'index.html';
+                alert('Thêm truyện mới thành công!');
+                window.location.href = 'index.html';
+            } catch (error) {
+                alert('Lỗi lưu truyện: Ảnh bìa quá lớn. Vui lòng chọn ảnh dung lượng nhỏ hơn một chút!');
+            }
         }
     </script>
 </body>
