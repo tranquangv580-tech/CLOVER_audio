@@ -52,15 +52,21 @@
     <button class="submit-btn" onclick="saveNewStory()">Lưu bộ truyện</button>
 
     <script>
-        // Mở IndexedDB không giới hạn dung lượng
+        // Mở cơ sở dữ liệu với phiên bản tăng lên 2 để tự động tạo kho lưu trữ 'stories'
         function openDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open('AudioBookDB', 1);
+                const request = indexedDB.open('AudioBookDB', 2);
+                
                 request.onupgradeneeded = function(e) {
                     let db = e.target.result;
-                    if (!db.objectStoreNames.contains('stories')) db.createObjectStore('stories', { keyPath: 'id' });
-                    if (!db.objectStoreNames.contains('audios')) db.createObjectStore('audios');
+                    if (!db.objectStoreNames.contains('stories')) {
+                        db.createObjectStore('stories', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('audios')) {
+                        db.createObjectStore('audios');
+                    }
                 };
+
                 request.onsuccess = e => resolve(e.target.result);
                 request.onerror = e => reject(e.target.error);
             });
@@ -109,11 +115,12 @@
                     alert('Thêm truyện mới thành công!');
                     window.location.href = 'index.html';
                 };
+
                 tx.onerror = function(e) {
-                    alert('Lỗi lưu vào cơ sở dữ liệu: ' + e.target.error);
+                    alert('Lỗi transaction: ' + (e.target.error ? e.target.error.message : 'Không xác định'));
                 };
             } catch (error) {
-                alert('Lỗi hệ thống: ' + error.message);
+                alert('Lỗi hệ thống chi tiết: ' + error.message);
             }
         }
     </script>
