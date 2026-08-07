@@ -37,7 +37,7 @@
 
     <script>
         const episodeTitle = localStorage.getItem('currentEpisodeTitle') || 'Tập Audio';
-        const audioKey = localStorage.getItem('currentAudioKey') || '';
+        let audioKey = localStorage.getItem('currentAudioKey') || '';
 
         document.getElementById('playerEpisodeTitle').textContent = episodeTitle;
 
@@ -50,38 +50,61 @@
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
-            if (!audioKey) {
-                document.getElementById('loadingStatus').textContent = 'Chưa có tệp âm thanh được chỉ định!';
-                return;
-            }
-
             try {
                 let db = await openDB();
                 let tx = db.transaction('audios', 'readonly');
                 let store = tx.objectStore('audios');
-                let request = store.get(audioKey);
 
-                request.onsuccess = function(e) {
-                    let audioFile = e.target.result;
-                    if (audioFile) {
-                        // Tạo đường dẫn tạm (Blob URL) để trình duyệt phát tệp
-                        let audioURL = URL.createObjectURL(audioFile);
-                        let player = document.getElementById('audioPlayer');
-                        player.src = audioURL;
-                        player.style.display = 'block';
-                        document.getElementById('loadingStatus').style.display = 'none';
-                        player.play().catch(err => {
-                            console.log("Trình duyệt chặn tự động phát:", err);
-                        });
-                    } else {
-                        document.getElementById('loadingStatus').textContent = 'Không tìm thấy tệp âm thanh trong cơ sở dữ liệu!';
-                    }
-                };
+                // Nếu có audioKey cụ thể, lấy chính xác tệp đó
+                if (audioKey && audioKey !== 'undefined' && audioKey !== 'null') {
+                    let request = store.get(audioKey);
+                    request.onsuccess = function(e) {
+                        let audioFile = e.target.result;
+                        if (audioFile) {
+                            playAudioFile(audioFile);
+                        } else {
+                            // Nếu key có mà không tìm thấy trong DB, thử fallback lấy file mới nhất
+                            fetchLatestAudio(store);
+                        }
+                    };
+                    request.onerror = () => fetchLatestAudio(store);
+                } else {
+                    // Nếu tập cũ chưa có audioKey, tự động lấy tệp âm thanh gần nhất trong kho
+                    fetchLatestAudio(store);
+                }
             } catch (err) {
                 console.error(err);
                 document.getElementById('loadingStatus').textContent = 'Lỗi kết nối cơ sở dữ liệu khi tải âm thanh!';
             }
         });
+
+        // Hàm dự phòng: tự động lấy tệp audio mới nhất nếu không tìm thấy key định danh
+        function fetchLatestAudio(store) {
+            let allAudiosRequest = store.getAll();
+            let allKeysRequest = store.getAllKeys();
+
+            allAudiosRequest.onsuccess = function(e) {
+                let audios = e.target.result;
+                if (audios && audios.length > 0) {
+                    // Lấy tệp mới nhất được thêm vào kho
+                    let latestFile = audios[audios.length - 1];
+                    playAudioFile(latestFile);
+                } else {
+                    document.getElementById('loadingStatus').textContent = 'Không tìm thấy tệp âm thanh nào trong cơ sở dữ liệu! Vui lòng xóa tập này và thêm lại.';
+                }
+            };
+        }
+
+        function playAudioFile(audioFile) {
+            let audioURL = URL.createObjectURL(audioFile);
+            let player = document.getElementById('audioPlayer');
+            player.src = audioURL;
+            player.style.display = 'block';
+            document.getElementById('loadingStatus').style.display = 'none';
+            player.play().catch(err => {
+                console.log("Trình duyệt chặn tự động phát:", err);
+            });
+        }
     </script>
 </body>
 </html>
