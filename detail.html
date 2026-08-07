@@ -10,7 +10,6 @@
         .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; text-decoration: none; }
         
-        /* Thông tin chi tiết truyện dạng desktop style */
         .story-header { display: flex; gap: 15px; margin-bottom: 15px; background: #1a1a20; padding: 12px; border-radius: 12px; border: 1px solid #2a2a32; align-items: center; }
         .story-cover { width: 90px; height: 120px; object-fit: cover; border-radius: 8px; background: #222; flex-shrink: 0; }
         .story-info { display: flex; flex-direction: column; justify-content: center; flex-grow: 1; }
@@ -20,30 +19,43 @@
         
         .summary-box { background: #17171c; padding: 12px; border-radius: 10px; font-size: 13px; color: #ccc; margin-bottom: 15px; border: 1px solid #25252c; line-height: 1.4; }
 
-        /* Nút chức năng style máy tính */
         .action-desktop-row { display: flex; gap: 10px; margin-bottom: 20px; }
         .btn-style { flex: 1; background: #24242c; border: 1px solid #3d3d4a; color: #fff; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; text-align: center; transition: 0.2s; }
         .btn-style:hover { background: #2e2e38; border-color: #d95a52; }
         .btn-primary { background: #d95a52; border-color: #d95a52; }
         .btn-primary:hover { background: #e06d67; }
 
-        /* Danh sách tập */
-        .section-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+        .section-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Thanh công cụ khi bật chế độ chọn nhiều */
+        .batch-action-bar { display: none; background: #1f1f27; border: 1px solid #d95a52; padding: 10px; border-radius: 8px; margin-bottom: 12px; justify-content: space-between; align-items: center; }
+        .batch-action-bar.active { display: flex; }
+
         .episode-list { display: flex; flex-direction: column; gap: 8px; }
-        .episode-item { background: #1a1a20; border: 1px solid #2a2a32; padding: 10px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        
+        /* Item tập dạng hình chữ nhật bo tròn */
+        .episode-item { background: #1a1a20; border: 1px solid #2a2a32; padding: 10px 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
         .episode-item:hover { border-color: #d95a52; background: #1f1f27; }
-        .episode-info { flex-grow: 1; margin-right: 10px; cursor: pointer; }
+        
+        /* Ô vuông checkbox chọn nhiều */
+        .episode-checkbox { width: 20px; height: 20px; border: 2px solid #555; border-radius: 4px; background: #24242a; display: none; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
+        .episode-checkbox.checked { background: #27ae60; border-color: #27ae60; color: #fff; }
+        .episode-checkbox.checked::after { content: '✓'; font-size: 12px; font-weight: bold; }
+        .selecting .episode-checkbox { display: flex; }
+
+        .episode-info { flex-grow: 1; cursor: pointer; }
         .episode-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
         .episode-date { font-size: 11px; color: #888; }
         
         .episode-actions { display: flex; align-items: center; gap: 8px; }
-        .play-icon-btn { background: #d95a52; color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; flex-shrink: 0; }
         
-        /* Nút ba chấm dọc */
+        /* Nút nghe hình chữ nhật bo tròn có chữ Nghe và nút play */
+        .listen-btn-box { background: #d95a52; color: #fff; border: none; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
+        .listen-btn-box:hover { background: #e06d67; }
+        
         .menu-dots-btn { background: none; border: none; color: #aaa; font-size: 18px; font-weight: bold; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
         .menu-dots-btn:hover { color: #fff; background: #2a2a32; }
         
-        /* Modal form style máy tính */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(4px); }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background-color: #1a1a1e; border-radius: 24px 24px 0 0; padding: 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); max-height: 85vh; overflow-y: auto; }
@@ -53,9 +65,15 @@
         .popup-input, .file-input { width: 100%; background: #24242a; border: 1px solid #3d3d4a; color: #fff; padding: 10px; border-radius: 8px; font-size: 13px; box-sizing: border-box; margin-bottom: 12px; outline: none; }
         .popup-input:focus { border-color: #d95a52; }
         
-        /* Giao trình bày 2 cột cho phần nhập tên tập */
         .dual-input-row { display: flex; gap: 10px; margin-bottom: 12px; }
         .dual-input-row > div { flex: 1; }
+
+        /* Popup menu tùy chọn 3 chấm */
+        .option-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; }
+        .option-popup.active { display: flex; }
+        .option-box { background: #1a1a1e; border: 1px solid #3d3d4a; border-radius: 12px; width: 220px; padding: 8px; }
+        .option-item { padding: 10px 14px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 6px; text-align: center; margin-bottom: 4px; }
+        .option-item:hover { background: #2a2a32; color: #d95a52; }
     </style>
 </head>
 <body>
@@ -75,7 +93,16 @@
         <button class="btn-style btn-primary" onclick="openEpisodeModal()">+ Thêm tập audio</button>
     </div>
 
-    <div class="section-title">Danh sách tập</div>
+    <div class="section-title">
+        <span>Danh sách tập</span>
+        <button class="btn-style" id="toggleBatchBtn" onclick="toggleBatchMode()" style="padding: 4px 10px; font-size: 11px; flex: unset;">Chọn nhiều</button>
+    </div>
+
+    <div class="batch-action-bar" id="batchActionBar">
+        <span id="selectedCountText" style="font-size: 12px; color: #aaa;">Đã chọn: 0</span>
+        <button class="btn-style" onclick="deleteSelectedEpisodes()" style="background: #c0392b; border-color: #c0392b; padding: 6px 12px; font-size: 12px;">Xóa các tập đã chọn</button>
+    </div>
+
     <div class="episode-list" id="episodeListContainer">
         <div style="color: #888; font-size: 13px; text-align: center; padding: 20px;">Chưa có tập audio nào.</div>
     </div>
@@ -89,25 +116,35 @@
         
         <div class="dual-input-row">
             <div>
-                <label class="popup-label">Số chương / Tên</label>
+                <label class="popup-label">Tên / Số chương (Trái)</label>
                 <input type="text" class="popup-input" id="inputChapterNum" placeholder="VD: Chương 1">
             </div>
             <div>
-                <label class="popup-label">Tập / Phần</label>
+                <label class="popup-label">Tập / Phần (Phải)</label>
                 <input type="text" class="popup-input" id="inputEpisodeNum" placeholder="VD: Tập 1">
             </div>
         </div>
 
-        <label class="popup-label" id="fileInputLabel">Chọn tệp âm thanh (MP3, M4A, WAV...)</label>
-        <input type="file" class="file-input" id="newAudioFileInput" accept="audio/*,.mp3,.m4a,.wav">
+        <label class="popup-label" id="fileInputLabel">Chọn tệp âm thanh (Hỗ trợ định dạng MP3, M4A, WAV...)</label>
+        <input type="file" class="file-input" id="newAudioFileInput" accept="audio/*,.mp3,.m4a,.wav,.aac">
 
         <button class="btn-style btn-primary" style="width: 100%; padding: 12px;" onclick="saveEpisodeData()">Lưu tập audio</button>
+    </div>
+
+    <div class="option-popup" id="optionPopupOverlay" onclick="closeOptionPopup()">
+        <div class="option-box" onclick="event.stopPropagation()">
+            <div class="option-item" onclick="confirmDeleteSingleEpisode()">Xóa tập này</div>
+            <div class="option-item" onclick="enableBatchModeFromMenu()">Chọn nhiều tập</div>
+            <div class="option-item" onclick="closeOptionPopup()" style="color: #aaa; border-top: 1px solid #333; margin-top: 4px;">Hủy</div>
+        </div>
     </div>
 
     <script>
         const currentStoryId = localStorage.getItem('currentStoryId') || '';
         let currentStoryData = null;
-        let editingIndex = null; // Biến đánh dấu đang sửa tập nào (-1 nếu là thêm mới)
+        let activeMenuIndex = null;
+        let isBatchMode = false;
+        let selectedIndices = new Set();
 
         function openDB() {
             return new Promise((resolve, reject) => {
@@ -164,45 +201,147 @@
             let episodes = currentStoryData.episodes || [];
 
             if (episodes.length > 0) {
-                container.innerHTML = episodes.map((ep, index) => `
-                    <div class="episode-item">
-                        <div class="episode-info" onclick="playEpisode('${ep.title}', '${ep.audioKey}')">
-                            <div class="episode-title">${ep.title}</div>
-                            <div class="episode-date">Thứ tự: ${index + 1}</div>
+                container.innerHTML = episodes.map((ep, index) => {
+                    let isChecked = selectedIndices.has(index) ? 'checked' : '';
+                    return `
+                        <div class="episode-item ${isBatchMode ? 'selecting' : ''}" id="ep_item_${index}">
+                            <div class="episode-checkbox ${isChecked}" onclick="toggleSelectEpisode(${index})"></div>
+                            <div class="episode-info" onclick="handleItemClick(${index}, '${ep.title}', '${ep.audioKey}')">
+                                <div class="episode-title">${ep.title}</div>
+                                <div class="episode-date">Thứ tự: ${index + 1}</div>
+                            </div>
+                            <div class="episode-actions">
+                                <button class="listen-btn-box" onclick="playEpisode('${ep.title}', '${ep.audioKey}')">
+                                    <span>&#9658;</span> Nghe
+                                </button>
+                                <button class="menu-dots-btn" onclick="openOptionMenu(event, ${index})" title="Tùy chọn">&#8942;</button>
+                            </div>
                         </div>
-                        <div class="episode-actions">
-                            <button class="play-icon-btn" onclick="playEpisode('${ep.title}', '${ep.audioKey}')" title="Phát">&#9658;</button>
-                            <button class="menu-dots-btn" onclick="openEpisodeMenu(event, ${index})" title="Tùy chọn">&#8942;</button>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } else {
                 container.innerHTML = `<div style="color: #888; font-size: 13px; text-align: center; padding: 20px;">Chưa có tập audio nào.</div>`;
             }
         }
 
-        function openEpisodeModal(index = null) {
-            editingIndex = index;
-            const modalTitle = document.getElementById('modalFormTitle');
-            const fileLabel = document.getElementById('fileInputLabel');
-            
-            if (index !== null) {
-                // Chế độ sửa
-                modalTitle.textContent = 'Chỉnh sửa thông tin tập';
-                fileLabel.textContent = 'Thay đổi tệp âm thanh (Bỏ trống nếu giữ nguyên)';
-                let ep = currentStoryData.episodes[index];
-                
-                // Tách ngược lại tiêu đề nếu có dấu phân cách hoặc để nguyên vào ô trái
-                document.getElementById('inputChapterNum').value = ep.title || '';
-                document.getElementById('inputEpisodeNum').value = `Tập ${index + 1}`;
+        function handleItemClick(index, title, audioKey) {
+            if (isBatchMode) {
+                toggleSelectEpisode(index);
             } else {
-                // Chế độ thêm mới
-                modalTitle.textContent = 'Thêm tập audio mới';
-                fileLabel.textContent = 'Chọn tệp âm thanh (MP3, M4A, WAV...)';
-                document.getElementById('inputChapterNum').value = '';
-                document.getElementById('inputEpisodeNum').value = `Tập ${(currentStoryData.episodes?.length || 0) + 1}`;
+                playEpisode(title, audioKey);
             }
+        }
 
+        // --- TÍNH NĂNG CHỌN NHIỀU ---
+        function toggleBatchMode() {
+            isBatchMode = !isBatchMode;
+            selectedIndices.clear();
+            document.getElementById('batchActionBar').classList.toggle('active', isBatchMode);
+            document.getElementById('toggleBatchBtn').textContent = isBatchMode ? 'Hủy chọn' : 'Chọn nhiều';
+            document.getElementById('toggleBatchBtn.active')?.style.borderColor = isBatchMode ? '#d95a52' : '#3d3d4a';
+            renderEpisodes();
+            updateSelectedCount();
+        }
+
+        function enableBatchModeFromMenu() {
+            closeOptionPopup();
+            isBatchMode = true;
+            selectedIndices.clear();
+            if (activeMenuIndex !== null) {
+                selectedIndices.add(activeMenuIndex);
+            }
+            document.getElementById('batchActionBar').classList.add('active');
+            document.getElementById('toggleBatchBtn').textContent = 'Hủy chọn';
+            renderEpisodes();
+            updateSelectedCount();
+        }
+
+        function toggleSelectEpisode(index) {
+            if (selectedIndices.has(index)) {
+                selectedIndices.delete(index);
+                document.getElementById(`ep_item_${index}`).querySelector('.episode-checkbox').classList.remove('checked');
+            } else {
+                selectedIndices.add(index);
+                document.getElementById(`ep_item_${index}`).querySelector('.episode-checkbox').classList.add('checked');
+            }
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            document.getElementById('selectedCountText').textContent = `Đã chọn: ${selectedIndices.size}`;
+        }
+
+        async function deleteSelectedEpisodes() {
+            if (selectedIndices.size === 0) {
+                alert('Vui lòng chọn ít nhất một tập để xóa!');
+                return;
+            }
+            if (confirm(`Bạn có chắc chắn muốn xóa ${selectedIndices.size} tập đã chọn không?`)) {
+                try {
+                    let db = await openDB();
+                    // Lọc giữ lại các tập không bị xóa
+                    let newEpisodes = currentStoryData.episodes.filter((_, idx) => !selectedIndices.has(idx));
+                    currentStoryData.episodes = newEpisodes;
+
+                    let tx = db.transaction('stories', 'readwrite');
+                    tx.objectStore('stories').put(currentStoryData);
+
+                    tx.oncomplete = function() {
+                        isBatchMode = false;
+                        selectedIndices.clear();
+                        document.getElementById('batchActionBar').classList.remove('active');
+                        document.getElementById('toggleBatchBtn').textContent = 'Chọn nhiều';
+                        loadStoryDetail();
+                        alert('Xóa các tập thành công!');
+                    };
+                } catch (err) {
+                    console.error(err);
+                    alert('Lỗi khi xóa các tập đã chọn!');
+                }
+            }
+        }
+
+        // --- MENU 3 CHẤM ---
+        function openOptionMenu(event, index) {
+            event.stopPropagation();
+            activeMenuIndex = index;
+            document.getElementById('optionPopupOverlay').classList.add('active');
+        }
+        function closeOptionPopup() {
+            document.getElementById('optionPopupOverlay').classList.remove('active');
+            activeMenuIndex = null;
+        }
+
+        function confirmDeleteSingleEpisode() {
+            closeOptionPopup();
+            if (activeMenuIndex !== null && confirm('Bạn có chắc muốn xóa tập này không?')) {
+                deleteSingleEpisode(activeMenuIndex);
+            }
+        }
+
+        async function deleteSingleEpisode(index) {
+            try {
+                let db = await openDB();
+                currentStoryData.episodes.splice(index, 1);
+
+                let tx = db.transaction('stories', 'readwrite');
+                tx.objectStore('stories').put(currentStoryData);
+
+                tx.oncomplete = function() {
+                    loadStoryDetail();
+                    alert('Đã xóa tập thành công!');
+                };
+            } catch (err) {
+                console.error(err);
+                alert('Lỗi khi xóa tập!');
+            }
+        }
+
+        // --- MODAL THÊM TẬP ---
+        function openEpisodeModal() {
+            document.getElementById('modalFormTitle').textContent = 'Thêm tập audio mới';
+            document.getElementById('inputChapterNum').value = '';
+            document.getElementById('inputEpisodeNum').value = `Tập ${(currentStoryData.episodes?.length || 0) + 1}`;
             document.getElementById('newAudioFileInput').value = '';
             document.getElementById('episodeModalOverlay').classList.add('active');
             document.getElementById('episodeModalSheet').classList.add('active');
@@ -213,66 +352,35 @@
             document.getElementById('episodeModalSheet').classList.remove('active');
         }
 
-        // Menu tùy chọn (Sửa / Xóa) khi bấm nút 3 chấm dọc
-        function openEpisodeMenu(event, index) {
-            event.stopPropagation();
-            let choice = prompt(`Tùy chọn cho tập: "${currentStoryData.episodes[index].title}"\n1. Sửa tên tập\n2. Xóa tập này\n\nNhập số 1 hoặc 2:`);
-            if (choice === '1') {
-                openEpisodeModal(index);
-            } else if (choice === '2') {
-                if (confirm(`Bạn có chắc muốn xóa tập này không?`)) {
-                    deleteEpisode(index);
-                }
-            }
-        }
-
         async function saveEpisodeData() {
             const chapNum = document.getElementById('inputChapterNum').value.trim();
             const epNum = document.getElementById('inputEpisodeNum').value.trim();
             const audioInput = document.getElementById('newAudioFileInput');
 
             if (!chapNum) {
-                alert('Vui lòng nhập thông tin chương bên trái!');
+                alert('Vui lòng nhập thông tin chương ở ô bên trái!');
+                return;
+            }
+            if (!audioInput.files || !audioInput.files[0]) {
+                alert('Vui lòng chọn tệp âm thanh!');
                 return;
             }
 
-            // Gộp kết hợp thông tin trái và phải thành tên tiêu đề hoàn chỉnh
             let fullTitle = epNum ? `${chapNum} - ${epNum}` : chapNum;
+            let audioFile = audioInput.files[0];
+            let audioKey = 'audio_' + Date.now();
 
             try {
                 let db = await openDB();
+                let txAudio = db.transaction('audios', 'readwrite');
+                txAudio.objectStore('audios').put(audioFile, audioKey);
+
                 if (!currentStoryData.episodes) currentStoryData.episodes = [];
-
-                if (editingIndex !== null) {
-                    // Cập nhật tập hiện có
-                    currentStoryData.episodes[editingIndex].title = fullTitle;
-
-                    if (audioInput.files && audioInput.files[0]) {
-                        let audioFile = audioInput.files[0];
-                        let newAudioKey = 'audio_' + Date.now();
-                        
-                        let txAudio = db.transaction('audios', 'readwrite');
-                        txAudio.objectStore('audios').put(audioFile, newAudioKey);
-                        currentStoryData.episodes[editingIndex].audioKey = newAudioKey;
-                    }
-                } else {
-                    // Thêm tập mới
-                    if (!audioInput.files || !audioInput.files[0]) {
-                        alert('Vui lòng chọn tệp âm thanh!');
-                        return;
-                    }
-                    let audioFile = audioInput.files[0];
-                    let audioKey = 'audio_' + Date.now();
-
-                    let txAudio = db.transaction('audios', 'readwrite');
-                    txAudio.objectStore('audios').put(audioFile, audioKey);
-
-                    currentStoryData.episodes.push({
-                        title: fullTitle,
-                        audioKey: audioKey,
-                        createdAt: new Date().toISOString()
-                    });
-                }
+                currentStoryData.episodes.push({
+                    title: fullTitle,
+                    audioKey: audioKey,
+                    createdAt: new Date().toISOString()
+                });
 
                 let txStory = db.transaction('stories', 'readwrite');
                 txStory.objectStore('stories').put(currentStoryData);
@@ -280,29 +388,11 @@
                 txStory.oncomplete = function() {
                     closeEpisodeModal();
                     loadStoryDetail();
-                    alert('Lưu tập thành công!');
+                    alert('Thêm tập audio thành công!');
                 };
             } catch (err) {
                 console.error(err);
                 alert('Lỗi hệ thống khi lưu tập audio!');
-            }
-        }
-
-        async function deleteEpisode(index) {
-            try {
-                let db = await openDB();
-                currentStoryData.episodes.splice(index, 1);
-
-                let txStory = db.transaction('stories', 'readwrite');
-                txStory.objectStore('stories').put(currentStoryData);
-
-                txStory.oncomplete = function() {
-                    loadStoryDetail();
-                    alert('Đã xóa tập thành công!');
-                };
-            } catch (err) {
-                console.error(err);
-                alert('Lỗi khi xóa tập!');
             }
         }
 
