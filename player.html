@@ -25,7 +25,10 @@
         .play-pause-btn { background: #d95a52; color: #fff; border: none; width: 60px; height: 60px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(217,90,82,0.4); transition: 0.2s; }
         .play-pause-btn:hover { transform: scale(1.05); background: #e06d67; }
 
-        .sub-controls-row { display: flex; justify-content: space-around; background: #19191e; border: 1px solid #25252c; padding: 12px; border-radius: 12px; margin-top: 10px; }
+        /* Hiển thị đếm ngược hẹn giờ */
+        .sleep-timer-status { text-align: center; font-size: 12px; color: #d95a52; margin-bottom: 12px; font-weight: 600; min-height: 18px; }
+
+        .sub-controls-row { display: flex; justify-content: space-around; background: #19191e; border: 1px solid #25252c; padding: 12px; border-radius: 12px; margin-top: 5px; }
         .sub-btn { background: none; border: none; color: #ccc; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .sub-btn span { font-size: 16px; }
         .sub-btn:hover { color: #d95a52; }
@@ -74,6 +77,8 @@
             <button class="play-pause-btn" id="playPauseBtn" onclick="togglePlayPause()">▶</button>
             <button class="control-btn" onclick="skipTime(10)" title="Tua tới 10 giây">10s ⏩</button>
         </div>
+
+        <div class="sleep-timer-status" id="sleepTimerStatusText"></div>
 
         <div class="sub-controls-row">
             <button class="sub-btn" onclick="openTimerModal()"><span>⏱️</span>Hẹn giờ</button>
@@ -133,7 +138,8 @@
         let durationText = document.getElementById('durationText');
         
         let currentStoryData = null;
-        let sleepTimerId = null;
+        let sleepTimerInterval = null;
+        let remainingTimerSeconds = 0;
         let saveHistoryInterval = null;
 
         function openDB() {
@@ -199,7 +205,7 @@
             audio.src = audioURL;
             audio.load();
 
-            // Khôi phục lịch sử thời gian đã nghe trước đó (nếu có)
+            // Khôi phục lịch sử vị trí nghe dở
             let savedTime = localStorage.getItem(`history_${audioKey}`) || 0;
             if (savedTime > 0) {
                 audio.currentTime = parseFloat(savedTime);
@@ -212,7 +218,7 @@
                 playPauseBtn.textContent = '▶';
             });
 
-            // Tự động lưu lịch sử mỗi 5 giây khi đang phát
+            // Định kỳ lưu lịch sử mỗi 5 giây
             if (saveHistoryInterval) clearInterval(saveHistoryInterval);
             saveHistoryInterval = setInterval(() => {
                 if (!audio.paused && audio.currentTime > 0) {
@@ -221,7 +227,6 @@
             }, 5000);
         }
 
-        // Lưu lịch sử ngay khi người dùng bấm rời trang
         window.addEventListener('beforeunload', () => {
             if (audioKey && audio.currentTime > 0) {
                 localStorage.setItem(`history_${audioKey}`, audio.currentTime);
@@ -262,7 +267,7 @@
             }
         }
 
-        // Định dạng thời gian thông minh: Tự động chuyển sang giờ nếu vượt quá 60 phút
+        // Định dạng thời gian thông minh (Tự động chuyển sang Giờ:Phút:Giây nếu >= 60 phút)
         function formatTime(seconds) {
             let h = Math.floor(seconds / 3600);
             let m = Math.floor((seconds % 3600) / 60);
@@ -279,6 +284,7 @@
             }
         }
 
+        // --- HẸN GIỜ TẮT & ĐỒNG HỒ ĐẾM NGƯỢC ---
         function openTimerModal() {
             document.getElementById('timerModalOverlay').classList.add('active');
             document.getElementById('timerModalSheet').classList.add('active');
@@ -287,21 +293,45 @@
             document.getElementById('timerModalOverlay').classList.remove('active');
             document.getElementById('timerModalSheet').classList.remove('active');
         }
+
         function setSleepTimer(minutes) {
-            if (sleepTimerId) clearTimeout(sleepTimerId);
+            if (sleepTimerInterval) clearInterval(sleepTimerInterval);
             closeTimerModal();
+
             if (minutes > 0) {
-                alert(`Đã hẹn giờ tắt sau ${minutes} phút!`);
-                sleepTimerId = setTimeout(() => {
-                    audio.pause();
-                    playPauseBtn.textContent = '▶';
-                    alert('Đã tự động tắt audio theo hẹn giờ.');
-                }, minutes * 60 * 1000);
+                remainingTimerSeconds = minutes * 60;
+                updateTimerDisplay();
+
+                sleepTimerInterval = setInterval(() => {
+                    if (!audio.paused) {
+                        remainingTimerSeconds--;
+                        updateTimerDisplay();
+
+                        if (remainingTimerSeconds <= 0) {
+                            clearInterval(sleepTimerInterval);
+                            audio.pause();
+                            playPauseBtn.textContent = '▶';
+                            document.getElementById('sleepTimerStatusText').textContent = 'Đã tự động tắt audio theo hẹn giờ.';
+                            localStorage.setItem(`history_${audioKey}`, audio.currentTime);
+                        }
+                    }
+                }, 1000);
             } else {
+                remainingTimerSeconds = 0;
+                document.getElementById('sleepTimerStatusText').textContent = '';
                 alert('Đã hủy hẹn giờ tắt.');
             }
         }
 
+        function updateTimerDisplay() {
+            let m = Math.floor(remainingTimerSeconds / 60);
+            let s = remainingTimerSeconds % 60;
+            let sStr = s < 10 ? '0' + s : s;
+            let mStr = m < 10 ? '0' + m : m;
+            document.getElementById('sleepTimerStatusText').textContent = `⏱️ Hẹn giờ tắt sau: ${mStr}:${sStr}`;
+        }
+
+        // --- TỐC ĐỘ PHÁT ---
         function openSpeedModal() {
             document.getElementById('speedModalOverlay').classList.add('active');
             document.getElementById('speedModalSheet').classList.add('active');
@@ -316,6 +346,7 @@
             closeSpeedModal();
         }
 
+        // --- DANH SÁCH CHƯƠNG ---
         function openChapterModal() {
             renderChapterList();
             document.getElementById('chapterModalOverlay').classList.add('active');
@@ -338,9 +369,7 @@
             }
         }
         function switchEpisode(title, audioKey) {
-            // Lưu lịch sử tập hiện tại trước khi chuyển
             if (audioKey) localStorage.setItem(`history_${audioKey}`, audio.currentTime);
-            
             localStorage.setItem('currentEpisodeTitle', title);
             localStorage.setItem('currentAudioKey', audioKey);
             location.reload();
