@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trình phát Audio</title>
+    <style>
+        body {
+            background-color: #101014; color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0; padding: 20px; box-sizing: border-box; max-width: 480px; margin: 0 auto;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+        .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .back-btn { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; text-decoration: none; }
+        .top-title { font-size: 13px; color: #888; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+        
+        .player-cover-container {
+            position: relative; margin: 20px auto; border-radius: 16px;
+            box-shadow: 0 16px 36px rgba(0,0,0,0.7); overflow: hidden; border: 1px solid rgba(255,255,255,0.08);
+        }
+        .player-cover { width: 210px; height: 275px; border-radius: 16px; object-fit: cover; display: block; }
+
+        .song-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; text-align: center; }
+        .episode-title { font-size: 13px; color: #d95a52; margin-bottom: 25px; font-weight: 600; text-align: center; }
+
+        .progress-container { width: 100%; margin-bottom: 6px; }
+        input[type="range"] {
+            width: 100%; accent-color: #d95a52; cursor: pointer; height: 6px; background: #26262e; border-radius: 3px; outline: none;
+        }
+        .time-info { width: 100%; display: flex; justify-content: space-between; font-size: 11px; color: #777; margin-bottom: 20px; }
+
+        .controls { display: flex; justify-content: center; align-items: center; gap: 18px; margin-bottom: 30px; width: 100%; }
+        .control-btn {
+            background: linear-gradient(145deg, #1d1d24, #16161c); border: 1px solid rgba(255,255,255,0.06);
+            color: #ddd; width: 50px; height: 50px; border-radius: 50%; font-size: 15px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .control-btn:hover { background: #262630; color: #fff; transform: scale(1.05); }
+        .control-btn.play-pause {
+            width: 72px; height: 72px; background: linear-gradient(135deg, #e8635c, #c74942);
+            border: none; font-size: 24px; color: #fff; box-shadow: 0 8px 24px rgba(217,90,82,0.4);
+        }
+        .control-btn.play-pause:hover { background: linear-gradient(135deg, #f26f67, #d95a52); transform: scale(1.06); }
+
+        .extra-actions { display: flex; justify-content: space-around; width: 100%; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 18px; }
+        .extra-btn {
+            background: #18181f; border: 1px solid #22222b; color: #aaa; font-size: 11px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 16px; border-radius: 12px; min-width: 75px;
+        }
+        .extra-btn span { font-size: 15px; }
+        .extra-btn:hover { background: #22222b; color: #fff; border-color: #333; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+            z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .bottom-sheet {
+            position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px;
+            background-color: #17171d; border-radius: 24px 24px 0 0; border-top: 1px solid rgba(255,255,255,0.08);
+            padding: 22px; box-sizing: border-box; z-index: 1001; transition: bottom 0.35s cubic-bezier(0.1, 0.9, 0.2, 1); text-align: left;
+        }
+        .bottom-sheet.active { bottom: 0; }
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #25252f; padding-bottom: 12px; margin-bottom: 14px; }
+        .sheet-title { font-size: 15px; font-weight: 600; color: #fff; }
+        .close-sheet { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; }
+        .option-item {
+            padding: 13px 16px; background: #1e1e26; border-radius: 10px; margin-bottom: 8px;
+            cursor: pointer; font-size: 13px; text-align: center; border: 1px solid #282833;
+        }
+        .option-item:hover { background: #262630; border-color: #444; }
+        .option-item.selected { border-color: #d95a52; color: #d95a52; font-weight: 600; background: rgba(217,90,82,0.08); }
+    </style>
+</head>
+<body>
+
+    <audio id="audioElement"></audio>
+
+    <div class="top-bar">
+        <a href="detail.html" class="back-btn" onclick="saveCurrentProgress()">&#8592;</a>
+        <span class="top-title">Đang phát Audio</span>
+        <div style="width: 20px;"></div>
+    </div>
+
+    <div class="player-cover-container">
+        <img id="playerCoverImg" src="" alt="Bìa" class="player-cover">
+    </div>
+
+    <div class="song-title" id="playerStoryName">Đang tải...</div>
+    <div class="episode-title" id="playerEpisodeTitle">Tập phát</div>
+
+    <div class="progress-container">
+        <input type="range" id="progressBar" value="0" max="100" step="0.1">
+    </div>
+    <div class="time-info">
+        <span id="currentTime">00:00</span>
+        <span id="durationTime">00:00</span>
+    </div>
+
+    <div class="controls">
+        <button class="control-btn" onclick="skipTime(-10)">↺ 10s</button>
+        <button class="control-btn play-pause" id="playBtn" onclick="togglePlay()">▶</button>
+        <button class="control-btn" onclick="skipTime(10)">10s ↻</button>
+    </div>
+
+    <div class="extra-actions">
+        <button class="extra-btn" onclick="openModal('speedModal')"><span>⚡</span> <span id="currentSpeedText">1.0x</span></button>
+        <button class="extra-btn" onclick="openModal('timerModal')"><span>⏰</span> <span id="timerStatusText">Hẹn giờ</span></button>
+        <button class="extra-btn" onclick="openModal('playlistModal')"><span>📜</span> <span>Danh sách</span></button>
+    </div>
+
+    <div class="modal-overlay" id="speedModal" onclick="closeModals()"></div>
+    <div class="bottom-sheet" id="speedModalSheet">
+        <div class="sheet-header"><span class="sheet-title">Tốc độ phát</span><button class="close-sheet" onclick="closeModals()">&times;</button></div>
+        <div class="option-item" onclick="setSpeed(0.75)">0.75x</div>
+        <div class="option-item selected" onclick="setSpeed(1.0)">1.0x (Bình thường)</div>
+        <div class="option-item" onclick="setSpeed(1.25)">1.25x</div>
+        <div class="option-item" onclick="setSpeed(1.5)">1.5x</div>
+        <div class="option-item" onclick="setSpeed(2.0)">2.0x</div>
+    </div>
+
+    <div class="modal-overlay" id="timerModal" onclick="closeModals()"></div>
+    <div class="bottom-sheet" id="timerModalSheet">
+        <div class="sheet-header"><span class="sheet-title">Hẹn giờ tắt audio</span><button class="close-sheet" onclick="closeModals()">&times;</button></div>
+        <div class="option-item" onclick="setTimer(0)">Tắt hẹn giờ</div>
+        <div class="option-item" onclick="setTimer(15)">Sau 15 phút</div>
+        <div class="option-item" onclick="setTimer(30)">Sau 30 phút</div>
+        <div class="option-item" onclick="setTimer(60)">Sau 60 phút</div>
+    </div>
+
+    <div class="modal-overlay" id="playlistModal" onclick="closeModals()"></div>
+    <div class="bottom-sheet" id="playlistModalSheet" style="max-height: 70vh; overflow-y: auto;">
+        <div class="sheet-header"><span class="sheet-title">Danh sách tập</span><button class="close-sheet" onclick="closeModals()">&times;</button></div>
+        <div id="playlistContainer"></div>
+    </div>
+
+    <script>
+        const audio = document.getElementById('audioElement');
+        const playBtn = document.getElementById('playBtn');
+        const progressBar = document.getElementById('progressBar');
+        let timerInterval = null;
+        let currentStoryId = '';
+        let currentEpTitle = '';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const stories = JSON.parse(localStorage.getItem('app_stories')) || [];
+            currentStoryId = localStorage.getItem('currentStoryId') || '';
+            const currentStory = stories.find(s => s.id === currentStoryId) || stories[0];
+            currentEpTitle = localStorage.getItem('currentEpisodeTitle') || '';
+
+            if (currentStory) {
+                document.getElementById('playerStoryName').textContent = currentStory.name;
+                document.getElementById('playerCoverImg').src = currentStory.cover;
+                document.getElementById('playerEpisodeTitle').textContent = currentEpTitle;
+
+                if (currentStory.episodes && currentStory.episodes.length > 0) {
+                    let activeEp = currentStory.episodes.find(ep => ep.title === currentEpTitle) || currentStory.episodes[0];
+                    if (activeEp && activeEp.audioKey) {
+                        loadAudioAndRestoreProgress(activeEp.audioKey);
+                    }
+                }
+
+                const playlistContainer = document.getElementById('playlistContainer');
+                playlistContainer.innerHTML = currentStory.episodes.map(ep => `
+                    <div class="option-item ${ep.title === currentEpTitle ? 'selected' : ''}" onclick="switchEpisode('${ep.title}', '${ep.audioKey}')">
+                        ${ep.title}
+                    </div>
+                `).join('');
+            }
+        });
+
+        // Hàm lấy khóa lưu trữ tiến độ dựa theo Truyện và Tập cụ thể
+        function getProgressKey() {
+            return `progress_${currentStoryId}_${currentEpTitle}`;
+        }
+
+        function saveCurrentProgress() {
+            if (currentStoryId && currentEpTitle && audio.currentTime > 0) {
+                localStorage.setItem(getProgressKey(), audio.currentTime);
+            }
+        }
+
+        function loadAudioAndRestoreProgress(audioKey) {
+            const request = indexedDB.open('AudioBookDB', 1);
+            request.onsuccess = function(e) {
+                let db = e.target.result;
+                let transaction = db.transaction(['audios'], 'readonly');
+                let store = transaction.objectStore('audios');
+                let getRequest = store.get(audioKey);
+
+                getRequest.onsuccess = function(event) {
+                    let audioFile = event.target.result;
+                    if (audioFile) {
+                        let blobUrl = URL.createObjectURL(audioFile);
+                        audio.src = blobUrl;
+                        audio.load();
+
+                        // Khôi phục điểm dừng đã lưu trước đó (nếu có)
+                        audio.addEventListener('loadedmetadata', function() {
+                            let savedTime = localStorage.getItem(getProgressKey());
+                            if (savedTime) {
+                                audio.currentTime = parseFloat(savedTime);
+                            }
+                        }, { once: true });
+                    } else {
+                        alert('Không tìm thấy tệp audio trong cơ sở dữ liệu!');
+                    }
+                };
+            };
+        }
+
+        // Tự động lưu tiến độ liên tục mỗi 3 giây hoặc khi phát sinh thay đổi
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration) {
+                progressBar.value = (audio.currentTime / audio.duration) * 100;
+                document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+                document.getElementById('durationTime').textContent = formatTime(audio.duration);
+                
+                // Lưu mốc thời gian hiện tại vào localStorage
+                if (currentStoryId && currentEpTitle) {
+                    localStorage.setItem(getProgressKey(), audio.currentTime);
+                }
+            }
+        });
+
+        function togglePlay() {
+            if (!audio.src) { alert('Tập này chưa có nguồn âm thanh!'); return; }
+            if (audio.paused) {
+                audio.play();
+                playBtn.textContent = '❚❚';
+            } else {
+                audio.pause();
+                playBtn.textContent = '▶';
+                saveCurrentProgress();
+            }
+        }
+
+        function skipTime(seconds) { 
+            audio.currentTime += seconds; 
+            saveCurrentProgress();
+        }
+
+        progressBar.addEventListener('input', () => {
+            if (audio.duration) {
+                audio.currentTime = (progressBar.value / 100) * audio.duration;
+                saveCurrentProgress();
+            }
+        });
+
+        function formatTime(seconds) {
+            let h = Math.floor(seconds / 3600);
+            let m = Math.floor((seconds % 3600) / 60);
+            let s = Math.floor(seconds % 60);
+            
+            if (h > 0) {
+                return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+            }
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.getElementById(modalId + 'Sheet').classList.add('active');
+        }
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.bottom-sheet').forEach(el => el.classList.remove('active'));
+        }
+
+        function setSpeed(rate) {
+            audio.playbackRate = rate;
+            document.getElementById('currentSpeedText').textContent = rate + 'x';
+            closeModals();
+        }
+
+        function setTimer(minutes) {
+            if (timerInterval) clearInterval(timerInterval);
+            if (minutes === 0) {
+                document.getElementById('timerStatusText').textContent = 'Hẹn giờ';
+            } else {
+                document.getElementById('timerStatusText').textContent = minutes + 'p';
+                let remaining = minutes * 60;
+            timerInterval = setInterval(() => {
+                    remaining--;
+                    if (remaining <= 0) {
+                        audio.pause();
+                        playBtn.textContent = '▶';
+                        saveCurrentProgress();
+                        clearInterval(timerInterval);
+                        document.getElementById('timerStatusText').textContent = 'Hẹn giờ';
+                    }
+                }, 1000);
+            }
+            closeModals();
+        }
+
+        function switchEpisode(title, audioKey) {
+            // Lưu tiến độ của tập hiện tại trước khi chuyển sang tập mới
+            saveCurrentProgress();
+
+            localStorage.setItem('currentEpisodeTitle', title);
+            currentEpTitle = title;
+            document.getElementById('playerEpisodeTitle').textContent = title;
+            
+            if (audioKey && audioKey !== 'undefined') {
+                loadAudioAndRestoreProgress(audioKey);
+                setTimeout(() => { 
+                    audio.play(); 
+                    playBtn.textContent = '❚❚'; 
+                }, 400);
+            }
+            closeModals();
+        }
+
+        // Lưu tiến độ khi người dùng tắt hẳn trang hoặc bấm nút quay lại
+        window.addEventListener('beforeunload', () => {
+            saveCurrentProgress();
+        });
+    </script>
+</body>
+</html>

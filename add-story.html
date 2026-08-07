@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thêm truyện mới</title>
+    <style>
+        body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; margin: 0; padding: 20px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
+        .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 20px; }
+        .title { font-size: 18px; font-weight: 700; margin-bottom: 20px; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; }
+        input, textarea { width: 100%; background: #1e1e22; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; font-size: 13px; box-sizing: border-box; outline: none; }
+        textarea { height: 90px; resize: none; }
+        .submit-btn { width: 100%; background: #d95a52; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; font-size: 14px; }
+        .preview-container { text-align: center; margin-bottom: 15px; }
+        .preview-img { width: 80px; height: 110px; object-fit: cover; border-radius: 6px; border: 1px solid #444; display: none; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="back-btn">&#8592; Quay lại</a>
+    <div class="title">Thêm Truyện Audio Mới</div>
+
+    <div class="form-group">
+        <label>Tên truyện</label>
+        <input type="text" id="storyName" placeholder="Nhập tên truyện...">
+    </div>
+
+    <div class="form-group">
+        <label>Tác giả</label>
+        <input type="text" id="storyAuthor" placeholder="Nhập tên tác giả...">
+    </div>
+
+    <div class="form-group">
+        <label>Thể loại (Tag)</label>
+        <input type="text" id="storyTag" placeholder="VD: Tiên Hiệp, Ngôn Tình...">
+    </div>
+
+    <div class="form-group">
+        <label>Chọn file ảnh bìa từ máy</label>
+        <input type="file" id="coverFileInput" accept="image/*" onchange="previewImage(event)">
+    </div>
+
+    <div class="preview-container">
+        <img id="imagePreview" class="preview-img" alt="Xem trước ảnh bìa">
+    </div>
+
+    <div class="form-group">
+        <label>Tóm tắt nội dung</label>
+        <textarea id="storySummary" placeholder="Nhập tóm tắt ngắn về truyện..."></textarea>
+    </div>
+
+    <button class="submit-btn" onclick="saveNewStory()">Lưu và Thêm Truyện</button>
+
+    <script>
+        let base64CoverImage = '';
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    base64CoverImage = e.target.result;
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = base64CoverImage;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveNewStory() {
+            const name = document.getElementById('storyName').value.trim();
+            const author = document.getElementById('storyAuthor').value.trim();
+            const tag = document.getElementById('storyTag').value.trim();
+            const summary = document.getElementById('storySummary').value.trim();
+
+            if (!name) {
+                alert('Vui lòng nhập tên truyện!');
+                return;
+            }
+
+            const cover = base64CoverImage || 'https://via.placeholder.com/300x400/222222/D95A52?text=Bia';
+
+            const newStory = {
+                id: 'story_' + Date.now(),
+                name: name,
+                author: author || 'Đang cập nhật',
+                tag: tag || 'Tổng hợp',
+                cover: cover,
+                summary: summary || 'Chưa có tóm tắt.',
+                episodes: []
+            };
+
+            let stories = JSON.parse(localStorage.getItem('app_stories')) || [];
+            stories.unshift(newStory);
+            localStorage.setItem('app_stories', JSON.stringify(stories));
+
+            alert('Thêm truyện thành công!');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

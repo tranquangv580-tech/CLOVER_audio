@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chi tiết truyện</title>
+    <style>
+        body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; margin: 0; padding: 16px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
+        .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 12px; }
+        
+        /* Ảnh bìa có thể bấm xem to */
+        .detail-cover { width: 120px; height: 165px; border-radius: 10px; object-fit: cover; display: block; margin: 0 auto 12px auto; border: 1px solid #2a2a30; box-shadow: 0 4px 12px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.2s; }
+        .detail-cover:hover { transform: scale(1.03); }
+
+        .novel-title { font-size: 18px; font-weight: 700; text-align: center; margin: 0 0 6px 0; }
+        .author-text { font-size: 13px; color: #aaa; text-align: center; margin-bottom: 8px; }
+        .tags-row { display: flex; justify-content: center; gap: 6px; margin-bottom: 16px; }
+        .tag-badge { background: #1e1e24; color: #aaa; font-size: 11px; padding: 3px 8px; border-radius: 6px; border: 1px solid #2a2a30; }
+        .section-title { font-size: 14px; font-weight: 600; color: #d95a52; margin: 16px 0 8px 0; border-bottom: 1px solid #222; padding-bottom: 4px; }
+        .summary-box { font-size: 13px; line-height: 1.6; color: #ccc; background: #19191e; padding: 12px; border-radius: 8px; border: 1px solid #25252c; }
+        
+        .update-audio-trigger { 
+            background: linear-gradient(135deg, #25252d, #1f1f26); border: 1px dashed #d95a52; color: #fff; 
+            padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; margin-top: 15px; 
+            transition: 0.2s;
+        }
+        .update-audio-trigger:hover { background: #252530; }
+
+        .audio-scroll-container { max-height: 230px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding-right: 4px; }
+        .audio-scroll-container::-webkit-scrollbar { width: 4px; }
+        .audio-scroll-container::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        
+        .audio-episode-card { 
+            background: #1a1a20; border: 1px solid #2a2a32; padding: 10px 14px; border-radius: 10px; 
+            display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #fff;
+            transition: 0.2s;
+        }
+        .audio-episode-card:hover { border-color: #d95a52; background: #1f1f27; }
+
+        /* Nút 3 chấm dọc */
+        .options-menu-btn { background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+        .options-menu-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+        /* Ô vuông chọn nhiều (Checkbox tùy chỉnh) */
+        .multi-select-checkbox {
+            width: 18px; height: 18px; border: 2px solid #555; border-radius: 4px; display: none;
+            align-items: center; justify-content: center; cursor: pointer; background: #18181d; flex-shrink: 0;
+        }
+        .multi-select-checkbox.checked { background: #2ecc71; border-color: #2ecc71; color: #fff; }
+        .multi-select-checkbox.checked::after { content: '✔'; font-size: 11px; font-weight: bold; }
+
+        /* Modal chung */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(4px); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background-color: #1a1a1e; border-radius: 24px 24px 0 0; padding: 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); }
+        .bottom-sheet.active { bottom: 0; }
+        
+        .popup-label { font-size: 12px; color: #aaa; margin-bottom: 5px; display: block; }
+        .popup-input, .file-input { width: 100%; background: #24242a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; font-size: 13px; box-sizing: border-box; margin-bottom: 12px; outline: none; }
+        .submit-btn { width: 100%; background: #d95a52; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
+        .popup-action-btn { width: 100%; background: #24242c; color: #fff; border: 1px solid #333; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .popup-action-btn:hover { background: #2e2e38; border-color: #444; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="back-btn">&#8592; Quay lại</a>
+
+    <img id="detailCoverImg" src="" alt="Bìa" class="detail-cover" onclick="openCoverModal()" title="Bấm để xem ảnh phóng to">
+    <h1 class="novel-title" id="detailTitleText"></h1>
+    <div class="author-text" id="detailAuthorText"></div>
+    <div class="tags-row" id="detailTagsRow"></div>
+
+    <div class="section-title">Tóm tắt truyện</div>
+    <div class="summary-box" id="detailSummaryBox"></div>
+
+    <div class="update-audio-trigger" onclick="openAudioModal()">+ Thêm tập audio mới</div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; border-bottom: 1px solid #222; padding-bottom: 4px;">
+        <div class="section-title" style="margin: 0; border: none; padding: 0;">Danh sách tập audio</div>
+        <button id="multiSelectToggleBtn" style="background: none; border: none; color: #d95a52; font-size: 12px; font-weight: 600; cursor: pointer;" onclick="toggleMultiSelectMode()">Chọn nhiều</button>
+    </div>
+    
+    <div class="audio-scroll-container" id="audioScrollContainer"></div>
+
+    <div id="multiActionFooter" style="display: none; position: sticky; bottom: 0; background: #16161a; padding: 12px 0; border-top: 1px solid #2a2a35; margin-top: 10px; gap: 10px;">
+        <button style="flex: 1; background: #c0392b; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;" onclick="deleteSelectedEpisodes()">Xóa toàn bộ đã chọn</button>
+        <button style="flex: 1; background: #333; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;" onclick="cancelMultiSelect()">Hủy</button>
+    </div>
+
+    <div class="modal-overlay" id="audioModalOverlay" onclick="closeAudioModal()"></div>
+    <div class="bottom-sheet" id="audioModalSheet">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+            <strong style="font-size: 15px;">Thêm tập Audio mới (Hỗ trợ file nặng 5-6 tiếng)</strong>
+            <span style="cursor: pointer; font-size: 20px; color: #aaa;" onclick="closeAudioModal()">&times;</span>
+        </div>
+        
+        <label class="popup-label">Chọn file audio (.mp3) từ thiết bị</label>
+        <input type="file" class="file-input" id="audioFileInput" accept="audio/*">
+
+        <div style="display: flex; gap: 12px;">
+            <div style="flex: 1;">
+                <label class="popup-label">Số chương</label>
+                <input type="text" class="popup-input" id="chapterInput" placeholder="VD: Chương 1-10">
+            </div>
+            <div style="flex: 1;">
+                <label class="popup-label">Số tập</label>
+                <input type="text" class="popup-input" id="episodeInput" placeholder="VD: Tập 1">
+            </div>
+        </div>
+
+        <button class="submit-btn" onclick="saveNewEpisode()">Xác nhận lưu tập</button>
+    </div>
+
+    <div class="modal-overlay" id="actionMenuOverlay" onclick="closeActionMenu()"></div>
+    <div class="bottom-sheet" id="actionMenuSheet">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+            <strong id="menuEpisodeTitle" style="font-size: 14px; color: #d95a52;">Tùy chọn tập</strong>
+            <span style="cursor: pointer; font-size: 20px; color: #aaa;" onclick="closeActionMenu()">&times;</span>
+        </div>
+        <button class="popup-action-btn" onclick="triggerDeleteSingle()">🗑 Xóa tập này</button>
+        <button class="popup-action-btn" onclick="turnOnMultiSelectFromMenu()">☑ Chọn nhiều tập...</button>
+    </div>
+
+    <div class="modal-overlay" id="coverModalOverlay" onclick="closeCoverModal()"></div>
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); z-index: 1005; opacity: 0; visibility: hidden; transition: 0.3s; text-align: center;" id="coverPopupBox">
+        <img id="modalCoverLarge" src="" style="max-width: 85vw; max-height: 80vh; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 1px solid #444;" alt="Ảnh bìa lớn">
+        <div style="margin-top: 10px;"><button style="background: #222; color: #fff; border: 1px solid #444; padding: 6px 16px; border-radius: 6px; cursor: pointer;" onclick="closeCoverModal()">Đóng</button></div>
+    </div>
+
+    <script>
+        let stories = JSON.parse(localStorage.getItem('app_stories')) || [];
+        let currentStoryId = localStorage.getItem('currentStoryId') || '';
+        let currentStory = stories.find(s => s.id === currentStoryId) || stories[0];
+        
+        let activeMenuIndex = null;
+        let isMultiSelectMode = false;
+        let selectedEpisodeIndices = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderStory();
+        });
+
+        function renderStory() {
+            if (!currentStory) return;
+            document.getElementById('detailCoverImg').src = currentStory.cover;
+            document.getElementById('modalCoverLarge').src = currentStory.cover;
+            document.getElementById('detailTitleText').textContent = currentStory.name;
+            document.getElementById('detailAuthorText').textContent = "Tác giả: " + currentStory.author;
+            document.getElementById('detailTagsRow').innerHTML = `<span class="tag-badge">${currentStory.tag}</span><span class="tag-badge">Hoàn thành</span>`;
+            document.getElementById('detailSummaryBox').textContent = currentStory.summary;
+
+            const container = document.getElementById('audioScrollContainer');
+            if (currentStory.episodes && currentStory.episodes.length > 0) {
+                container.innerHTML = currentStory.episodes.map((ep, index) => `
+                    <div class="audio-episode-card" id="epCard_${index}">
+                        <div class="multi-select-checkbox" id="chk_${index}" onclick="toggleSelectEpisode(${index})"></div>
+                        <div style="flex: 1; cursor: pointer;" onclick="${isMultiSelectMode ? `toggleSelectEpisode(${index})` : `goToPlayer('${ep.title}')`}">
+                            <div style="font-weight: 600; font-size: 13px; margin-bottom: 3px;">${ep.title}</div>
+                            <div style="font-size: 11px; color: #888;">${ep.duration}</div>
+                        </div>
+                        ${!isMultiSelectMode ? `
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span onclick="goToPlayer('${ep.title}')" style="color: #d95a52; font-size: 12px; font-weight: 600; background: rgba(217,90,82,0.1); padding: 5px 10px; border-radius: 6px; cursor: pointer;">▶ Nghe</span>
+                                <button class="options-menu-btn" onclick="openActionMenu(${index})">⋮</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+
+                // Hiển thị checkbox nếu đang ở chế độ chọn nhiều
+                if (isMultiSelectMode) {
+                    document.querySelectorAll('.multi-select-checkbox').forEach(el => el.style.display = 'flex');
+                }
+            } else {
+                container.innerHTML = `<div style="color: #888; font-size: 13px; text-align: center; padding: 20px;">Chưa có tập audio nào.</div>`;
+            }
+        }
+
+        // Xem ảnh phóng to
+        function openCoverModal() {
+            document.getElementById('coverModalOverlay').classList.add('active');
+            let box = document.getElementById('coverPopupBox');
+            box.style.visibility = 'visible';
+            box.style.opacity = '1';
+            box.style.transform = 'translate(-50%, -50%) scale(1)';
+        }
+        function closeCoverModal() {
+            document.getElementById('coverModalOverlay').classList.remove('active');
+            let box = document.getElementById('coverPopupBox');
+            box.style.visibility = 'hidden';
+            box.style.opacity = '0';
+            box.style.transform = 'translate(-50%, -50%) scale(0.9)';
+        }
+
+        // Thêm tập audio mới
+        function openAudioModal() {
+            document.getElementById('audioModalOverlay').classList.add('active');
+            document.getElementById('audioModalSheet').classList.add('active');
+        }
+        function closeAudioModal() {
+            document.getElementById('audioModalOverlay').classList.remove('active');
+            document.getElementById('audioModalSheet').classList.remove('active');
+        }
+
+        function saveNewEpisode() {
+            const epVal = document.getElementById('episodeInput').value.trim();
+            const chapVal = document.getElementById('chapterInput').value.trim();
+            const fileInput = document.getElementById('audioFileInput');
+
+            if (!epVal || !chapVal) { alert('Vui lòng nhập đầy đủ số tập và số chương!'); return; }
+            if (!fileInput.files || !fileInput.files[0]) { alert('Vui lòng chọn file audio (.mp3)!'); return; }
+
+            const audioFile = fileInput.files[0];
+            const request = indexedDB.open('AudioBookDB', 1);
+
+            request.onupgradeneeded = function(e) {
+                let db = e.target.result;
+                if (!db.objectStoreNames.contains('audios')) db.createObjectStore('audios');
+            };
+
+            request.onsuccess = function(e) {
+                let db = e.target.result;
+                let transaction = db.transaction(['audios'], 'readwrite');
+                let store = transaction.objectStore('audios');
+                let audioId = 'audio_' + Date.now();
+                let putRequest = store.put(audioFile, audioId);
+
+                putRequest.onsuccess = function() {
+                    const newEp = {
+                        id: Date.now(),
+                        audioKey: audioId,
+                        title: `[ ${epVal.toUpperCase()} ] ${chapVal}`,
+                        duration: 'Đã sẵn sàng (Bản lớn)'
+                    };
+
+                    if (!currentStory.episodes) currentStory.episodes = [];
+                    currentStory.episodes.unshift(newEp);
+
+                    let allStories = JSON.parse(localStorage.getItem('app_stories')) || [];
+                    let index = allStories.findIndex(s => s.id === currentStory.id);
+                    if (index !== -1) {
+                        allStories[index] = currentStory;
+                        localStorage.setItem('app_stories', JSON.stringify(allStories));
+                    }
+
+                    renderStory();
+                    closeAudioModal();
+                    document.getElementById('episodeInput').value = '';
+                    document.getElementById('chapterInput').value = '';
+                    fileInput.value = '';
+                    alert('Lưu tập audio thành công!');
+                };
+            };
+        }
+
+        // Menu 3 chấm
+        function openActionMenu(index) {
+            activeMenuIndex = index;
+            document.getElementById('menuEpisodeTitle').textContent = currentStory.episodes[index].title;
+            document.getElementById('actionMenuOverlay').classList.add('active');
+            document.getElementById('actionMenuSheet').classList.add('active');
+        }
+        function closeActionMenu() {
+            document.getElementById('actionMenuOverlay').classList.remove('active');
+            document.getElementById('actionMenuSheet').classList.remove('active');
+        }
+
+        function triggerDeleteSingle() {
+            if (activeMenuIndex !== null && confirm('Bạn có chắc chắn muốn xóa tập này?')) {
+                currentStory.episodes.splice(activeMenuIndex, 1);
+                updateStoryStorage();
+                renderStory();
+            }
+            closeActionMenu();
+        }
+
+        // Chế độ Chọn nhiều
+        function toggleMultiSelectMode() {
+            isMultiSelectMode = !isMultiSelectMode;
+            selectedEpisodeIndices = [];
+            document.getElementById('multiSelectToggleBtn').textContent = isMultiSelectMode ? 'Đang chọn...' : 'Chọn nhiều';
+            document.getElementById('multiActionFooter').style.display = isMultiSelectMode ? 'flex' : 'none';
+            renderStory();
+        }
+
+        function turnOnMultiSelectFromMenu() {
+            closeActionMenu();
+            isMultiSelectMode = true;
+            selectedEpisodeIndices = [activeMenuIndex];
+            document.getElementById('multiSelectToggleBtn').textContent = 'Đang chọn...';
+            document.getElementById('multiActionFooter').style.display = 'flex';
+            renderStory();
+            // Tự đánh dấu tập vừa bấm
+            let chk = document.getElementById(`chk_${activeMenuIndex}`);
+            if (chk) chk.classList.add('checked');
+        }
+
+        function toggleSelectEpisode(index) {
+            let chk = document.getElementById(`chk_${index}`);
+            let pos = selectedEpisodeIndices.indexOf(index);
+            if (pos > -1) {
+                selectedEpisodeIndices.splice(pos, 1);
+                chk.classList.remove('checked');
+            } else {
+                selectedEpisodeIndices.push(index);
+                chk.classList.add('checked');
+            }
+        }
+
+        function deleteSelectedEpisodes() {
+            if (selectedEpisodeIndices.length === 0) {
+                alert('Chưa chọn tập nào!');
+                return;
+            }
+            if (confirm(`Bạn có chắc muốn xóa ${selectedEpisodeIndices.length} tập đã chọn?`)) {
+                // Sắp xếp giảm dần để xóa mảng không bị lệch index
+                selectedEpisodeIndices.sort((a, b) => b - a);
+                selectedEpisodeIndices.forEach(idx => {
+                    currentStory.episodes.splice(idx, 1);
+                });
+                updateStoryStorage();
+                cancelMultiSelect();
+            }
+        }
+
+        function cancelMultiSelect() {
+            isMultiSelectMode = false;
+            selectedEpisodeIndices = [];
+            document.getElementById('multiSelectToggleBtn').textContent = 'Chọn nhiều';
+            document.getElementById('multiActionFooter').style.display = 'none';
+            renderStory();
+        }
+
+        function updateStoryStorage() {
+            let allStories = JSON.parse(localStorage.getItem('app_stories')) || [];
+            let index = allStories.findIndex(s => s.id === currentStory.id);
+            if (index !== -1) {
+                allStories[index] = currentStory;
+                localStorage.setItem('app_stories', JSON.stringify(allStories));
+            }
+        }
+
+        function goToPlayer(title) {
+            localStorage.setItem('currentEpisodeTitle', title);
+            window.location.href = 'player.html';
+        }
+    </script>
+</body>
+</html>
