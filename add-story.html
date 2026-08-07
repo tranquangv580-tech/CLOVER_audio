@@ -22,7 +22,7 @@
 <body>
 
     <a href="index.html" class="back-btn">&#8592; Quay lại</a>
-    <div class="page-title">Thêm bộ truyện mới</div>
+    <div class="page-title">Thêm bộ truyện mới (Lưu trữ IndexedDB không giới hạn)</div>
 
     <div class="form-group">
         <label class="form-label">Tên truyện</label>
@@ -40,7 +40,7 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Ảnh bìa truyện (Tự động tối ưu dung lượng)</label>
+        <label class="form-label">Ảnh bìa truyện</label>
         <input type="file" class="form-input" id="storyCoverInput" accept="image/*">
     </div>
 
@@ -52,7 +52,21 @@
     <button class="submit-btn" onclick="saveNewStory()">Lưu bộ truyện</button>
 
     <script>
-        // Hàm tự động nén ảnh bìa về kích thước chuẩn (chiều rộng tối đa 300px) để không bao giờ bị tràn bộ nhớ
+        // Mở IndexedDB chung
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('AudioBookDB', 1);
+                request.onupgradeneeded = function(e) {
+                    let db = e.target.result;
+                    if (!db.objectStoreNames.contains('stories')) db.createObjectStore('stories', { keyPath: 'id' });
+                    if (!db.objectStoreNames.contains('audios')) db.createObjectStore('audios');
+                };
+                request.onsuccess = e => resolve(e.target.result);
+                request.onerror = e => reject(e.target.error);
+            });
+        }
+
+        // Tự động nén ảnh bìa gọn nhẹ
         function compressImage(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -60,7 +74,7 @@
                     const img = new Image();
                     img.onload = function () {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 300; // Giới hạn chiều rộng tối ưu cho ảnh bìa
+                        const MAX_WIDTH = 300;
                         let width = img.width;
                         let height = img.height;
 
@@ -74,8 +88,6 @@
 
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-
-                        // Xuất ra định dạng JPEG với chất lượng 0.7 (giảm dung lượng cực mạnh nhưng vẫn rất nét)
                         resolve(canvas.toDataURL('image/jpeg', 0.7));
                     };
                     img.src = e.target.result;
@@ -97,9 +109,7 @@
             }
 
             let coverUrl = 'https://via.placeholder.com/120x165/333/fff?text=No+Cover';
-
             if (coverInput.files && coverInput.files[0]) {
-                // Gọi hàm nén ảnh tự động trước khi lưu
                 coverUrl = await compressImage(coverInput.files[0]);
             }
 
@@ -114,14 +124,20 @@
             };
 
             try {
-                let stories = JSON.parse(localStorage.getItem('app_stories')) || [];
-                stories.unshift(newStory);
-                localStorage.setItem('app_stories', JSON.stringify(stories));
+                let db = await openDB();
+                let tx = db.transaction('stories', 'readwrite');
+                let store = tx.objectStore('stories');
+                store.put(newStory);
 
-                alert('Thêm truyện mới thành công!');
-                window.location.href = 'index.html';
+                tx.oncomplete = function() {
+                    alert('Thêm truyện mới thành công!');
+                    window.location.href = 'index.html';
+                };
+                tx.onerror = function() {
+                    alert('Lỗi lưu vào cơ sở dữ liệu!');
+                };
             } catch (error) {
-                alert('Có lỗi xảy ra, vui lòng thử lại!');
+                alert('Có lỗi xảy ra khi lưu truyện!');
             }
         }
     </script>
