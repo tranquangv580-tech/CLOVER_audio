@@ -3,58 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Danh sách Truyện Audio</title>
+    <title>Ứng Dụng Nghe Sách Nói</title>
     <style>
         body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; margin: 0; padding: 16px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .app-title { font-size: 20px; font-weight: 700; color: #fff; margin: 0; }
+        .app-title { font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 15px; color: #d95a52; }
         
-        .sync-actions { display: flex; gap: 8px; }
-        .sync-btn { background: #1f1f26; border: 1px solid #333; color: #ccc; font-size: 11px; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .sync-btn:hover { background: #2a2a35; color: #fff; border-color: #555; }
+        /* Cụm nút chức năng đầu trang */
+        .action-row { display: flex; gap: 10px; margin-bottom: 16px; }
+        .main-btn { flex: 1; background: #d95a52; color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: 0.2s; }
+        .main-btn:hover { background: #e06d67; }
+        .backup-btn { background: #24242c; border: 1px solid #333; color: #ccc; }
+        .backup-btn:hover { background: #2e2e38; color: #fff; }
 
-        .add-story-btn { background: #d95a52; color: #fff; text-decoration: none; padding: 10px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; display: block; text-align: center; margin-bottom: 20px; }
-        .add-story-btn:hover { background: #e06d67; }
+        /* Danh sách truyện dạng lưới */
+        .novel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .novel-card { background: #1a1a20; border: 1px solid #2a2a32; border-radius: 12px; padding: 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; }
+        .novel-card:hover { border-color: #d95a52; background: #1f1f27; }
+        .novel-cover { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; background: #222; }
+        .novel-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .novel-author { font-size: 11px; color: #888; }
 
-        .story-list { display: flex; flex-direction: column; gap: 12px; }
-        .story-card { background: #19191e; border: 1px solid #25252c; border-radius: 12px; padding: 12px; display: flex; gap: 14px; align-items: center; transition: 0.2s; }
-        .story-card:hover { border-color: #383844; background: #1d1d24; }
+        /* Modal / Bottom Sheet */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(4px); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background-color: #1a1a1e; border-radius: 24px 24px 0 0; padding: 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); max-height: 85vh; overflow-y: auto; }
+        .bottom-sheet.active { bottom: 0; }
         
-        .story-cover { width: 65px; height: 90px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid #333; cursor: pointer; }
-        .story-info { flex: 1; overflow: hidden; cursor: pointer; }
-        .story-name { font-size: 15px; font-weight: 700; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .story-author { font-size: 12px; color: #aaa; margin: 0 0 8px 0; }
-        .story-tag { background: #262630; color: #bbb; font-size: 10px; padding: 3px 8px; border-radius: 4px; display: inline-block; border: 1px solid #333; }
-
-        .delete-story-btn { background: none; border: none; color: #666; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 50%; transition: 0.2s; }
-        .delete-story-btn:hover { color: #d95a52; background: rgba(217,90,82,0.1); }
+        .popup-label { font-size: 12px; color: #aaa; margin-bottom: 5px; display: block; }
+        .popup-input, .file-input { width: 100%; background: #24242a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; font-size: 13px; box-sizing: border-box; margin-bottom: 12px; outline: none; }
+        .submit-btn { width: 100%; background: #d95a52; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div class="header-row">
-        <h1 class="app-title">Kho Truyện Audio</h1>
-        <div class="sync-actions">
-            <button class="sync-btn" onclick="exportData()" title="Xuất file backup">📤 Xuất</button>
-            <button class="sync-btn" onclick="triggerImport()" title="Nhập file backup">📥 Nhập</button>
-            <input type="file" id="importFile" style="display: none;" accept=".json" onchange="importData(event)">
-        </div>
+    <div class="app-title">Thư Viện Sách Nói</div>
+
+    <div class="action-row">
+        <button class="main-btn" onclick="openStoryModal()">+ Thêm truyện mới</button>
+        <button class="main-btn backup-btn" onclick="exportBackupData()">💾 Sao lưu</button>
+        <button class="main-btn backup-btn" onclick="document.getElementById('importFileBox').click()">📥 Khôi phục</button>
+        <input type="file" id="importFileBox" accept=".json" style="display: none;" onchange="importBackupData(event)">
     </div>
 
-    <a href="add-story.html" class="add-story-btn">+ Thêm truyện mới</a>
+    <div class="novel-grid" id="novelGridContainer">
+        <div style="color: #888; font-size: 13px; text-align: center; grid-column: span 2; padding: 30px;">Đang tải thư viện...</div>
+    </div>
 
-    <div class="story-list" id="storyListContainer">
-        <div style="text-align: center; color: #666; font-size: 13px; margin-top: 40px;">Đang tải danh sách truyện...</div>
+    <div class="modal-overlay" id="storyModalOverlay" onclick="closeStoryModal()"></div>
+    <div class="bottom-sheet" id="storyModalSheet">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+            <strong style="font-size: 15px;">Thêm bộ truyện mới</strong>
+            <span style="cursor: pointer; font-size: 20px; color: #aaa;" onclick="closeStoryModal()">&times;</span>
+        </div>
+        
+        <label class="popup-label">Tên truyện</label>
+        <input type="text" class="popup-input" id="newStoryName" placeholder="VD: Đấu Phá Thương Khung">
+
+        <label class="popup-label">Tác giả</label>
+        <input type="text" class="popup-input" id="newStoryAuthor" placeholder="VD: Thiên Tằm Thổ Đậu">
+
+        <label class="popup-label">Thể loại / Thẻ</label>
+        <input type="text" class="popup-input" id="newStoryTag" placeholder="VD: Tiên Hiệp">
+
+        <label class="popup-label">Ảnh bìa truyện</label>
+        <input type="file" class="file-input" id="newStoryCoverInput" accept="image/*">
+
+        <label class="popup-label">Tóm tắt nội dung</label>
+        <textarea class="popup-input" id="newStorySummary" rows="3" placeholder="Nhập tóm tắt sơ lược về truyện..."></textarea>
+
+        <button class="submit-btn" onclick="saveNewStory()">Tạo bộ truyện</button>
     </div>
 
     <script>
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open('AudioBookDB', 2);
-                request.onupgradeneeded = function(e) {
+                request.onupgradeneeded = e => {
                     let db = e.target.result;
-                    if (!db.objectStoreNames.contains('stories')) db.createObjectStore('stories', { keyPath: 'id' });
-                    if (!db.objectStoreNames.contains('audios')) db.createObjectStore('audios');
+                    if (!db.objectStoreNames.contains('stories')) {
+                        db.createObjectStore('stories', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('audios')) {
+                        db.createObjectStore('audios');
+                    }
                 };
                 request.onsuccess = e => resolve(e.target.result);
                 request.onerror = e => reject(e.target.error);
@@ -62,132 +93,205 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            loadStoriesFromDB();
+            loadStories();
         });
 
-        async function loadStoriesFromDB() {
+        async function loadStories() {
             try {
                 let db = await openDB();
                 let tx = db.transaction('stories', 'readonly');
                 let store = tx.objectStore('stories');
-                
-                let stories = [];
-                store.openCursor().onsuccess = function(e) {
-                    let cursor = e.target.result;
-                    if (cursor) {
-                        stories.push(cursor.value);
-                        cursor.continue();
+                let request = store.getAll();
+
+                request.onsuccess = function(e) {
+                    let stories = e.target.result || [];
+                    const container = document.getElementById('novelGridContainer');
+
+                    if (stories.length > 0) {
+                        container.innerHTML = stories.map(story => `
+                            <div class="novel-card" onclick="goToDetail('${story.id}')">
+                                <img src="${story.cover || 'https://via.placeholder.com/150'}" alt="Bìa" class="novel-cover">
+                                <div class="novel-name">${story.name}</div>
+                                <div class="novel-author">${story.author || 'Đang cập nhật'}</div>
+                            </div>
+                        `).join('');
                     } else {
-                        // Sắp xếp theo thời gian tạo ID (mới nhất lên đầu)
-                        stories.sort((a, b) => {
-                            let timeA = parseInt(a.id.replace('story_', '')) || 0;
-                            let timeB = parseInt(b.id.replace('story_', '')) || 0;
-                            return timeB - timeA;
-                        });
-                        renderStoryList(stories);
+                        container.innerHTML = `<div style="color: #888; font-size: 13px; text-align: center; grid-column: span 2; padding: 30px;">Chưa có bộ truyện nào. Hãy bấm thêm mới!</div>`;
                     }
                 };
             } catch (err) {
                 console.error(err);
-                document.getElementById('storyListContainer').innerHTML = `<div style="text-align: center; color: #d95a52; font-size: 13px; margin-top: 40px;">Không thể tải dữ liệu truyện!</div>`;
             }
         }
 
-        function renderStoryList(stories) {
-            const container = document.getElementById('storyListContainer');
-
-            if (stories.length === 0) {
-                container.innerHTML = `<div style="text-align: center; color: #666; font-size: 13px; margin-top: 40px;">Chưa có bộ truyện nào.<br>Hãy bấm "Thêm truyện mới" để bắt đầu!</div>`;
-                return;
-            }
-
-            container.innerHTML = stories.map(story => `
-                <div class="story-card">
-                    <img src="${story.cover}" alt="Bìa" class="story-cover" onclick="selectStory('${story.id}')">
-                    <div class="story-info" onclick="selectStory('${story.id}')">
-                        <h2 class="story-name">${story.name}</h2>
-                        <p class="story-author">Tác giả: ${story.author}</p>
-                        <span class="story-tag">${story.tag}</span>
-                    </div>
-                    <button class="delete-story-btn" onclick="deleteStory(event, '${story.id}', '${story.name.replace(/'/g, "\\'")}')" title="Xóa truyện">🗑️</button>
-                </div>
-            `).join('');
-        }
-
-        function selectStory(id) {
-            // Đảm bảo truyền chính xác ID của từng truyện riêng biệt
-            localStorage.setItem('currentStoryId', id);
+        function goToDetail(storyId) {
+            localStorage.setItem('currentStoryId', storyId);
             window.location.href = 'detail.html';
         }
 
-        async function deleteStory(event, storyId, storyName) {
-            event.stopPropagation();
+        function openStoryModal() {
+            document.getElementById('storyModalOverlay').classList.add('active');
+            document.getElementById('storyModalSheet').classList.add('active');
+        }
+        function closeStoryModal() {
+            document.getElementById('storyModalOverlay').classList.remove('active');
+            document.getElementById('storyModalSheet').classList.remove('active');
+        }
 
-            if (confirm(`Bạn có chắc chắn muốn xóa bộ truyện "${storyName}" không?`)) {
-                try {
-                    let db = await openDB();
-                    let tx = db.transaction('stories', 'readwrite');
-                    let store = tx.objectStore('stories');
-                    store.delete(storyId);
+        async function saveNewStory() {
+            const name = document.getElementById('newStoryName').value.trim();
+            const author = document.getElementById('newStoryAuthor').value.trim();
+            const tag = document.getElementById('newStoryTag').value.trim();
+            const summary = document.getElementById('newStorySummary').value.trim();
+            const coverInput = document.getElementById('newStoryCoverInput');
 
-                    tx.oncomplete = function() {
-                        loadStoriesFromDB();
-                    };
-                    tx.onerror = function() {
-                        alert('Không thể xóa truyện!');
-                    };
-                } catch (err) {
-                    alert('Lỗi kết nối cơ sở dữ liệu!');
-                }
+            if (!name) {
+                alert('Vui lòng nhập tên truyện!');
+                return;
+            }
+
+            let coverData = '';
+            if (coverInput.files && coverInput.files[0]) {
+                coverData = await fileToBase64(coverInput.files[0]);
+            }
+
+            const newStory = {
+                id: 'story_' + Date.now(),
+                name: name,
+                author: author || 'Đang cập nhật',
+                tag: tag || 'Tổng hợp',
+                summary: summary || 'Chưa có tóm tắt.',
+                cover: coverData,
+                episodes: []
+            };
+
+            try {
+                let db = await openDB();
+                let tx = db.transaction('stories', 'readwrite');
+                let store = tx.objectStore('stories');
+                store.put(newStory);
+
+                tx.oncomplete = function() {
+                    closeStoryModal();
+                    loadStories();
+                    // Reset input
+                    document.getElementById('newStoryName').value = '';
+                    document.getElementById('newStoryAuthor').value = '';
+                    document.getElementById('newStoryTag').value = '';
+                    document.getElementById('newStorySummary').value = '';
+                    coverInput.value = '';
+                    alert('Thêm bộ truyện thành công!');
+                };
+            } catch (err) {
+                console.error(err);
+                alert('Lỗi khi lưu bộ truyện!');
             }
         }
 
-        async function exportData() {
-            let db = await openDB();
-            let tx = db.transaction('stories', 'readonly');
-            let store = tx.objectStore('stories');
-            let request = store.getAll();
+        function fileToBase64(file) {
+            return new Promise((resolve) => {
+                let reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+        }
 
-            request.onsuccess = function(e) {
-                let data = { stories: e.target.result || [] };
-                let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+        // --- TÍNH NĂNG SAO LƯU & KHÔI PHỤC DỮ LIỆU ---
+
+        async function exportBackupData() {
+            try {
+                let db = await openDB();
+                
+                let stories = await new Promise((resolve) => {
+                    let tx = db.transaction('stories', 'readonly');
+                    let req = tx.objectStore('stories').getAll();
+                    req.onsuccess = e => resolve(e.target.result || []);
+                });
+
+                let audioStore = db.transaction('audios', 'readonly').objectStore('audios');
+                let audioKeys = await new Promise(resolve => {
+                    let req = audioStore.getAllKeys();
+                    req.onsuccess = e => resolve(e.target.result || []);
+                });
+                
+                let audioFilesObj = {};
+                for (let key of audioKeys) {
+                    let fileBlob = await new Promise(resolve => {
+                        let req = audioStore.get(key);
+                        req.onsuccess = e => resolve(e.target.result);
+                    });
+                    if (fileBlob) {
+                        audioFilesObj[key] = await fileToBase64(fileBlob);
+                    }
+                }
+
+                let backupData = {
+                    version: 1,
+                    date: new Date().toISOString(),
+                    stories: stories,
+                    audios: audioFilesObj
+                };
+
+                let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
                 let downloadAnchor = document.createElement('a');
                 downloadAnchor.setAttribute("href", dataStr);
-                downloadAnchor.setAttribute("download", "audiotruyen_backup_" + Date.now() + ".json");
+                downloadAnchor.setAttribute("download", `AudioBook_Backup_${Date.now()}.json`);
                 document.body.appendChild(downloadAnchor);
                 downloadAnchor.click();
                 downloadAnchor.remove();
-            };
+
+                alert('Xuất file sao lưu dữ liệu thành công!');
+            } catch (err) {
+                console.error(err);
+                alert('Lỗi khi xuất dữ liệu sao lưu!');
+            }
         }
 
-        function triggerImport() {
-            document.getElementById('importFile').click();
+        function base64ToBlob(base64) {
+            let parts = base64.split(';base64,');
+            let contentType = parts[0].split(':')[1];
+            let raw = window.atob(parts[1]);
+            let rawLength = raw.length;
+            let uInt8Array = new Uint8Array(rawLength);
+            for (let i = 0; i < rawLength; ++i) {
+                uInt8Array[i] = raw.charCodeAt(i);
+            }
+            return new Blob([uInt8Array], { type: contentType });
         }
 
-        async function importData(event) {
+        async function importBackupData(event) {
             let file = event.target.files[0];
             if (!file) return;
 
             let reader = new FileReader();
             reader.onload = async function(e) {
                 try {
-                    let imported = JSON.parse(e.target.result);
-                    if (imported.stories) {
-                        let db = await openDB();
-                        let tx = db.transaction('stories', 'readwrite');
-                        let store = tx.objectStore('stories');
-                        
-                        imported.stories.forEach(story => store.put(story));
-
-                        tx.oncomplete = function() {
-                            loadStoriesFromDB();
-                            alert('Khôi phục dữ liệu thành công!');
-                        };
-                    } else {
-                        alert('File dữ liệu không hợp lệ!');
+                    let backupData = JSON.parse(e.target.result);
+                    if (!backupData.stories || !backupData.audios) {
+                        alert('Tệp sao lưu không hợp lệ!');
+                        return;
                     }
+
+                    let db = await openDB();
+
+                    let txStories = db.transaction('stories', 'readwrite');
+                    let storyStore = txStories.objectStore('stories');
+                    for (let story of backupData.stories) {
+                        storyStore.put(story);
+                    }
+
+                    let txAudios = db.transaction('audios', 'readwrite');
+                    let audioStore = txAudios.objectStore('audios');
+                    for (let key in backupData.audios) {
+                        let blobFile = base64ToBlob(backupData.audios[key]);
+                        audioStore.put(blobFile, key);
+                    }
+
+                    alert('Khôi phục dữ liệu thành công! Trang web sẽ được tải lại.');
+                    location.reload();
                 } catch (err) {
-                    alert('Lỗi đọc file dữ liệu!');
+                    console.error(err);
+                    alert('Lỗi đọc tệp sao lưu. Tệp có thể bị hỏng.');
                 }
             };
             reader.readAsText(file);
