@@ -37,7 +37,7 @@
         .episode-item { background: #1a1a20; border: 1px solid #2a2a32; padding: 10px 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
         .episode-item:hover { border-color: #d95a52; background: #1f1f27; }
         
-        /* Ô vuông checkbox chọn nhiều */
+        /* Ô vuông checkbox chọn nhiều (màu xanh lá khi chọn) */
         .episode-checkbox { width: 20px; height: 20px; border: 2px solid #555; border-radius: 4px; background: #24242a; display: none; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
         .episode-checkbox.checked { background: #27ae60; border-color: #27ae60; color: #fff; }
         .episode-checkbox.checked::after { content: '✓'; font-size: 12px; font-weight: bold; }
@@ -116,7 +116,7 @@
         
         <div class="dual-input-row">
             <div>
-                <label class="popup-label">Tên / Số chương (Trái)</label>
+                <label class="popup-label">Số chương (Trái)</label>
                 <input type="text" class="popup-input" id="inputChapterNum" placeholder="VD: Chương 1">
             </div>
             <div>
@@ -125,7 +125,7 @@
             </div>
         </div>
 
-        <label class="popup-label" id="fileInputLabel">Chọn tệp âm thanh (Hỗ trợ định dạng MP3, M4A, WAV...)</label>
+        <label class="popup-label" id="fileInputLabel">Chọn tệp âm thanh (.mp3, .m4a, .wav...)</label>
         <input type="file" class="file-input" id="newAudioFileInput" accept="audio/*,.mp3,.m4a,.wav,.aac">
 
         <button class="btn-style btn-primary" style="width: 100%; padding: 12px;" onclick="saveEpisodeData()">Lưu tập audio</button>
@@ -155,16 +155,34 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            loadStoryDetail();
+            if (!currentStoryId) {
+                autoFixStoryId();
+            } else {
+                loadStoryDetail();
+            }
         });
 
-        async function loadStoryDetail() {
-            if (!currentStoryId) {
-                alert('Không tìm thấy thông tin truyện!');
+        async function autoFixStoryId() {
+            try {
+                let db = await openDB();
+                let tx = db.transaction('stories', 'readonly');
+                let req = tx.objectStore('stories').getAll();
+                req.onsuccess = function(e) {
+                    let stories = e.target.result || [];
+                    if (stories.length > 0) {
+                        localStorage.setItem('currentStoryId', stories[0].id);
+                        location.reload();
+                    } else {
+                        alert('Thư viện chưa có bộ truyện nào! Vui lòng quay lại trang chủ để thêm truyện.');
+                        window.location.href = 'index.html';
+                    }
+                };
+            } catch (err) {
                 window.location.href = 'index.html';
-                return;
             }
+        }
 
+        async function loadStoryDetail() {
             try {
                 let db = await openDB();
                 let tx = db.transaction('stories', 'readonly');
@@ -232,13 +250,11 @@
             }
         }
 
-        // --- TÍNH NĂNG CHỌN NHIỀU ---
         function toggleBatchMode() {
             isBatchMode = !isBatchMode;
             selectedIndices.clear();
             document.getElementById('batchActionBar').classList.toggle('active', isBatchMode);
             document.getElementById('toggleBatchBtn').textContent = isBatchMode ? 'Hủy chọn' : 'Chọn nhiều';
-            document.getElementById('toggleBatchBtn.active')?.style.borderColor = isBatchMode ? '#d95a52' : '#3d3d4a';
             renderEpisodes();
             updateSelectedCount();
         }
@@ -279,7 +295,6 @@
             if (confirm(`Bạn có chắc chắn muốn xóa ${selectedIndices.size} tập đã chọn không?`)) {
                 try {
                     let db = await openDB();
-                    // Lọc giữ lại các tập không bị xóa
                     let newEpisodes = currentStoryData.episodes.filter((_, idx) => !selectedIndices.has(idx));
                     currentStoryData.episodes = newEpisodes;
 
@@ -301,7 +316,6 @@
             }
         }
 
-        // --- MENU 3 CHẤM ---
         function openOptionMenu(event, index) {
             event.stopPropagation();
             activeMenuIndex = index;
@@ -337,7 +351,6 @@
             }
         }
 
-        // --- MODAL THÊM TẬP ---
         function openEpisodeModal() {
             document.getElementById('modalFormTitle').textContent = 'Thêm tập audio mới';
             document.getElementById('inputChapterNum').value = '';
