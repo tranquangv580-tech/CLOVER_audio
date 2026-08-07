@@ -144,7 +144,6 @@
             loadStoryFromDB();
         });
 
-        // Lấy chính xác bộ truyện từ IndexedDB dựa vào currentStoryId
         async function loadStoryFromDB() {
             try {
                 let db = await openDB();
@@ -179,13 +178,13 @@
                 container.innerHTML = currentStory.episodes.map((ep, index) => `
                     <div class="audio-episode-card" id="epCard_${index}">
                         <div class="multi-select-checkbox" id="chk_${index}" onclick="toggleSelectEpisode(${index})"></div>
-                        <div style="flex: 1; cursor: pointer;" onclick="${isMultiSelectMode ? `toggleSelectEpisode(${index})` : `goToPlayer('${ep.title}')`}">
+                        <div style="flex: 1; cursor: pointer;" onclick="${isMultiSelectMode ? `toggleSelectEpisode(${index})` : `goToPlayer('${ep.title}', '${ep.audioKey}')`}">
                             <div style="font-weight: 600; font-size: 13px; margin-bottom: 3px;">${ep.title}</div>
                             <div style="font-size: 11px; color: #888;">${ep.duration}</div>
                         </div>
                         ${!isMultiSelectMode ? `
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span onclick="goToPlayer('${ep.title}')" style="color: #d95a52; font-size: 12px; font-weight: 600; background: rgba(217,90,82,0.1); padding: 5px 10px; border-radius: 6px; cursor: pointer;">▶ Nghe</span>
+                                <span onclick="goToPlayer('${ep.title}', '${ep.audioKey}')" style="color: #d95a52; font-size: 12px; font-weight: 600; background: rgba(217,90,82,0.1); padding: 5px 10px; border-radius: 6px; cursor: pointer;">▶ Nghe</span>
                                 <button class="options-menu-btn" onclick="openActionMenu(${index})">⋮</button>
                             </div>
                         ` : ''}
@@ -224,7 +223,6 @@
             document.getElementById('audioModalSheet').classList.remove('active');
         }
 
-        // Lưu tập audio mới vào IndexedDB và cập nhật đúng truyện hiện tại
         async function saveNewEpisode() {
             const epVal = document.getElementById('episodeInput').value.trim();
             const chapVal = document.getElementById('chapterInput').value.trim();
@@ -254,7 +252,6 @@
                     if (!currentStory.episodes) currentStory.episodes = [];
                     currentStory.episodes.unshift(newEp);
 
-                    // Cập nhật lại vào kho stories của IndexedDB
                     let dbUpdate = await openDB();
                     let txUpdate = dbUpdate.transaction(['stories'], 'readwrite');
                     let storyStore = txUpdate.objectStore('stories');
@@ -348,7 +345,6 @@
             renderStory();
         }
 
-        // Đồng bộ cập nhật thay đổi tập vào IndexedDB
         async function updateStoryStorage() {
             try {
                 let db = await openDB();
@@ -360,8 +356,9 @@
             }
         }
 
-        function goToPlayer(title) {
+        function goToPlayer(title, audioKey) {
             localStorage.setItem('currentEpisodeTitle', title);
+            localStorage.setItem('currentAudioKey', audioKey);
             window.location.href = 'player.html';
         }
     </script>
