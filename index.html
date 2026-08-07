@@ -174,7 +174,6 @@
                 tx.oncomplete = function() {
                     closeStoryModal();
                     loadStories();
-                    // Reset input
                     document.getElementById('newStoryName').value = '';
                     document.getElementById('newStoryAuthor').value = '';
                     document.getElementById('newStoryTag').value = '';
@@ -196,29 +195,32 @@
             });
         }
 
-        // --- TÍNH NĂNG SAO LƯU & KHÔI PHỤC DỮ LIỆU ---
+        // --- TÍNH NĂNG SAO LƯU & KHÔI PHỤC DỮ LIỆU ĐÃ TỐI ƯU ---
 
         async function exportBackupData() {
             try {
                 let db = await openDB();
                 
-                let stories = await new Promise((resolve) => {
+                let stories = await new Promise((resolve, reject) => {
                     let tx = db.transaction('stories', 'readonly');
                     let req = tx.objectStore('stories').getAll();
                     req.onsuccess = e => resolve(e.target.result || []);
+                    req.onerror = e => reject(e.target.error);
                 });
 
                 let audioStore = db.transaction('audios', 'readonly').objectStore('audios');
-                let audioKeys = await new Promise(resolve => {
+                let audioKeys = await new Promise((resolve, reject) => {
                     let req = audioStore.getAllKeys();
                     req.onsuccess = e => resolve(e.target.result || []);
+                    req.onerror = e => reject(e.target.error);
                 });
                 
                 let audioFilesObj = {};
                 for (let key of audioKeys) {
-                    let fileBlob = await new Promise(resolve => {
+                    let fileBlob = await new Promise((resolve) => {
                         let req = audioStore.get(key);
                         req.onsuccess = e => resolve(e.target.result);
+                        req.onerror = () => resolve(null);
                     });
                     if (fileBlob) {
                         audioFilesObj[key] = await fileToBase64(fileBlob);
@@ -226,24 +228,31 @@
                 }
 
                 let backupData = {
-                    version: 1,
+                    version: 2,
                     date: new Date().toISOString(),
                     stories: stories,
                     audios: audioFilesObj
                 };
 
-                let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+                let jsonString = JSON.stringify(backupData);
+                let blob = new Blob([jsonString], { type: 'application/json' });
+                let url = URL.createObjectURL(blob);
+                
                 let downloadAnchor = document.createElement('a');
-                downloadAnchor.setAttribute("href", dataStr);
-                downloadAnchor.setAttribute("download", `AudioBook_Backup_${Date.now()}.json`);
+                downloadAnchor.href = url;
+                downloadAnchor.download = `AudioBook_Backup_${Date.now()}.json`;
                 document.body.appendChild(downloadAnchor);
                 downloadAnchor.click();
-                downloadAnchor.remove();
+                
+                setTimeout(() => {
+                    document.body.removeChild(downloadAnchor);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
 
                 alert('Xuất file sao lưu dữ liệu thành công!');
             } catch (err) {
-                console.error(err);
-                alert('Lỗi khi xuất dữ liệu sao lưu!');
+                console.error("Lỗi sao lưu:", err);
+                alert('Lỗi khi xuất dữ liệu sao lưu! Dung lượng dữ liệu có thể quá lớn.');
             }
         }
 
