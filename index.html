@@ -3,99 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trang chủ - Audio Truyện</title>
+    <title>Danh sách Truyện Audio</title>
     <style>
-        :root {
-            --bg-color: #121212; --text-color: #fff; --card-bg: #1e1e22;
-            --accent-color: #d95a52; --sub-text: #888; --border-color: #333;
-        }
-        body.light-theme {
-            --bg-color: #f4f4f5; --text-color: #18181b; --card-bg: #ffffff;
-            --sub-text: #666; --border-color: #d1d5db;
-        }
-        body {
-            background-color: var(--bg-color); color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0; padding: 15px; box-sizing: border-box; max-width: 480px; margin: 0 auto;
-        }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .search-container { display: flex; align-items: center; gap: 10px; width: 100%; }
-        .search-bar {
-            flex: 1; background: var(--card-bg); border: 1px solid var(--border-color);
-            padding: 10px 14px; border-radius: 20px; color: var(--text-color); font-size: 13px; height: 40px; box-sizing: border-box; outline: none;
-        }
-        .icon-btn {
-            background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);
-            width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
-            cursor: pointer; text-decoration: none; box-sizing: border-box; flex-shrink: 0; font-size: 18px;
-        }
-        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
-        .story-card {
-            display: flex; gap: 12px; background: var(--card-bg); padding: 12px; border-radius: 14px;
-            text-decoration: none; color: var(--text-color); margin-bottom: 12px; border: 1px solid var(--border-color);
-            cursor: pointer; transition: transform 0.2s;
-        }
-        .story-card:hover { transform: translateY(-2px); border-color: var(--accent-color); }
-        .story-thumbnail { width: 75px; height: 100px; border-radius: 8px; object-fit: cover; }
-        .story-info { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
-        .story-name { font-size: 15px; font-weight: 700; margin: 0; }
-        .story-desc { font-size: 12px; color: var(--sub-text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .empty-notice { text-align: center; color: var(--sub-text); font-size: 13px; margin-top: 40px; }
+        body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; margin: 0; padding: 16px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .app-title { font-size: 20px; font-weight: 700; color: #fff; margin: 0; }
+        
+        /* Nhóm nút sao lưu / khôi phục */
+        .sync-actions { display: flex; gap: 8px; }
+        .sync-btn { background: #1f1f26; border: 1px solid #333; color: #ccc; font-size: 11px; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .sync-btn:hover { background: #2a2a35; color: #fff; border-color: #555; }
+
+        .add-story-btn { background: #d95a52; color: #fff; text-decoration: none; padding: 10px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; display: block; text-align: center; margin-bottom: 20px; }
+        .add-story-btn:hover { background: #e06d67; }
+
+        .story-list { display: flex; flex-direction: column; gap: 12px; }
+        .story-card { background: #19191e; border: 1px solid #25252c; border-radius: 12px; padding: 12px; display: flex; gap: 14px; cursor: pointer; transition: 0.2s; align-items: center; }
+        .story-card:hover { border-color: #d95a52; background: #1d1d24; }
+        
+        .story-cover { width: 65px; height: 90px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid #333; }
+        .story-info { flex: 1; overflow: hidden; }
+        .story-name { font-size: 15px; font-weight: 700; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .story-author { font-size: 12px; color: #aaa; margin: 0 0 8px 0; }
+        .story-tag { background: #262630; color: #bbb; font-size: 10px; padding: 3px 8px; border-radius: 4px; display: inline-block; border: 1px solid #333; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="search-container">
-            <input type="text" class="search-bar" placeholder="Tìm kiếm truyện audio...">
-            <a href="add-story.html" class="icon-btn" title="Thêm truyện mới">+</a>
-            <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Đổi giao diện">☼</button>
+    <div class="header-row">
+        <h1 class="app-title">Kho Truyện Audio</h1>
+        <div class="sync-actions">
+            <button class="sync-btn" onclick="exportData()" title="Tải file lưu trữ sang máy khác">📤 Xuất</button>
+            <button class="sync-btn" onclick="triggerImport()" title="Nhập file lưu trữ từ máy khác">📥 Nhập</button>
+            <input type="file" id="importFile" style="display: none;" accept=".json" onchange="importData(event)">
         </div>
     </div>
 
-    <div class="section-title">Danh sách truyện của bạn</div>
-    <div id="storyListContainer"></div>
+    <a href="add-story.html" class="add-story-btn">+ Thêm truyện mới</a>
+
+    <div class="story-list" id="storyListContainer">
+        </div>
 
     <script>
-        function initData() {
-            if (!localStorage.getItem('app_stories')) {
-                localStorage.setItem('app_stories', JSON.stringify([]));
-            }
-        }
-
-        function toggleTheme() {
-            document.body.classList.toggle('light-theme');
-            localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
-        }
-
-        function openDetail(storyId) {
-            localStorage.setItem('currentStoryId', storyId);
-            window.location.href = 'detail.html';
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
-            initData();
-            if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-theme');
+            renderStoryList();
+        });
 
-            const stories = JSON.parse(localStorage.getItem('app_stories')) || [];
+        function renderStoryList() {
+            let stories = JSON.parse(localStorage.getItem('app_stories')) || [];
             const container = document.getElementById('storyListContainer');
 
             if (stories.length === 0) {
-                container.innerHTML = `<div class="empty-notice">Chưa có truyện nào. Bấm nút dấu cộng (+) ở góc trên để thêm truyện mới nhé!</div>`;
+                container.innerHTML = `<div style="text-align: center; color: #666; font-size: 13px; margin-top: 40px;">Chưa có bộ truyện nào.<br>Hãy bấm "Thêm truyện mới" để bắt đầu!</div>`;
                 return;
             }
 
             container.innerHTML = stories.map(story => `
-                <div class="story-card" onclick="openDetail('${story.id}')">
-                    <img src="${story.cover || 'https://via.placeholder.com/300x400/222222/D95A52?text=Bia'}" alt="${story.name}" class="story-thumbnail">
+                <div class="story-card" onclick="selectStory('${story.id}')">
+                    <img src="${story.cover}" alt="Bìa" class="story-cover">
                     <div class="story-info">
-                        <h3 class="story-name">${story.name}</h3>
-                        <span style="font-size: 11px; color: var(--accent-color);">${story.tag || 'Chưa phân loại'} • ${story.episodes ? story.episodes.length : 0} tập</span>
-                        <p class="story-desc">${story.summary || 'Không có tóm tắt'}</p>
+                        <h2 class="story-name">${story.name}</h2>
+                        <p class="story-author">Tác giả: ${story.author}</p>
+                        <span class="story-tag">${story.tag}</span>
                     </div>
                 </div>
             `).join('');
-        });
+        }
+
+        function selectStory(id) {
+            localStorage.setItem('currentStoryId', id);
+            window.location.href = 'detail.html';
+        }
+
+        // --- TÍNH NĂNG XUẤT / NHẬP DỮ LIỆU ĐỂ ĐỒNG BỘ ---
+        function exportData() {
+            let data = {
+                stories: JSON.parse(localStorage.getItem('app_stories')) || []
+            };
+            
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+            let downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "audiotruyen_backup_" + Date.now() + ".json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerImport() {
+            document.getElementById('importFile').click();
+        }
+
+        function importData(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let imported = JSON.parse(e.target.result);
+                    if (imported.stories) {
+                        localStorage.setItem('app_stories', JSON.stringify(imported.stories));
+                        renderStoryList();
+                        alert('Khôi phục dữ liệu thành công! Danh sách truyện đã được cập nhật.');
+                    } else {
+                        alert('File dữ liệu không hợp lệ!');
+                    }
+                } catch (err) {
+                    alert('Lỗi đọc file dữ liệu!');
+                }
+            };
+            reader.readAsText(file);
+        }
     </script>
 </body>
 </html>
