@@ -25,40 +25,35 @@
         .episode-title { font-size: 20px; font-weight: 700; margin: 0 0 8px 0; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
         .story-name { font-size: 14px; color: #aaa; margin: 0; font-weight: 500; }
 
-        /* THANH TIẾN TRÌNH YOUTUBE STYLE - TỐI ƯU MOBILE */
+        /* THANH TIẾN TRÌNH PHONG CÁCH MỚI (BO TRÒN CAPSULE) */
         .progress-wrapper { padding: 0 24px; margin-bottom: 25px; }
-        .progress-container { width: 100%; height: 30px; display: flex; align-items: center; cursor: pointer; position: relative; }
+        .progress-container { width: 100%; height: 24px; display: flex; align-items: center; cursor: pointer; position: relative; }
         .progress-bar { 
             -webkit-appearance: none; 
             width: 100%; 
-            height: 4px; 
-            background: #333; 
-            border-radius: 2px; 
+            height: 6px; 
+            background: #2a2a32; 
+            border-radius: 999px; 
             outline: none; 
-            transition: height 0.2s ease; 
             cursor: pointer; 
             touch-action: none; 
         }
-        .progress-container:hover .progress-bar, .progress-container:active .progress-bar { height: 6px; }
         
         .progress-bar::-webkit-slider-thumb { 
             -webkit-appearance: none; 
-            width: 16px; 
-            height: 16px; 
+            width: 14px; 
+            height: 14px; 
             border-radius: 50%; 
-            background: #ff0000; 
+            background: #ffffff; 
             cursor: pointer; 
-            transform: scale(0); 
-            transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); 
-            box-shadow: 0 0 6px rgba(0,0,0,0.5); 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5); 
+            transition: transform 0.15s ease;
         }
-        .progress-container:hover .progress-bar::-webkit-slider-thumb, 
-        .progress-bar:active::-webkit-slider-thumb,
-        .progress-container:active .progress-bar::-webkit-slider-thumb { 
-            transform: scale(1.2); 
+        .progress-bar:active::-webkit-slider-thumb { 
+            transform: scale(1.3); 
         }
         
-        .time-row { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #888; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .time-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; color: #999; font-weight: 500; font-variant-numeric: tabular-nums; }
 
         /* CỤM NÚT ĐIỀU KHIỂN TRUNG TÂM */
         .controls { display: flex; justify-content: center; align-items: center; gap: 35px; margin-bottom: 30px; }
@@ -124,8 +119,8 @@
             <input type="range" min="0" max="100" value="0" step="0.1" class="progress-bar" id="progressBar">
         </div>
         <div class="time-row">
-            <span id="currentTime">00:00</span>
-            <span id="totalTime">00:00</span>
+            <span id="currentTime">00:00:00</span>
+            <span id="remainingTime">-00:00:00</span>
         </div>
     </div>
 
@@ -198,23 +193,22 @@
         let currentAudioKey = localStorage.getItem('currentAudioKey');
         let currentStoryId = localStorage.getItem('currentStoryId');
         let lastSaveTime = 0;
-        
         let isDragging = false; 
         
         let timerInterval = null;
         let timerEndTime = 0;
 
         function formatTime(seconds) {
-            if (isNaN(seconds) || seconds < 0) return "00:00";
+            if (isNaN(seconds) || seconds < 0) return "00:00:00";
             let h = Math.floor(seconds / 3600);
             let m = Math.floor((seconds % 3600) / 60);
             let s = Math.floor(seconds % 60);
             
+            let hStr = h < 10 ? "0" + h : h;
             let mStr = m < 10 ? "0" + m : m;
             let sStr = s < 10 ? "0" + s : s;
             
-            if (h > 0) return `${h}:${mStr}:${sStr}`;
-            return `${mStr}:${sStr}`;
+            return `${hStr}:${mStr}:${sStr}`;
         }
 
         async function initPlayer() {
@@ -269,7 +263,8 @@
         });
 
         audio.addEventListener('loadedmetadata', () => {
-            document.getElementById('totalTime').textContent = formatTime(audio.duration);
+            let duration = audio.duration || 0;
+            document.getElementById('remainingTime').textContent = "-" + formatTime(duration);
             let savedTime = localStorage.getItem('history_' + currentAudioKey);
             if (savedTime && parseFloat(savedTime) > 0) {
                 audio.currentTime = parseFloat(savedTime);
@@ -280,8 +275,11 @@
             if (audio.duration && !isDragging) {
                 let percent = (audio.currentTime / audio.duration) * 100;
                 progressBar.value = percent;
-                progressBar.style.background = `linear-gradient(to right, #ff0000 ${percent}%, #333 ${percent}%)`;
+                progressBar.style.background = `linear-gradient(to right, #ffffff ${percent}%, #2a2a32 ${percent}%)`;
+                
                 document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+                let remaining = audio.duration - audio.currentTime;
+                document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
 
                 if (Math.abs(audio.currentTime - lastSaveTime) > 5) {
                     localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
@@ -290,7 +288,7 @@
             }
         });
 
-        /* --- XỬ LÝ THANH TRƯỢT POINTER EVENTS CHUẨN XÁC TRÊN MOBILE --- */
+        /* --- XỬ LÝ THANH TRƯỢT POINTER EVENTS --- */
         progressBar.addEventListener('pointerdown', () => {
             isDragging = true;
         });
@@ -308,9 +306,12 @@
 
         progressBar.addEventListener('input', (e) => {
             let percent = e.target.value;
-            progressBar.style.background = `linear-gradient(to right, #ff0000 ${percent}%, #333 ${percent}%)`;
+            progressBar.style.background = `linear-gradient(to right, #ffffff ${percent}%, #2a2a32 ${percent}%)`;
             if (audio.duration) {
-                document.getElementById('currentTime').textContent = formatTime((percent / 100) * audio.duration);
+                let current = (percent / 100) * audio.duration;
+                document.getElementById('currentTime').textContent = formatTime(current);
+                let remaining = audio.duration - current;
+                document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
             }
         });
 
