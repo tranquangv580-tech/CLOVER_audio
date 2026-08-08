@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -15,17 +15,14 @@
         
         .header-title { font-size: 13px; font-weight: 700; color: #aaa; letter-spacing: 1px; }
 
-        /* KHU VỰC ẢNH BÌA LỚN */
         .cover-container { flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 0 40px; margin-bottom: 20px; }
         .player-cover { width: 100%; max-width: 280px; aspect-ratio: 1; object-fit: cover; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); background: #222; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease; }
         .playing .player-cover { transform: scale(1.05); box-shadow: 0 25px 50px rgba(217, 90, 82, 0.25); }
 
-        /* KHU VỰC THÔNG TIN */
         .info-section { padding: 0 24px; margin-top: 20px; margin-bottom: 25px; text-align: center; }
         .episode-title { font-size: 20px; font-weight: 700; margin: 0 0 8px 0; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
         .story-name { font-size: 14px; color: #aaa; margin: 0; font-weight: 500; }
 
-        /* THANH TIẾN TRÌNH CUSTOM */
         .progress-wrapper { padding: 0 24px; margin-bottom: 25px; }
         .progress-container { width: 100%; height: 32px; display: flex; align-items: center; cursor: pointer; position: relative; touch-action: none; }
         
@@ -37,7 +34,6 @@
         
         .time-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; color: #999; font-weight: 500; font-variant-numeric: tabular-nums; }
 
-        /* CỤM NÚT ĐIỀU KHIỂN TRUNG TÂM */
         .controls { display: flex; justify-content: center; align-items: center; gap: 35px; margin-bottom: 30px; }
         .ctrl-btn { background: none; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); fill: #fff; }
         .ctrl-btn:active { transform: scale(0.85); opacity: 0.8; }
@@ -51,7 +47,6 @@
         .playing .play-icon { display: none; }
         .playing .pause-icon { display: block; margin-left: 0; }
 
-        /* CỤM CHỨC NĂNG PHỤ */
         .bottom-actions { display: flex; justify-content: space-around; padding: 15px 20px 30px; background: linear-gradient(transparent, #0a0a0d); }
         .action-btn { background: #1a1a20; border: 1px solid #2a2a32; color: #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 30%; padding: 12px 0; border-radius: 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; gap: 6px; }
         .action-btn svg { width: 22px; height: 22px; fill: #ccc; transition: 0.2s; }
@@ -60,7 +55,6 @@
         .action-btn.active-timer { border-color: #d95a52; color: #d95a52; }
         .action-btn.active-timer svg { fill: #d95a52; }
 
-        /* POPUP (BOTTOM SHEET) CHO CÁC CHỨC NĂNG */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); backdrop-filter: blur(5px); }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         
@@ -74,7 +68,6 @@
         .sheet-item { background: #24242c; padding: 14px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; border: 1px solid transparent; display: flex; align-items: center; justify-content: space-between; }
         .sheet-item:active { background: #2e2e38; transform: scale(0.98); }
         .sheet-item.selected { border-color: #d95a52; color: #d95a52; }
-
     </style>
 </head>
 <body id="playerBody">
@@ -168,7 +161,7 @@
         <div class="sheet-content" id="episodePopupList"></div>
     </div>
 
-    <audio id="audioPlayer" preload="auto" playsinline></audio>
+    <audio id="audioPlayer" preload="auto" playsinline webkit-playsinline></audio>
 
     <script>
         const audio = document.getElementById('audioPlayer');
@@ -185,6 +178,7 @@
         
         let timerInterval = null;
         let timerEndTime = 0;
+        let hasRestoredTime = false; // Cờ đánh dấu đã khôi phục lịch sử hay chưa
 
         function formatTime(seconds) {
             if (isNaN(seconds) || seconds < 0) return "00:00:00";
@@ -255,9 +249,10 @@
             audioReq.onsuccess = (e) => {
                 let blob = e.target.result;
                 if(blob) {
-                    // CỐ TỐI ƯU QUAN TRỌNG CHO IOS SAFARI: Chuyển Blob thành File đối tượng đầy đủ tên và loại mime
+                    // ÉP BUỘC ĐỊNH DẠNG TỆP CHUẨN ĐỂ SAFARI NHẬN DIỆN ĐỘ DÀI VÀ CHO PHÉP TUA KHI ĐỌC TỪ DB
                     const audioFile = new File([blob], "audio.mp3", { type: 'audio/mpeg' });
                     audio.src = URL.createObjectURL(audioFile);
+                    audio.load(); // Bắt buộc gọi load để Safari đọc lại metadata từ đầu
                 }
             };
         }
@@ -317,14 +312,23 @@
             stopProgressLoop();
         });
 
+        // KHI SAFARI ĐỌC XONG METADATA TỪ DB, GÁN LẠI THỜI GIAN ĐÃ LƯU VÀ MỞ KHÓA TUA
         audio.addEventListener('loadedmetadata', () => {
             let duration = audio.duration || 0;
             if (!isNaN(duration) && duration > 0 && duration !== Infinity) {
                 document.getElementById('remainingTime').textContent = "-" + formatTime(duration);
             }
-            let savedTime = localStorage.getItem('history_' + currentAudioKey);
-            if (savedTime && parseFloat(savedTime) > 0) {
-                audio.currentTime = parseFloat(savedTime);
+            
+            if (!hasRestoredTime) {
+                let savedTime = localStorage.getItem('history_' + currentAudioKey);
+                if (savedTime && parseFloat(savedTime) > 0) {
+                    audio.currentTime = parseFloat(savedTime);
+                    document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+                    if (duration > 0 && duration !== Infinity) {
+                        updateSliderUI((audio.currentTime / duration) * 100);
+                    }
+                }
+                hasRestoredTime = true;
             }
         });
 
@@ -377,6 +381,7 @@
                     audio.currentTime = newTime; 
                     updateSliderUI(percent * 100);
                     document.getElementById('currentTime').textContent = formatTime(newTime);
+                    localStorage.setItem('history_' + currentAudioKey, newTime);
                 }
             }
         });
@@ -390,7 +395,9 @@
 
         function skip(seconds) {
             if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
-                audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
+                let newTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
+                audio.currentTime = newTime;
+                localStorage.setItem('history_' + currentAudioKey, newTime);
             }
         }
 
