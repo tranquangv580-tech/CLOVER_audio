@@ -25,7 +25,7 @@
         .episode-title { font-size: 20px; font-weight: 700; margin: 0 0 8px 0; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
         .story-name { font-size: 14px; color: #aaa; margin: 0; font-weight: 500; }
 
-        /* THANH TIẾN TRÌNH CUSTOM (HOÀN TOÀN MƯỢT MÀ TRÊN MOBILE) */
+        /* THANH TIẾN TRÌNH CUSTOM */
         .progress-wrapper { padding: 0 24px; margin-bottom: 25px; }
         .progress-container { width: 100%; height: 32px; display: flex; align-items: center; cursor: pointer; position: relative; touch-action: none; }
         
@@ -181,6 +181,7 @@
         let currentStoryId = localStorage.getItem('currentStoryId');
         let lastSaveTime = 0;
         let isDragging = false; 
+        let playInterval = null;
         
         let timerInterval = null;
         let timerEndTime = 0;
@@ -243,10 +244,46 @@
             else audio.pause();
         }
 
-        audio.addEventListener('play', () => playerBody.classList.add('playing'));
+        /* --- VÒNG LẶP CẬP NHẬT GIAO DIỆN (BỎ QUA LỖI THỜI GIAN CỦA MOBILE) --- */
+        function startProgressLoop() {
+            if (playInterval) clearInterval(playInterval);
+            playInterval = setInterval(() => {
+                if (audio.duration && !isDragging && !audio.paused) {
+                    let percent = (audio.currentTime / audio.duration) * 100;
+                    updateSliderUI(percent);
+                    
+                    document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+                    let remaining = audio.duration - audio.currentTime;
+                    document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
+
+                    if (Math.abs(audio.currentTime - lastSaveTime) > 5) {
+                        localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
+                        lastSaveTime = audio.currentTime;
+                    }
+                }
+            }, 100); // Chạy cập nhật mượt mà mỗi 0.1 giây trên điện thoại
+        }
+
+        function stopProgressLoop() {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        audio.addEventListener('play', () => {
+            playerBody.classList.add('playing');
+            startProgressLoop();
+        });
+
         audio.addEventListener('pause', () => {
             playerBody.classList.remove('playing');
+            stopProgressLoop();
             localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
+        });
+
+        audio.addEventListener('ended', () => {
+            stopProgressLoop();
         });
 
         audio.addEventListener('loadedmetadata', () => {
@@ -263,22 +300,6 @@
             progressFill.style.width = percent + '%';
             progressThumb.style.left = percent + '%';
         }
-
-        audio.addEventListener('timeupdate', () => {
-            if (audio.duration && !isDragging) {
-                let percent = (audio.currentTime / audio.duration) * 100;
-                updateSliderUI(percent);
-                
-                document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
-                let remaining = audio.duration - audio.currentTime;
-                document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
-
-                if (Math.abs(audio.currentTime - lastSaveTime) > 5) {
-                    localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
-                    lastSaveTime = audio.currentTime;
-                }
-            }
-        });
 
         /* --- XỬ LÝ THANH TRƯỢT TỰ CHẾ BẰNG POINTER EVENTS --- */
         function calculateProgressFromEvent(e) {
