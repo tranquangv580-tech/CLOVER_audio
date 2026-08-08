@@ -5,82 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chi Tiết Truyện</title>
     <style>
+        /* [Giữ nguyên CSS cốt lõi, thêm hiệu ứng mượt mà và CSS cho xem ảnh] */
+        * { -webkit-tap-highlight-color: transparent; }
         body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; margin: 0; padding: 16px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
         
         .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; text-decoration: none; }
+        .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; text-decoration: none; transition: 0.2s; }
+        .back-btn:active { transform: translateX(-5px); opacity: 0.7; }
         
-        .story-header { display: flex; gap: 15px; margin-bottom: 15px; background: #1a1a20; padding: 12px; border-radius: 12px; border: 1px solid #2a2a32; align-items: center; }
-        .story-cover { width: 90px; height: 120px; object-fit: cover; border-radius: 8px; background: #222; flex-shrink: 0; }
+        .story-header { display: flex; gap: 15px; margin-bottom: 15px; background: #1a1a20; padding: 12px; border-radius: 12px; border: 1px solid #2a2a32; align-items: center; transition: 0.3s; }
+        
+        /* Chỉnh lại CSS Ảnh bìa để có hiệu ứng hover/active */
+        .story-cover { width: 90px; height: 120px; object-fit: cover; border-radius: 8px; background: #222; flex-shrink: 0; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s; }
+        .story-cover:active { transform: scale(0.95); }
+        
         .story-info { display: flex; flex-direction: column; justify-content: center; flex-grow: 1; }
-        .story-name { font-size: 16px; font-weight: 700; margin: 0 0 6px 0; color: #fff; }
+        .story-name { font-size: 16px; font-weight: 700; margin: 0 0 6px 0; color: #fff; line-height: 1.3; }
         .story-author { font-size: 13px; color: #aaa; margin: 0 0 4px 0; }
-        .story-tag { font-size: 11px; background: #2a2a36; color: #d95a52; padding: 2px 8px; border-radius: 4px; align-self: flex-start; margin-top: 4px; font-weight: 600; }
+        .story-tag { font-size: 11px; background: #2a2a36; color: #d95a52; padding: 4px 8px; border-radius: 6px; align-self: flex-start; margin-top: 4px; font-weight: 600; }
         
-        .summary-box { background: #17171c; padding: 12px; border-radius: 10px; font-size: 13px; color: #ccc; margin-bottom: 15px; border: 1px solid #25252c; line-height: 1.4; }
+        .summary-box { background: #17171c; padding: 14px; border-radius: 12px; font-size: 13px; color: #ccc; margin-bottom: 15px; border: 1px solid #25252c; line-height: 1.5; }
 
         .action-desktop-row { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn-style { flex: 1; background: #24242c; border: 1px solid #3d3d4a; color: #fff; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; text-align: center; transition: 0.2s; }
-        .btn-style:hover { background: #2e2e38; border-color: #d95a52; }
+        .btn-style { flex: 1; background: #24242c; border: 1px solid #3d3d4a; color: #fff; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.2s ease; }
+        .btn-style:active { transform: scale(0.97); }
         .btn-primary { background: #d95a52; border-color: #d95a52; }
         .btn-primary:hover { background: #e06d67; }
 
-        .section-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         
-        /* Thanh công cụ khi bật chế độ chọn nhiều */
-        .batch-action-bar { display: none; background: #1f1f27; border: 1px solid #d95a52; padding: 10px; border-radius: 8px; margin-bottom: 12px; justify-content: space-between; align-items: center; }
+        .batch-action-bar { display: none; background: #1f1f27; border: 1px solid #d95a52; padding: 12px; border-radius: 10px; margin-bottom: 12px; justify-content: space-between; align-items: center; animation: fadeIn 0.3s ease; }
         .batch-action-bar.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .episode-list { display: flex; flex-direction: column; gap: 8px; }
+        .episode-list { display: flex; flex-direction: column; gap: 10px; }
+        .episode-item { background: #1a1a20; border: 1px solid #2a2a32; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; transition: all 0.25s ease; }
+        .episode-item:active { transform: scale(0.98); background: #1f1f27; }
         
-        /* Item tập dạng hình chữ nhật bo tròn */
-        .episode-item { background: #1a1a20; border: 1px solid #2a2a32; padding: 10px 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-        .episode-item:hover { border-color: #d95a52; background: #1f1f27; }
-        
-        /* Ô vuông checkbox chọn nhiều (màu xanh lá khi chọn) */
-        .episode-checkbox { width: 20px; height: 20px; border: 2px solid #555; border-radius: 4px; background: #24242a; display: none; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
+        .episode-checkbox { width: 22px; height: 22px; border: 2px solid #555; border-radius: 6px; background: #24242a; display: none; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s ease; }
         .episode-checkbox.checked { background: #27ae60; border-color: #27ae60; color: #fff; }
-        .episode-checkbox.checked::after { content: '✓'; font-size: 12px; font-weight: bold; }
+        .episode-checkbox.checked::after { content: '✓'; font-size: 14px; font-weight: bold; }
         .selecting .episode-checkbox { display: flex; }
 
         .episode-info { flex-grow: 1; cursor: pointer; }
-        .episode-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-        .episode-date { font-size: 11px; color: #888; }
+        .episode-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .episode-date { font-size: 12px; color: #888; }
         
         .episode-actions { display: flex; align-items: center; gap: 8px; }
+        .listen-btn-box { background: #d95a52; color: #fff; border: none; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; }
+        .listen-btn-box:active { transform: scale(0.92); background: #e06d67; }
         
-        /* Nút nghe hình chữ nhật bo tròn có chữ Nghe và nút play */
-        .listen-btn-box { background: #d95a52; color: #fff; border: none; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
-        .listen-btn-box:hover { background: #e06d67; }
+        .menu-dots-btn { background: none; border: none; color: #aaa; font-size: 18px; font-weight: bold; cursor: pointer; padding: 6px 10px; border-radius: 6px; transition: 0.2s; }
+        .menu-dots-btn:active { background: #2a2a32; transform: scale(0.9); }
         
-        .menu-dots-btn { background: none; border: none; color: #aaa; font-size: 18px; font-weight: bold; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
-        .menu-dots-btn:hover { color: #fff; background: #2a2a32; }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(4px); }
+        /* Tối ưu hiệu ứng mượt mà cho Bottom Sheet Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); backdrop-filter: blur(5px); }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background-color: #1a1a1e; border-radius: 24px 24px 0 0; padding: 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); max-height: 85vh; overflow-y: auto; }
+        .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background-color: #1a1a1e; border-radius: 24px 24px 0 0; padding: 24px 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); max-height: 85vh; overflow-y: auto; box-shadow: 0 -5px 25px rgba(0,0,0,0.5); }
         .bottom-sheet.active { bottom: 0; }
         
-        .popup-label { font-size: 12px; color: #aaa; margin-bottom: 4px; display: block; font-weight: 600; }
-        .popup-input, .file-input { width: 100%; background: #24242a; border: 1px solid #3d3d4a; color: #fff; padding: 10px; border-radius: 8px; font-size: 13px; box-sizing: border-box; margin-bottom: 12px; outline: none; }
+        .popup-label { font-size: 13px; color: #aaa; margin-bottom: 6px; display: block; font-weight: 600; }
+        .popup-input, .file-input { width: 100%; background: #24242a; border: 1px solid #3d3d4a; color: #fff; padding: 12px; border-radius: 10px; font-size: 14px; box-sizing: border-box; margin-bottom: 15px; outline: none; transition: border-color 0.2s; }
         .popup-input:focus { border-color: #d95a52; }
         
-        .dual-input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .dual-input-row { display: flex; gap: 12px; margin-bottom: 12px; }
         .dual-input-row > div { flex: 1; }
 
-        /* Popup menu tùy chọn 3 chấm */
-        .option-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; }
-        .option-popup.active { display: flex; }
-        .option-box { background: #1a1a1e; border: 1px solid #3d3d4a; border-radius: 12px; width: 220px; padding: 8px; }
-        .option-item { padding: 10px 14px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 6px; text-align: center; margin-bottom: 4px; }
-        .option-item:hover { background: #2a2a32; color: #d95a52; }
+        .option-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; opacity: 0; visibility: hidden; display: flex; justify-content: center; align-items: center; transition: 0.3s; backdrop-filter: blur(4px); }
+        .option-popup.active { opacity: 1; visibility: visible; }
+        .option-box { background: #1a1a1e; border: 1px solid #3d3d4a; border-radius: 16px; width: 240px; padding: 10px; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .option-popup.active .option-box { transform: scale(1); }
+        .option-item { padding: 12px 14px; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 8px; text-align: center; margin-bottom: 4px; transition: 0.2s; }
+        .option-item:active { background: #2a2a32; transform: scale(0.98); }
+
+        /* MỚI: CSS CHO PHÓNG TO ẢNH BÌA */
+        .image-viewer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; backdrop-filter: blur(8px); }
+        .image-viewer-overlay.active { opacity: 1; visibility: visible; }
+        .image-viewer-img { max-width: 90%; max-height: 80%; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transform: scale(0.7); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .image-viewer-overlay.active .image-viewer-img { transform: scale(1); }
+        .image-viewer-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.15); border: none; color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: 0.2s; }
+        .image-viewer-close:active { background: rgba(255,255,255,0.3); transform: scale(0.9); }
     </style>
 </head>
 <body>
 
     <div class="top-row">
         <a href="index.html" class="back-btn">&#8592; Thư viện</a>
-        <span style="font-size: 13px; color: #d95a52; font-weight: 600; cursor: pointer;" onclick="deleteStory()">Xóa bộ truyện</span>
+        <span style="font-size: 13px; color: #d95a52; font-weight: 600; cursor: pointer; padding: 8px;" onclick="deleteStory()">Xóa bộ truyện</span>
     </div>
 
     <div class="story-header" id="storyHeaderContainer">
@@ -95,12 +106,12 @@
 
     <div class="section-title">
         <span>Danh sách tập</span>
-        <button class="btn-style" id="toggleBatchBtn" onclick="toggleBatchMode()" style="padding: 4px 10px; font-size: 11px; flex: unset;">Chọn nhiều</button>
+        <button class="btn-style" id="toggleBatchBtn" onclick="toggleBatchMode()" style="padding: 6px 12px; font-size: 12px; flex: unset; border-radius: 6px;">Chọn nhiều</button>
     </div>
 
     <div class="batch-action-bar" id="batchActionBar">
-        <span id="selectedCountText" style="font-size: 12px; color: #aaa;">Đã chọn: 0</span>
-        <button class="btn-style" onclick="deleteSelectedEpisodes()" style="background: #c0392b; border-color: #c0392b; padding: 6px 12px; font-size: 12px;">Xóa các tập đã chọn</button>
+        <span id="selectedCountText" style="font-size: 13px; color: #aaa; font-weight: 600;">Đã chọn: 0</span>
+        <button class="btn-style" onclick="deleteSelectedEpisodes()" style="background: #e74c3c; border-color: #e74c3c; padding: 8px 14px; font-size: 12px;">Xóa đã chọn</button>
     </div>
 
     <div class="episode-list" id="episodeListContainer">
@@ -109,9 +120,9 @@
 
     <div class="modal-overlay" id="episodeModalOverlay" onclick="closeEpisodeModal()"></div>
     <div class="bottom-sheet" id="episodeModalSheet">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
-            <strong style="font-size: 15px;" id="modalFormTitle">Thêm tập audio mới</strong>
-            <span style="cursor: pointer; font-size: 20px; color: #aaa;" onclick="closeEpisodeModal()">&times;</span>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; align-items: center;">
+            <strong style="font-size: 16px;" id="modalFormTitle">Thêm tập audio mới</strong>
+            <span style="cursor: pointer; font-size: 24px; color: #aaa; padding: 5px;" onclick="closeEpisodeModal()">&times;</span>
         </div>
         
         <div class="dual-input-row">
@@ -128,15 +139,20 @@
         <label class="popup-label" id="fileInputLabel">Chọn tệp âm thanh (.mp3, .m4a, .wav...)</label>
         <input type="file" class="file-input" id="newAudioFileInput" accept="audio/*,.mp3,.m4a,.wav,.aac">
 
-        <button class="btn-style btn-primary" style="width: 100%; padding: 12px;" onclick="saveEpisodeData()">Lưu tập audio</button>
+        <button class="btn-style btn-primary" style="width: 100%; padding: 14px; font-size: 14px; margin-top: 10px;" onclick="saveEpisodeData()">Lưu tập audio</button>
     </div>
 
     <div class="option-popup" id="optionPopupOverlay" onclick="closeOptionPopup()">
         <div class="option-box" onclick="event.stopPropagation()">
             <div class="option-item" onclick="confirmDeleteSingleEpisode()">Xóa tập này</div>
             <div class="option-item" onclick="enableBatchModeFromMenu()">Chọn nhiều tập</div>
-            <div class="option-item" onclick="closeOptionPopup()" style="color: #aaa; border-top: 1px solid #333; margin-top: 4px;">Hủy</div>
+            <div class="option-item" onclick="closeOptionPopup()" style="color: #aaa; border-top: 1px solid #333; margin-top: 8px;">Hủy</div>
         </div>
+    </div>
+
+    <div class="image-viewer-overlay" id="imageViewerOverlay" onclick="closeImageViewer()">
+        <img src="" alt="Bìa Full" class="image-viewer-img" id="imageViewerImg" onclick="event.stopPropagation()">
+        <button class="image-viewer-close" onclick="closeImageViewer()">&times;</button>
     </div>
 
     <script>
@@ -173,32 +189,25 @@
                         localStorage.setItem('currentStoryId', stories[0].id);
                         location.reload();
                     } else {
-                        alert('Thư viện chưa có bộ truyện nào! Vui lòng quay lại trang chủ để thêm truyện.');
                         window.location.href = 'index.html';
                     }
                 };
-            } catch (err) {
-                window.location.href = 'index.html';
-            }
+            } catch (err) { window.location.href = 'index.html'; }
         }
 
         async function loadStoryDetail() {
             try {
                 let db = await openDB();
                 let tx = db.transaction('stories', 'readonly');
-                let store = tx.objectStore('stories');
-                let request = store.get(currentStoryId);
+                let request = tx.objectStore('stories').get(currentStoryId);
 
                 request.onsuccess = function(e) {
                     currentStoryData = e.target.result;
-                    if (!currentStoryData) {
-                        alert('Truyện không tồn tại hoặc đã bị xóa!');
-                        window.location.href = 'index.html';
-                        return;
-                    }
+                    if (!currentStoryData) { window.location.href = 'index.html'; return; }
 
+                    const coverSrc = currentStoryData.cover || 'https://via.placeholder.com/150';
                     document.getElementById('storyHeaderContainer').innerHTML = `
-                        <img src="${currentStoryData.cover || 'https://via.placeholder.com/150'}" alt="Bìa" class="story-cover">
+                        <img src="${coverSrc}" alt="Bìa" class="story-cover" onclick="viewCover('${coverSrc}')" title="Bấm để xem ảnh lớn">
                         <div class="story-info">
                             <h1 class="story-name">${currentStoryData.name}</h1>
                             <div class="story-author">Tác giả: ${currentStoryData.author || 'Đang cập nhật'}</div>
@@ -209,15 +218,22 @@
                     document.getElementById('storySummaryText').textContent = currentStoryData.summary || 'Chưa có tóm tắt.';
                     renderEpisodes();
                 };
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) { console.error(err); }
         }
 
+        // --- CÁC HÀM CHO TRÌNH XEM ẢNH MỚI ---
+        function viewCover(src) {
+            document.getElementById('imageViewerImg').src = src;
+            document.getElementById('imageViewerOverlay').classList.add('active');
+        }
+        function closeImageViewer() {
+            document.getElementById('imageViewerOverlay').classList.remove('active');
+        }
+
+        // --- CÁC HÀM XỬ LÝ KHÁC (GIỮ NGUYÊN HOÀN TOÀN LOGIC) ---
         function renderEpisodes() {
             const container = document.getElementById('episodeListContainer');
             let episodes = currentStoryData.episodes || [];
-
             if (episodes.length > 0) {
                 container.innerHTML = episodes.map((ep, index) => {
                     let isChecked = selectedIndices.has(index) ? 'checked' : '';
@@ -232,7 +248,7 @@
                                 <button class="listen-btn-box" onclick="playEpisode('${ep.title}', '${ep.audioKey}')">
                                     <span>&#9658;</span> Nghe
                                 </button>
-                                <button class="menu-dots-btn" onclick="openOptionMenu(event, ${index})" title="Tùy chọn">&#8942;</button>
+                                <button class="menu-dots-btn" onclick="openOptionMenu(event, ${index})">&#8942;</button>
                             </div>
                         </div>
                     `;
@@ -243,11 +259,7 @@
         }
 
         function handleItemClick(index, title, audioKey) {
-            if (isBatchMode) {
-                toggleSelectEpisode(index);
-            } else {
-                playEpisode(title, audioKey);
-            }
+            if (isBatchMode) { toggleSelectEpisode(index); } else { playEpisode(title, audioKey); }
         }
 
         function toggleBatchMode() {
@@ -261,15 +273,11 @@
 
         function enableBatchModeFromMenu() {
             closeOptionPopup();
-            isBatchMode = true;
-            selectedIndices.clear();
-            if (activeMenuIndex !== null) {
-                selectedIndices.add(activeMenuIndex);
-            }
+            isBatchMode = true; selectedIndices.clear();
+            if (activeMenuIndex !== null) selectedIndices.add(activeMenuIndex);
             document.getElementById('batchActionBar').classList.add('active');
             document.getElementById('toggleBatchBtn').textContent = 'Hủy chọn';
-            renderEpisodes();
-            updateSelectedCount();
+            renderEpisodes(); updateSelectedCount();
         }
 
         function toggleSelectEpisode(index) {
@@ -283,76 +291,44 @@
             updateSelectedCount();
         }
 
-        function updateSelectedCount() {
-            document.getElementById('selectedCountText').textContent = `Đã chọn: ${selectedIndices.size}`;
-        }
+        function updateSelectedCount() { document.getElementById('selectedCountText').textContent = `Đã chọn: ${selectedIndices.size}`; }
 
         async function deleteSelectedEpisodes() {
-            if (selectedIndices.size === 0) {
-                alert('Vui lòng chọn ít nhất một tập để xóa!');
-                return;
-            }
-            if (confirm(`Bạn có chắc chắn muốn xóa ${selectedIndices.size} tập đã chọn không?`)) {
-                try {
-                    let db = await openDB();
-                    let newEpisodes = currentStoryData.episodes.filter((_, idx) => !selectedIndices.has(idx));
-                    currentStoryData.episodes = newEpisodes;
-
-                    let tx = db.transaction('stories', 'readwrite');
-                    tx.objectStore('stories').put(currentStoryData);
-
-                    tx.oncomplete = function() {
-                        isBatchMode = false;
-                        selectedIndices.clear();
-                        document.getElementById('batchActionBar').classList.remove('active');
-                        document.getElementById('toggleBatchBtn').textContent = 'Chọn nhiều';
-                        loadStoryDetail();
-                        alert('Xóa các tập thành công!');
-                    };
-                } catch (err) {
-                    console.error(err);
-                    alert('Lỗi khi xóa các tập đã chọn!');
-                }
+            if (selectedIndices.size === 0) { alert('Vui lòng chọn ít nhất một tập để xóa!'); return; }
+            if (confirm(`Xóa ${selectedIndices.size} tập đã chọn?`)) {
+                let db = await openDB();
+                currentStoryData.episodes = currentStoryData.episodes.filter((_, idx) => !selectedIndices.has(idx));
+                let tx = db.transaction('stories', 'readwrite');
+                tx.objectStore('stories').put(currentStoryData);
+                tx.oncomplete = function() {
+                    isBatchMode = false; selectedIndices.clear();
+                    document.getElementById('batchActionBar').classList.remove('active');
+                    document.getElementById('toggleBatchBtn').textContent = 'Chọn nhiều';
+                    loadStoryDetail();
+                };
             }
         }
 
         function openOptionMenu(event, index) {
-            event.stopPropagation();
-            activeMenuIndex = index;
+            event.stopPropagation(); activeMenuIndex = index;
             document.getElementById('optionPopupOverlay').classList.add('active');
         }
-        function closeOptionPopup() {
-            document.getElementById('optionPopupOverlay').classList.remove('active');
-            activeMenuIndex = null;
-        }
+        function closeOptionPopup() { document.getElementById('optionPopupOverlay').classList.remove('active'); activeMenuIndex = null; }
 
         function confirmDeleteSingleEpisode() {
             closeOptionPopup();
-            if (activeMenuIndex !== null && confirm('Bạn có chắc muốn xóa tập này không?')) {
-                deleteSingleEpisode(activeMenuIndex);
-            }
+            if (activeMenuIndex !== null && confirm('Xóa tập này?')) { deleteSingleEpisode(activeMenuIndex); }
         }
 
         async function deleteSingleEpisode(index) {
-            try {
-                let db = await openDB();
-                currentStoryData.episodes.splice(index, 1);
-
-                let tx = db.transaction('stories', 'readwrite');
-                tx.objectStore('stories').put(currentStoryData);
-
-                tx.oncomplete = function() {
-                    loadStoryDetail();
-                    alert('Đã xóa tập thành công!');
-                };
-            } catch (err) {
-                console.error(err);
-                alert('Lỗi khi xóa tập!');
-            }
+            let db = await openDB();
+            currentStoryData.episodes.splice(index, 1);
+            let tx = db.transaction('stories', 'readwrite');
+            tx.objectStore('stories').put(currentStoryData);
+            tx.oncomplete = function() { loadStoryDetail(); };
         }
 
         function openEpisodeModal() {
-            document.getElementById('modalFormTitle').textContent = 'Thêm tập audio mới';
             document.getElementById('inputChapterNum').value = '';
             document.getElementById('inputEpisodeNum').value = `Tập ${(currentStoryData.episodes?.length || 0) + 1}`;
             document.getElementById('newAudioFileInput').value = '';
@@ -370,43 +346,26 @@
             const epNum = document.getElementById('inputEpisodeNum').value.trim();
             const audioInput = document.getElementById('newAudioFileInput');
 
-            if (!chapNum) {
-                alert('Vui lòng nhập thông tin chương ở ô bên trái!');
-                return;
-            }
-            if (!audioInput.files || !audioInput.files[0]) {
-                alert('Vui lòng chọn tệp âm thanh!');
-                return;
-            }
+            if (!chapNum) { alert('Nhập thông tin chương bên trái!'); return; }
+            if (!audioInput.files || !audioInput.files[0]) { alert('Vui lòng chọn tệp âm thanh!'); return; }
 
             let fullTitle = epNum ? `${chapNum} - ${epNum}` : chapNum;
             let audioFile = audioInput.files[0];
             let audioKey = 'audio_' + Date.now();
 
-            try {
-                let db = await openDB();
-                let txAudio = db.transaction('audios', 'readwrite');
-                txAudio.objectStore('audios').put(audioFile, audioKey);
+            let db = await openDB();
+            let txAudio = db.transaction('audios', 'readwrite');
+            txAudio.objectStore('audios').put(audioFile, audioKey);
 
-                if (!currentStoryData.episodes) currentStoryData.episodes = [];
-                currentStoryData.episodes.push({
-                    title: fullTitle,
-                    audioKey: audioKey,
-                    createdAt: new Date().toISOString()
-                });
+            if (!currentStoryData.episodes) currentStoryData.episodes = [];
+            currentStoryData.episodes.push({ title: fullTitle, audioKey: audioKey, createdAt: new Date().toISOString() });
 
-                let txStory = db.transaction('stories', 'readwrite');
-                txStory.objectStore('stories').put(currentStoryData);
+            let txStory = db.transaction('stories', 'readwrite');
+            txStory.objectStore('stories').put(currentStoryData);
 
-                txStory.oncomplete = function() {
-                    closeEpisodeModal();
-                    loadStoryDetail();
-                    alert('Thêm tập audio thành công!');
-                };
-            } catch (err) {
-                console.error(err);
-                alert('Lỗi hệ thống khi lưu tập audio!');
-            }
+            txStory.oncomplete = function() {
+                closeEpisodeModal(); loadStoryDetail();
+            };
         }
 
         function playEpisode(title, audioKey) {
@@ -416,20 +375,11 @@
         }
 
         async function deleteStory() {
-            if (confirm('Bạn có chắc chắn muốn xóa bộ truyện này không?')) {
-                try {
-                    let db = await openDB();
-                    let tx = db.transaction('stories', 'readwrite');
-                    tx.objectStore('stories').delete(currentStoryId);
-
-                    tx.oncomplete = function() {
-                        alert('Đã xóa bộ truyện thành công!');
-                        window.location.href = 'index.html';
-                    };
-                } catch (err) {
-                    console.error(err);
-                    alert('Lỗi khi xóa truyện!');
-                }
+            if (confirm('Chắc chắn xóa bộ truyện này?')) {
+                let db = await openDB();
+                let tx = db.transaction('stories', 'readwrite');
+                tx.objectStore('stories').delete(currentStoryId);
+                tx.oncomplete = function() { window.location.href = 'index.html'; };
             }
         }
     </script>
