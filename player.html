@@ -168,7 +168,7 @@
         <div class="sheet-content" id="episodePopupList"></div>
     </div>
 
-    <audio id="audioPlayer" preload="auto"></audio>
+    <audio id="audioPlayer" preload="auto" playsinline></audio>
 
     <script>
         const audio = document.getElementById('audioPlayer');
@@ -219,7 +219,6 @@
                     document.getElementById('playerStoryName').textContent = storyName;
                     document.getElementById('playerCover').src = coverUrl;
                     
-                    // CẤU HÌNH MEDIA SESSION API (HỖ TRỢ ĐIỀU KHIỂN MÀN HÌNH KHÓA IPHONE)
                     if ('mediaSession' in navigator) {
                         navigator.mediaSession.metadata = new MediaMetadata({
                             title: episodeTitle,
@@ -256,9 +255,9 @@
             audioReq.onsuccess = (e) => {
                 let blob = e.target.result;
                 if(blob) {
-                    // ÉP BUỘC ĐỊNH DẠNG MIME CHUẨN CHO IOS SAFARI ĐỂ KHÔNG BỊ LỖI TUA VÀ TIẾN TRÌNH
-                    const audioBlob = new Blob([blob], { type: 'audio/mpeg' });
-                    audio.src = URL.createObjectURL(audioBlob);
+                    // CỐ TỐI ƯU QUAN TRỌNG CHO IOS SAFARI: Chuyển Blob thành File đối tượng đầy đủ tên và loại mime
+                    const audioFile = new File([blob], "audio.mp3", { type: 'audio/mpeg' });
+                    audio.src = URL.createObjectURL(audioFile);
                 }
             };
         }
@@ -271,7 +270,6 @@
             }
         }
 
-        /* --- VÒNG LẶP CẬP NHẬT GIAO DIỆN --- */
         function startProgressLoop() {
             if (playInterval) clearInterval(playInterval);
             playInterval = setInterval(() => {
@@ -336,7 +334,6 @@
             progressThumb.style.left = percent + '%';
         }
 
-        /* --- XỬ LÝ THANH TRƯỢT & TUA CHÍNH XÁC TRÊN IPHONE --- */
         function calculateProgressFromEvent(e) {
             const rect = progressContainer.getBoundingClientRect();
             let x = e.clientX - rect.left;
@@ -377,7 +374,7 @@
                 let percent = calculateProgressFromEvent(e);
                 if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
                     let newTime = percent * audio.duration;
-                    audio.currentTime = newTime; // Cập nhật vị trí thời gian mới trên iOS
+                    audio.currentTime = newTime; 
                     updateSliderUI(percent * 100);
                     document.getElementById('currentTime').textContent = formatTime(newTime);
                 }
