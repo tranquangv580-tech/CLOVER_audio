@@ -37,7 +37,7 @@
             outline: none; 
             transition: height 0.2s ease; 
             cursor: pointer; 
-            touch-action: none; /* RẤT QUAN TRỌNG: Ngừa cuộn trang khi vuốt thanh */
+            touch-action: none; 
         }
         .progress-container:hover .progress-bar, .progress-container:active .progress-bar { height: 6px; }
         
@@ -48,11 +48,10 @@
             border-radius: 50%; 
             background: #ff0000; 
             cursor: pointer; 
-            transform: scale(0); /* Ẩn cục đỏ khi bình thường */
+            transform: scale(0); 
             transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); 
             box-shadow: 0 0 6px rgba(0,0,0,0.5); 
         }
-        /* Hiển thị cục đỏ khi chạm hoặc hover */
         .progress-container:hover .progress-bar::-webkit-slider-thumb, 
         .progress-bar:active::-webkit-slider-thumb,
         .progress-container:active .progress-bar::-webkit-slider-thumb { 
@@ -200,10 +199,8 @@
         let currentStoryId = localStorage.getItem('currentStoryId');
         let lastSaveTime = 0;
         
-        // Biến kiểm soát thanh trượt Mobile
         let isDragging = false; 
         
-        // Biến hẹn giờ thời gian thực
         let timerInterval = null;
         let timerEndTime = 0;
 
@@ -280,7 +277,6 @@
         });
 
         audio.addEventListener('timeupdate', () => {
-            // CHỈ cập nhật thanh trượt nếu người dùng KHÔNG chạm tay vào (chống giật)
             if (audio.duration && !isDragging) {
                 let percent = (audio.currentTime / audio.duration) * 100;
                 progressBar.value = percent;
@@ -294,19 +290,21 @@
             }
         });
 
-        /* --- XỬ LÝ THANH TRƯỢT MƯỢT MÀ TRÊN MOBILE --- */
-        const startDrag = () => { isDragging = true; };
-        const endDrag = () => { 
-            isDragging = false; 
-            audio.currentTime = (progressBar.value / 100) * audio.duration; 
-        };
+        /* --- XỬ LÝ THANH TRƯỢT POINTER EVENTS CHUẨN XÁC TRÊN MOBILE --- */
+        progressBar.addEventListener('pointerdown', () => {
+            isDragging = true;
+        });
 
-        // Bắt sự kiện chạm (Mobile)
-        progressBar.addEventListener('touchstart', startDrag, {passive: true});
-        progressBar.addEventListener('touchend', endDrag);
-        // Bắt sự kiện chuột (Desktop)
-        progressBar.addEventListener('mousedown', startDrag);
-        progressBar.addEventListener('mouseup', endDrag);
+        progressBar.addEventListener('pointerup', () => {
+            if (isDragging) {
+                isDragging = false;
+                audio.currentTime = (progressBar.value / 100) * audio.duration;
+            }
+        });
+
+        progressBar.addEventListener('pointercancel', () => {
+            isDragging = false;
+        });
 
         progressBar.addEventListener('input', (e) => {
             let percent = e.target.value;
@@ -339,18 +337,17 @@
             closeAllPopups();
         }
 
-        /* --- XỬ LÝ BỘ ĐẾM NGƯỢC HẸN GIỜ (LIVE COUNTDOWN) --- */
         function setTimer(minutes) {
             let items = document.querySelectorAll('#timerPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
             event.currentTarget.classList.add('selected');
 
-            clearInterval(timerInterval); // Xóa bộ đếm cũ
+            clearInterval(timerInterval);
 
             if (minutes > 0) {
                 document.getElementById('timerBtn').classList.add('active-timer');
                 timerEndTime = Date.now() + minutes * 60000;
-                updateTimerDisplay(); // Chạy ngay lập tức để khỏi chờ 1 giây
+                updateTimerDisplay();
                 timerInterval = setInterval(updateTimerDisplay, 1000);
             } else {
                 document.getElementById('timerBtn').classList.remove('active-timer');
@@ -367,7 +364,6 @@
                 document.getElementById('timerBtn').classList.remove('active-timer');
                 document.getElementById('timerText').textContent = "Hẹn giờ";
                 
-                // Reset lại giao diện menu hẹn giờ về mặc định (Tắt hẹn giờ)
                 let items = document.querySelectorAll('#timerPopup .sheet-item');
                 items.forEach(item => item.classList.remove('selected'));
                 document.getElementById('timer_0').classList.add('selected');
@@ -375,7 +371,6 @@
                 alert('Đã hết thời gian hẹn giờ! Nhạc đã dừng.');
                 return;
             }
-            // Đổi miligiây còn lại sang Giây, rồi dùng hàm formatTime để hiển thị
             let totalSeconds = Math.floor(remain / 1000);
             document.getElementById('timerText').textContent = formatTime(totalSeconds);
         }
