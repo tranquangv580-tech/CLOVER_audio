@@ -168,7 +168,7 @@
         <div class="sheet-content" id="episodePopupList"></div>
     </div>
 
-    <audio id="audioPlayer"></audio>
+    <audio id="audioPlayer" preload="auto"></audio>
 
     <script>
         const audio = document.getElementById('audioPlayer');
@@ -200,8 +200,8 @@
         }
 
         async function initPlayer() {
-            let episodeTitle = localStorage.getItem('currentEpisodeTitle');
-            document.getElementById('playerTitle').textContent = episodeTitle || "Tập không xác định";
+            let episodeTitle = localStorage.getItem('currentEpisodeTitle') || "Tập không xác định";
+            document.getElementById('playerTitle').textContent = episodeTitle;
 
             let db = await new Promise((resolve) => {
                 let req = indexedDB.open('AudioBookDB', 2);
@@ -213,9 +213,29 @@
             storyReq.onsuccess = (e) => {
                 let story = e.target.result;
                 if(story) {
-                    document.getElementById('playerStoryName').textContent = story.name;
-                    document.getElementById('playerCover').src = story.cover || 'https://via.placeholder.com/300';
+                    let storyName = story.name || "Truyện nói";
+                    let coverUrl = story.cover || 'https://via.placeholder.com/300';
+
+                    document.getElementById('playerStoryName').textContent = storyName;
+                    document.getElementById('playerCover').src = coverUrl;
                     
+                    // CẤU HÌNH MEDIA SESSION API (HIỂN THỊ TRÊN MÀN HÌNH KHÓA IPHONE/ANDROID)
+                    if ('mediaSession' in navigator) {
+                        navigator.mediaSession.metadata = new MediaMetadata({
+                            title: episodeTitle,
+                            artist: storyName,
+                            album: "AudioBook App",
+                            artwork: [
+                                { src: coverUrl, sizes: '512x512', type: 'image/jpeg' }
+                            ]
+                        });
+
+                        navigator.mediaSession.setActionHandler('play', () => { audio.play(); });
+                        navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); });
+                        navigator.mediaSession.setActionHandler('seekbackward', () => { skip(-10); });
+                        navigator.mediaSession.setActionHandler('seekforward', () => { skip(10); });
+                    }
+
                     if(story.episodes) {
                         let html = story.episodes.map(ep => {
                             let isPlaying = ep.audioKey === currentAudioKey ? 'selected' : '';
@@ -240,15 +260,19 @@
         }
 
         function togglePlay() {
-            if (audio.paused) audio.play();
-            else audio.pause();
+            if (audio.paused) {
+                audio.play().catch(err => console.log(err));
+            } else {
+                audio.pause();
+            }
         }
 
-        /* --- VÒNG LẶP CẬP NHẬT GIAO DIỆN (BỎ QUA LỖI THỜI GIAN CỦA MOBILE) --- */
+        /* --- VÒNG LẶP CẬP NHẬT GIAO DIỆN (CHỐNG LỖI NaN & KHÓA TIẾN TRÌNH TRÊN MOBILE) --- */
         function startProgressLoop() {
             if (playInterval) clearInterval(playInterval);
             playInterval = setInterval(() => {
-                if (audio.duration && !isDragging && !audio.paused) {
+                // Kiểm tra kỹ điều kiện audio.duration hợp lệ (khác NaN và > 0)
+                if (audio && !isDragging && !audio.paused && !isNaN(audio.duration) && audio.duration > 0) {
                     let percent = (audio.currentTime / audio.duration) * 100;
                     updateSliderUI(percent);
                     
@@ -261,7 +285,7 @@
                         lastSaveTime = audio.currentTime;
                     }
                 }
-            }, 100); // Chạy cập nhật mượt mà mỗi 0.1 giây trên điện thoại
+            }, 100);
         }
 
         function stopProgressLoop() {
@@ -274,12 +298,18 @@
         audio.addEventListener('play', () => {
             playerBody.classList.add('playing');
             startProgressLoop();
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = "playing";
+            }
         });
 
         audio.addEventListener('pause', () => {
             playerBody.classList.remove('playing');
             stopProgressLoop();
             localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = "paused";
+            }
         });
 
         audio.addEventListener('ended', () => {
@@ -288,7 +318,9 @@
 
         audio.addEventListener('loadedmetadata', () => {
             let duration = audio.duration || 0;
-            document.getElementById('remainingTime').textContent = "-" + formatTime(duration);
+            if (!isNaN(duration) && duration > 0) {
+                document.getElementById('remainingTime').textContent = "-" + formatTime(duration);
+            }
             let savedTime = localStorage.getItem('history_' + currentAudioKey);
             if (savedTime && parseFloat(savedTime) > 0) {
                 audio.currentTime = parseFloat(savedTime);
@@ -314,7 +346,7 @@
             progressContainer.setPointerCapture(e.pointerId);
             let percent = calculateProgressFromEvent(e);
             updateSliderUI(percent * 100);
-            if (audio.duration) {
+            if (!isNaN(audio.duration) && audio.duration > 0) {
                 let current = percent * audio.duration;
                 document.getElementById('currentTime').textContent = formatTime(current);
                 let remaining = audio.duration - current;
@@ -326,7 +358,7 @@
             if (isDragging) {
                 let percent = calculateProgressFromEvent(e);
                 updateSliderUI(percent * 100);
-                if (audio.duration) {
+                if (!isNaN(audio.duration) && audio.duration > 0) {
                     let current = percent * audio.duration;
                     document.getElementById('currentTime').textContent = formatTime(current);
                     let remaining = audio.duration - current;
@@ -340,7 +372,7 @@
                 isDragging = false;
                 try { progressContainer.releasePointerCapture(e.pointerId); } catch(err) {}
                 let percent = calculateProgressFromEvent(e);
-                if (audio.duration) {
+                if (!isNaN(audio.duration) && audio.duration > 0) {
                     audio.currentTime = percent * audio.duration;
                 }
             }
@@ -354,7 +386,9 @@
         });
 
         function skip(seconds) {
-            audio.currentTime += seconds;
+            if (!isNaN(audio.duration) && audio.duration > 0) {
+                audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
+            }
         }
 
         function openPopup(id) {
