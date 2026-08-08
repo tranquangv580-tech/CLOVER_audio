@@ -25,33 +25,15 @@
         .episode-title { font-size: 20px; font-weight: 700; margin: 0 0 8px 0; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
         .story-name { font-size: 14px; color: #aaa; margin: 0; font-weight: 500; }
 
-        /* THANH TIẾN TRÌNH PHONG CÁCH MỚI (BO TRÒN CAPSULE) */
+        /* THANH TIẾN TRÌNH CUSTOM (HOÀN TOÀN MƯỢT MÀ TRÊN MOBILE) */
         .progress-wrapper { padding: 0 24px; margin-bottom: 25px; }
-        .progress-container { width: 100%; height: 24px; display: flex; align-items: center; cursor: pointer; position: relative; }
-        .progress-bar { 
-            -webkit-appearance: none; 
-            width: 100%; 
-            height: 6px; 
-            background: #2a2a32; 
-            border-radius: 999px; 
-            outline: none; 
-            cursor: pointer; 
-            touch-action: none; 
-        }
+        .progress-container { width: 100%; height: 32px; display: flex; align-items: center; cursor: pointer; position: relative; touch-action: none; }
         
-        .progress-bar::-webkit-slider-thumb { 
-            -webkit-appearance: none; 
-            width: 14px; 
-            height: 14px; 
-            border-radius: 50%; 
-            background: #ffffff; 
-            cursor: pointer; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.5); 
-            transition: transform 0.15s ease;
-        }
-        .progress-bar:active::-webkit-slider-thumb { 
-            transform: scale(1.3); 
-        }
+        .progress-track { width: 100%; height: 6px; background: #2a2a32; border-radius: 999px; position: relative; overflow: visible; }
+        .progress-fill { position: absolute; top: 0; left: 0; height: 100%; background: #ffffff; border-radius: 999px; width: 0%; pointer-events: none; }
+        .progress-thumb { position: absolute; top: 50%; left: 0%; width: 16px; height: 16px; background: #ffffff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 2px 8px rgba(0,0,0,0.6); pointer-events: none; transition: transform 0.1s ease; }
+        
+        .progress-container:active .progress-thumb { transform: translate(-50%, -50%) scale(1.3); }
         
         .time-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; color: #999; font-weight: 500; font-variant-numeric: tabular-nums; }
 
@@ -115,8 +97,11 @@
     </div>
 
     <div class="progress-wrapper">
-        <div class="progress-container">
-            <input type="range" min="0" max="100" value="0" step="0.1" class="progress-bar" id="progressBar">
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+                <div class="progress-thumb" id="progressThumb"></div>
+            </div>
         </div>
         <div class="time-row">
             <span id="currentTime">00:00:00</span>
@@ -187,7 +172,9 @@
 
     <script>
         const audio = document.getElementById('audioPlayer');
-        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressThumb = document.getElementById('progressThumb');
         const playerBody = document.getElementById('playerBody');
         
         let currentAudioKey = localStorage.getItem('currentAudioKey');
@@ -271,11 +258,16 @@
             }
         });
 
+        function updateSliderUI(percent) {
+            percent = Math.max(0, Math.min(100, percent));
+            progressFill.style.width = percent + '%';
+            progressThumb.style.left = percent + '%';
+        }
+
         audio.addEventListener('timeupdate', () => {
             if (audio.duration && !isDragging) {
                 let percent = (audio.currentTime / audio.duration) * 100;
-                progressBar.value = percent;
-                progressBar.style.background = `linear-gradient(to right, #ffffff ${percent}%, #2a2a32 ${percent}%)`;
+                updateSliderUI(percent);
                 
                 document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
                 let remaining = audio.duration - audio.currentTime;
@@ -288,30 +280,55 @@
             }
         });
 
-        /* --- XỬ LÝ THANH TRƯỢT POINTER EVENTS --- */
-        progressBar.addEventListener('pointerdown', () => {
+        /* --- XỬ LÝ THANH TRƯỢT TỰ CHẾ BẰNG POINTER EVENTS --- */
+        function calculateProgressFromEvent(e) {
+            const rect = progressContainer.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let percent = x / rect.width;
+            return Math.max(0, Math.min(1, percent));
+        }
+
+        progressContainer.addEventListener('pointerdown', (e) => {
             isDragging = true;
-        });
-
-        progressBar.addEventListener('pointerup', () => {
-            if (isDragging) {
-                isDragging = false;
-                audio.currentTime = (progressBar.value / 100) * audio.duration;
-            }
-        });
-
-        progressBar.addEventListener('pointercancel', () => {
-            isDragging = false;
-        });
-
-        progressBar.addEventListener('input', (e) => {
-            let percent = e.target.value;
-            progressBar.style.background = `linear-gradient(to right, #ffffff ${percent}%, #2a2a32 ${percent}%)`;
+            progressContainer.setPointerCapture(e.pointerId);
+            let percent = calculateProgressFromEvent(e);
+            updateSliderUI(percent * 100);
             if (audio.duration) {
-                let current = (percent / 100) * audio.duration;
+                let current = percent * audio.duration;
                 document.getElementById('currentTime').textContent = formatTime(current);
                 let remaining = audio.duration - current;
                 document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
+            }
+        });
+
+        progressContainer.addEventListener('pointermove', (e) => {
+            if (isDragging) {
+                let percent = calculateProgressFromEvent(e);
+                updateSliderUI(percent * 100);
+                if (audio.duration) {
+                    let current = percent * audio.duration;
+                    document.getElementById('currentTime').textContent = formatTime(current);
+                    let remaining = audio.duration - current;
+                    document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
+                }
+            }
+        });
+
+        progressContainer.addEventListener('pointerup', (e) => {
+            if (isDragging) {
+                isDragging = false;
+                try { progressContainer.releasePointerCapture(e.pointerId); } catch(err) {}
+                let percent = calculateProgressFromEvent(e);
+                if (audio.duration) {
+                    audio.currentTime = percent * audio.duration;
+                }
+            }
+        });
+
+        progressContainer.addEventListener('pointercancel', (e) => {
+            if (isDragging) {
+                isDragging = false;
+                try { progressContainer.releasePointerCapture(e.pointerId); } catch(err) {}
             }
         });
 
