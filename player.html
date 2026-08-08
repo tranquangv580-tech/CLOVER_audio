@@ -219,7 +219,7 @@
                     document.getElementById('playerStoryName').textContent = storyName;
                     document.getElementById('playerCover').src = coverUrl;
                     
-                    // CẤU HÌNH MEDIA SESSION API (HIỂN THỊ TRÊN MÀN HÌNH KHÓA IPHONE/ANDROID)
+                    // CẤU HÌNH MEDIA SESSION API (HỖ TRỢ ĐIỀU KHIỂN MÀN HÌNH KHÓA IPHONE)
                     if ('mediaSession' in navigator) {
                         navigator.mediaSession.metadata = new MediaMetadata({
                             title: episodeTitle,
@@ -230,7 +230,9 @@
                             ]
                         });
 
-                        navigator.mediaSession.setActionHandler('play', () => { audio.play(); });
+                        navigator.mediaSession.setActionHandler('play', async () => {
+                            try { await audio.play(); } catch(err) {}
+                        });
                         navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); });
                         navigator.mediaSession.setActionHandler('seekbackward', () => { skip(-10); });
                         navigator.mediaSession.setActionHandler('seekforward', () => { skip(10); });
@@ -254,7 +256,9 @@
             audioReq.onsuccess = (e) => {
                 let blob = e.target.result;
                 if(blob) {
-                    audio.src = URL.createObjectURL(blob);
+                    // ÉP BUỘC ĐỊNH DẠNG MIME CHUẨN CHO IOS SAFARI ĐỂ KHÔNG BỊ LỖI TUA VÀ TIẾN TRÌNH
+                    const audioBlob = new Blob([blob], { type: 'audio/mpeg' });
+                    audio.src = URL.createObjectURL(audioBlob);
                 }
             };
         }
@@ -267,12 +271,11 @@
             }
         }
 
-        /* --- VÒNG LẶP CẬP NHẬT GIAO DIỆN (CHỐNG LỖI NaN & KHÓA TIẾN TRÌNH TRÊN MOBILE) --- */
+        /* --- VÒNG LẶP CẬP NHẬT GIAO DIỆN --- */
         function startProgressLoop() {
             if (playInterval) clearInterval(playInterval);
             playInterval = setInterval(() => {
-                // Kiểm tra kỹ điều kiện audio.duration hợp lệ (khác NaN và > 0)
-                if (audio && !isDragging && !audio.paused && !isNaN(audio.duration) && audio.duration > 0) {
+                if (audio && !isDragging && !audio.paused && !isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
                     let percent = (audio.currentTime / audio.duration) * 100;
                     updateSliderUI(percent);
                     
@@ -318,7 +321,7 @@
 
         audio.addEventListener('loadedmetadata', () => {
             let duration = audio.duration || 0;
-            if (!isNaN(duration) && duration > 0) {
+            if (!isNaN(duration) && duration > 0 && duration !== Infinity) {
                 document.getElementById('remainingTime').textContent = "-" + formatTime(duration);
             }
             let savedTime = localStorage.getItem('history_' + currentAudioKey);
@@ -333,7 +336,7 @@
             progressThumb.style.left = percent + '%';
         }
 
-        /* --- XỬ LÝ THANH TRƯỢT TỰ CHẾ BẰNG POINTER EVENTS --- */
+        /* --- XỬ LÝ THANH TRƯỢT & TUA CHÍNH XÁC TRÊN IPHONE --- */
         function calculateProgressFromEvent(e) {
             const rect = progressContainer.getBoundingClientRect();
             let x = e.clientX - rect.left;
@@ -346,7 +349,7 @@
             progressContainer.setPointerCapture(e.pointerId);
             let percent = calculateProgressFromEvent(e);
             updateSliderUI(percent * 100);
-            if (!isNaN(audio.duration) && audio.duration > 0) {
+            if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
                 let current = percent * audio.duration;
                 document.getElementById('currentTime').textContent = formatTime(current);
                 let remaining = audio.duration - current;
@@ -358,7 +361,7 @@
             if (isDragging) {
                 let percent = calculateProgressFromEvent(e);
                 updateSliderUI(percent * 100);
-                if (!isNaN(audio.duration) && audio.duration > 0) {
+                if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
                     let current = percent * audio.duration;
                     document.getElementById('currentTime').textContent = formatTime(current);
                     let remaining = audio.duration - current;
@@ -372,8 +375,11 @@
                 isDragging = false;
                 try { progressContainer.releasePointerCapture(e.pointerId); } catch(err) {}
                 let percent = calculateProgressFromEvent(e);
-                if (!isNaN(audio.duration) && audio.duration > 0) {
-                    audio.currentTime = percent * audio.duration;
+                if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                    let newTime = percent * audio.duration;
+                    audio.currentTime = newTime; // Cập nhật vị trí thời gian mới trên iOS
+                    updateSliderUI(percent * 100);
+                    document.getElementById('currentTime').textContent = formatTime(newTime);
                 }
             }
         });
@@ -386,7 +392,7 @@
         });
 
         function skip(seconds) {
-            if (!isNaN(audio.duration) && audio.duration > 0) {
+            if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
                 audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
             }
         }
