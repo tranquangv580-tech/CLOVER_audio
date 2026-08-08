@@ -18,7 +18,6 @@
         /* KHU VỰC ẢNH BÌA LỚN */
         .cover-container { flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 0 40px; margin-bottom: 20px; }
         .player-cover { width: 100%; max-width: 280px; aspect-ratio: 1; object-fit: cover; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); background: #222; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease; }
-        /* Hiệu ứng nảy khi phát nhạc, đã fix lỗi lẹm chữ bằng margin */
         .playing .player-cover { transform: scale(1.05); box-shadow: 0 25px 50px rgba(217, 90, 82, 0.25); }
 
         /* KHU VỰC THÔNG TIN */
@@ -26,14 +25,39 @@
         .episode-title { font-size: 20px; font-weight: 700; margin: 0 0 8px 0; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
         .story-name { font-size: 14px; color: #aaa; margin: 0; font-weight: 500; }
 
-        /* THANH TIẾN TRÌNH YOUTUBE STYLE */
+        /* THANH TIẾN TRÌNH YOUTUBE STYLE - TỐI ƯU MOBILE */
         .progress-wrapper { padding: 0 24px; margin-bottom: 25px; }
-        .progress-container { width: 100%; height: 24px; display: flex; align-items: center; cursor: pointer; position: relative; }
-        .progress-bar { -webkit-appearance: none; width: 100%; height: 4px; background: #333; border-radius: 2px; outline: none; transition: height 0.2s ease; cursor: pointer; }
+        .progress-container { width: 100%; height: 30px; display: flex; align-items: center; cursor: pointer; position: relative; }
+        .progress-bar { 
+            -webkit-appearance: none; 
+            width: 100%; 
+            height: 4px; 
+            background: #333; 
+            border-radius: 2px; 
+            outline: none; 
+            transition: height 0.2s ease; 
+            cursor: pointer; 
+            touch-action: none; /* RẤT QUAN TRỌNG: Ngừa cuộn trang khi vuốt thanh */
+        }
         .progress-container:hover .progress-bar, .progress-container:active .progress-bar { height: 6px; }
         
-        .progress-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #ff0000; cursor: pointer; opacity: 0; transition: opacity 0.2s, transform 0.1s; transform: scale(1); box-shadow: 0 0 5px rgba(0,0,0,0.5); }
-        .progress-container:hover .progress-bar::-webkit-slider-thumb, .progress-bar:active::-webkit-slider-thumb { opacity: 1; transform: scale(1.2); }
+        .progress-bar::-webkit-slider-thumb { 
+            -webkit-appearance: none; 
+            width: 16px; 
+            height: 16px; 
+            border-radius: 50%; 
+            background: #ff0000; 
+            cursor: pointer; 
+            transform: scale(0); /* Ẩn cục đỏ khi bình thường */
+            transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            box-shadow: 0 0 6px rgba(0,0,0,0.5); 
+        }
+        /* Hiển thị cục đỏ khi chạm hoặc hover */
+        .progress-container:hover .progress-bar::-webkit-slider-thumb, 
+        .progress-bar:active::-webkit-slider-thumb,
+        .progress-container:active .progress-bar::-webkit-slider-thumb { 
+            transform: scale(1.2); 
+        }
         
         .time-row { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #888; font-weight: 600; font-variant-numeric: tabular-nums; }
 
@@ -57,6 +81,8 @@
         .action-btn svg { width: 22px; height: 22px; fill: #ccc; transition: 0.2s; }
         .action-btn:active { background: #2a2a36; transform: scale(0.95); border-color: #d95a52; color: #fff; }
         .action-btn:active svg { fill: #d95a52; }
+        .action-btn.active-timer { border-color: #d95a52; color: #d95a52; }
+        .action-btn.active-timer svg { fill: #d95a52; }
 
         /* POPUP (BOTTOM SHEET) CHO CÁC CHỨC NĂNG */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); backdrop-filter: blur(5px); }
@@ -82,7 +108,8 @@
             <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
         </button>
         <div class="header-title">ĐANG PHÁT</div>
-        <div style="width: 44px;"></div> </div>
+        <div style="width: 44px;"></div>
+    </div>
 
     <div class="cover-container">
         <img src="https://via.placeholder.com/300" alt="Bìa Truyện" class="player-cover" id="playerCover">
@@ -127,7 +154,7 @@
             <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
             <span>Danh sách</span>
         </div>
-        <div class="action-btn" onclick="openPopup('timerPopup')">
+        <div class="action-btn" id="timerBtn" onclick="openPopup('timerPopup')">
             <svg viewBox="0 0 24 24"><path d="M22 5.72l-4.6-3.86-1.29 1.53 4.6 3.86L22 5.72zM7.88 3.39L6.6 1.86 2 5.71l1.29 1.53 4.59-3.85zM12.5 8H11v6l4.75 2.85.75-1.23-4-2.37V8zM12 4c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z"/></svg>
             <span id="timerText">Hẹn giờ</span>
         </div>
@@ -159,8 +186,7 @@
 
     <div class="bottom-sheet" id="listPopup">
         <div class="sheet-header">Danh sách tập <span class="close-sheet" onclick="closeAllPopups()">&times;</span></div>
-        <div class="sheet-content" id="episodePopupList">
-            </div>
+        <div class="sheet-content" id="episodePopupList"></div>
     </div>
 
     <audio id="audioPlayer"></audio>
@@ -172,12 +198,17 @@
         
         let currentAudioKey = localStorage.getItem('currentAudioKey');
         let currentStoryId = localStorage.getItem('currentStoryId');
-        let timerId = null;
         let lastSaveTime = 0;
+        
+        // Biến kiểm soát thanh trượt Mobile
+        let isDragging = false; 
+        
+        // Biến hẹn giờ thời gian thực
+        let timerInterval = null;
+        let timerEndTime = 0;
 
-        // Xử lý định dạng thời gian (Có hỗ trợ Giờ)
         function formatTime(seconds) {
-            if (isNaN(seconds)) return "00:00";
+            if (isNaN(seconds) || seconds < 0) return "00:00";
             let h = Math.floor(seconds / 3600);
             let m = Math.floor((seconds % 3600) / 60);
             let s = Math.floor(seconds % 60);
@@ -198,7 +229,6 @@
                 req.onsuccess = e => resolve(e.target.result);
             });
 
-            // Tải thông tin truyện & nạp danh sách tập vào Popup
             let txStory = db.transaction('stories', 'readonly');
             let storyReq = txStory.objectStore('stories').get(currentStoryId);
             storyReq.onsuccess = (e) => {
@@ -207,7 +237,6 @@
                     document.getElementById('playerStoryName').textContent = story.name;
                     document.getElementById('playerCover').src = story.cover || 'https://via.placeholder.com/300';
                     
-                    // Render danh sách tập
                     if(story.episodes) {
                         let html = story.episodes.map(ep => {
                             let isPlaying = ep.audioKey === currentAudioKey ? 'selected' : '';
@@ -221,20 +250,16 @@
                 }
             };
 
-            // Tải audio blob
             let txAudio = db.transaction('audios', 'readonly');
             let audioReq = txAudio.objectStore('audios').get(currentAudioKey);
             audioReq.onsuccess = (e) => {
                 let blob = e.target.result;
                 if(blob) {
                     audio.src = URL.createObjectURL(blob);
-                } else {
-                    alert("Không tìm thấy file âm thanh.");
                 }
             };
         }
 
-        // --- CÁC HÀM XỬ LÝ NHẠC ---
         function togglePlay() {
             if (audio.paused) audio.play();
             else audio.pause();
@@ -243,14 +268,11 @@
         audio.addEventListener('play', () => playerBody.classList.add('playing'));
         audio.addEventListener('pause', () => {
             playerBody.classList.remove('playing');
-            // Lưu lịch sử khi tạm dừng
             localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
         });
 
         audio.addEventListener('loadedmetadata', () => {
             document.getElementById('totalTime').textContent = formatTime(audio.duration);
-            
-            // Phục hồi lịch sử nghe
             let savedTime = localStorage.getItem('history_' + currentAudioKey);
             if (savedTime && parseFloat(savedTime) > 0) {
                 audio.currentTime = parseFloat(savedTime);
@@ -258,13 +280,13 @@
         });
 
         audio.addEventListener('timeupdate', () => {
-            if (audio.duration) {
+            // CHỈ cập nhật thanh trượt nếu người dùng KHÔNG chạm tay vào (chống giật)
+            if (audio.duration && !isDragging) {
                 let percent = (audio.currentTime / audio.duration) * 100;
                 progressBar.value = percent;
                 progressBar.style.background = `linear-gradient(to right, #ff0000 ${percent}%, #333 ${percent}%)`;
                 document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
 
-                // Lưu lịch sử tự động mỗi 5 giây để tránh quá tải
                 if (Math.abs(audio.currentTime - lastSaveTime) > 5) {
                     localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
                     lastSaveTime = audio.currentTime;
@@ -272,17 +294,32 @@
             }
         });
 
+        /* --- XỬ LÝ THANH TRƯỢT MƯỢT MÀ TRÊN MOBILE --- */
+        const startDrag = () => { isDragging = true; };
+        const endDrag = () => { 
+            isDragging = false; 
+            audio.currentTime = (progressBar.value / 100) * audio.duration; 
+        };
+
+        // Bắt sự kiện chạm (Mobile)
+        progressBar.addEventListener('touchstart', startDrag, {passive: true});
+        progressBar.addEventListener('touchend', endDrag);
+        // Bắt sự kiện chuột (Desktop)
+        progressBar.addEventListener('mousedown', startDrag);
+        progressBar.addEventListener('mouseup', endDrag);
+
         progressBar.addEventListener('input', (e) => {
-            let seekTime = (e.target.value / 100) * audio.duration;
-            audio.currentTime = seekTime;
-            progressBar.style.background = `linear-gradient(to right, #ff0000 ${e.target.value}%, #333 ${e.target.value}%)`;
+            let percent = e.target.value;
+            progressBar.style.background = `linear-gradient(to right, #ff0000 ${percent}%, #333 ${percent}%)`;
+            if (audio.duration) {
+                document.getElementById('currentTime').textContent = formatTime((percent / 100) * audio.duration);
+            }
         });
 
         function skip(seconds) {
             audio.currentTime += seconds;
         }
 
-        // --- CÁC HÀM XỬ LÝ POPUP & CHỨC NĂNG DƯỚI ---
         function openPopup(id) {
             document.getElementById('overlay').classList.add('active');
             document.getElementById(id).classList.add('active');
@@ -296,40 +333,57 @@
         function setSpeed(speed) {
             audio.playbackRate = speed;
             document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
-            
-            // Cập nhật UI trong popup
             let items = document.querySelectorAll('#speedPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
             event.currentTarget.classList.add('selected');
-            
             closeAllPopups();
         }
 
+        /* --- XỬ LÝ BỘ ĐẾM NGƯỢC HẸN GIỜ (LIVE COUNTDOWN) --- */
         function setTimer(minutes) {
-            if (timerId) clearTimeout(timerId);
-            
             let items = document.querySelectorAll('#timerPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
             event.currentTarget.classList.add('selected');
 
+            clearInterval(timerInterval); // Xóa bộ đếm cũ
+
             if (minutes > 0) {
-                document.getElementById('timerText').textContent = `${minutes} phút`;
-                timerId = setTimeout(() => {
-                    audio.pause();
-                    alert('Đã hết thời gian hẹn giờ! Nhạc đã dừng.');
-                    document.getElementById('timerText').textContent = "Hẹn giờ";
-                    document.getElementById('timer_0').classList.add('selected');
-                }, minutes * 60000); // Đổi ra mili-giây
+                document.getElementById('timerBtn').classList.add('active-timer');
+                timerEndTime = Date.now() + minutes * 60000;
+                updateTimerDisplay(); // Chạy ngay lập tức để khỏi chờ 1 giây
+                timerInterval = setInterval(updateTimerDisplay, 1000);
             } else {
+                document.getElementById('timerBtn').classList.remove('active-timer');
                 document.getElementById('timerText').textContent = "Hẹn giờ";
             }
             closeAllPopups();
         }
 
+        function updateTimerDisplay() {
+            let remain = timerEndTime - Date.now();
+            if (remain <= 0) {
+                clearInterval(timerInterval);
+                audio.pause();
+                document.getElementById('timerBtn').classList.remove('active-timer');
+                document.getElementById('timerText').textContent = "Hẹn giờ";
+                
+                // Reset lại giao diện menu hẹn giờ về mặc định (Tắt hẹn giờ)
+                let items = document.querySelectorAll('#timerPopup .sheet-item');
+                items.forEach(item => item.classList.remove('selected'));
+                document.getElementById('timer_0').classList.add('selected');
+                
+                alert('Đã hết thời gian hẹn giờ! Nhạc đã dừng.');
+                return;
+            }
+            // Đổi miligiây còn lại sang Giây, rồi dùng hàm formatTime để hiển thị
+            let totalSeconds = Math.floor(remain / 1000);
+            document.getElementById('timerText').textContent = formatTime(totalSeconds);
+        }
+
         function switchEpisode(title, audioKey) {
             localStorage.setItem('currentEpisodeTitle', title);
             localStorage.setItem('currentAudioKey', audioKey);
-            window.location.reload(); // Tải lại player với tập mới
+            window.location.reload(); 
         }
 
         window.addEventListener('DOMContentLoaded', initPlayer);
