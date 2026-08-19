@@ -1,4 +1,4 @@
-=<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -68,6 +68,15 @@
         .sheet-item { background: #24242c; padding: 14px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; border: 1px solid transparent; display: flex; align-items: center; justify-content: space-between; }
         .sheet-item:active { background: #2e2e38; transform: scale(0.98); }
         .sheet-item.selected { border-color: #d95a52; color: #d95a52; }
+
+        /* KHU VỰC NHẬP TỐC ĐỘ TÙY CHỈNH */
+        .custom-speed-box { background: #24242c; padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #2a2a32; margin-bottom: 5px; }
+        .custom-speed-box label { font-size: 14px; font-weight: 600; color: #fff; }
+        .custom-speed-input-wrapper { display: flex; align-items: center; gap: 8px; }
+        .custom-speed-input { background: #1a1a20; border: 1px solid #3a3a46; color: #fff; font-size: 15px; font-weight: 700; padding: 6px 10px; border-radius: 8px; width: 75px; text-align: center; outline: none; }
+        .custom-speed-input:focus { border-color: #d95a52; }
+        .apply-speed-btn { background: #d95a52; border: none; color: #fff; font-weight: 600; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .apply-speed-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body id="playerBody">
@@ -134,9 +143,20 @@
 
     <div class="modal-overlay" id="overlay" onclick="closeAllPopups()"></div>
 
+    <!-- BẢNG CHỌN TỐC ĐỘ CÓ THÊM Ô NHẬP SỐ TÙY CHỈNH -->
     <div class="bottom-sheet" id="speedPopup">
         <div class="sheet-header">Chọn tốc độ phát <span class="close-sheet" onclick="closeAllPopups()">&times;</span></div>
         <div class="sheet-content">
+            <!-- Ô nhập tốc độ tùy chỉnh -->
+            <div class="custom-speed-box">
+                <label>Nhập số tùy chỉnh:</label>
+                <div class="custom-speed-input-wrapper">
+                    <input type="number" id="customSpeedInput" class="custom-speed-input" step="0.05" min="0.25" max="4.0" placeholder="VD: 1.1">
+                    <button class="apply-speed-btn" onclick="applyCustomSpeed()">Áp dụng</button>
+                </div>
+            </div>
+
+            <!-- Các lựa chọn tốc độ có sẵn -->
             <div class="sheet-item" onclick="setSpeed(0.75)">0.75x (Chậm)</div>
             <div class="sheet-item selected" onclick="setSpeed(1.0)" id="speed_1.0">1.0x (Bình thường)</div>
             <div class="sheet-item" onclick="setSpeed(1.25)">1.25x (Hơi nhanh)</div>
@@ -178,7 +198,7 @@
         
         let timerInterval = null;
         let timerEndTime = 0;
-        let hasRestoredTime = false; // Cờ đánh dấu đã khôi phục lịch sử hay chưa
+        let hasRestoredTime = false;
 
         function formatTime(seconds) {
             if (isNaN(seconds) || seconds < 0) return "00:00:00";
@@ -249,10 +269,9 @@
             audioReq.onsuccess = (e) => {
                 let blob = e.target.result;
                 if(blob) {
-                    // ÉP BUỘC ĐỊNH DẠNG TỆP CHUẨN ĐỂ SAFARI NHẬN DIỆN ĐỘ DÀI VÀ CHO PHÉP TUA KHI ĐỌC TỪ DB
                     const audioFile = new File([blob], "audio.mp3", { type: 'audio/mpeg' });
                     audio.src = URL.createObjectURL(audioFile);
-                    audio.load(); // Bắt buộc gọi load để Safari đọc lại metadata từ đầu
+                    audio.load();
                 }
             };
         }
@@ -312,7 +331,6 @@
             stopProgressLoop();
         });
 
-        // KHI SAFARI ĐỌC XONG METADATA TỪ DB, GÁN LẠI THỜI GIAN ĐÃ LƯU VÀ MỞ KHÓA TUA
         audio.addEventListener('loadedmetadata', () => {
             let duration = audio.duration || 0;
             if (!isNaN(duration) && duration > 0 && duration !== Infinity) {
@@ -414,9 +432,35 @@
         function setSpeed(speed) {
             audio.playbackRate = speed;
             document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
+            
+            // Bỏ chọn tất cả các mục có sẵn
             let items = document.querySelectorAll('#speedPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+            
+            // Nếu có nút trùng khớp tốc độ có sẵn thì gán sáng
+            let target = document.getElementById('speed_' + speed);
+            if(target) target.classList.add('selected');
+
+            closeAllPopups();
+        }
+
+        /* HÀM XỬ LÝ KHI NHẬP TỐC ĐỘ TÙY CHỈNH BẰNG TAY */
+        function applyCustomSpeed() {
+            let inputVal = parseFloat(document.getElementById('customSpeedInput').value);
+            if (isNaN(inputVal) || inputVal <= 0) {
+                alert('Vui lòng nhập một số hợp lệ cho tốc độ!');
+                return;
+            }
+            // Giới hạn tốc độ an toàn từ 0.25x đến 4.0x
+            let speed = Math.max(0.25, Math.min(4.0, inputVal));
+            
+            audio.playbackRate = speed;
+            document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
+            
+            // Bỏ chọn các nút mặc định vì đang dùng số tùy chỉnh
+            let items = document.querySelectorAll('#speedPopup .sheet-item');
+            items.forEach(item => item.classList.remove('selected'));
+
             closeAllPopups();
         }
 
