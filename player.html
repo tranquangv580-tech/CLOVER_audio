@@ -69,7 +69,6 @@
         .sheet-item:active { background: #2e2e38; transform: scale(0.98); }
         .sheet-item.selected { border-color: #d95a52; color: #d95a52; }
 
-        /* KHU VỰC NHẬP TỐC ĐỘ TÙY CHỈNH */
         .custom-speed-box { background: #24242c; padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #2a2a32; margin-bottom: 5px; }
         .custom-speed-box label { font-size: 14px; font-weight: 600; color: #fff; }
         .custom-speed-input-wrapper { display: flex; align-items: center; gap: 8px; }
@@ -77,6 +76,16 @@
         .custom-speed-input:focus { border-color: #d95a52; }
         .apply-speed-btn { background: #d95a52; border: none; color: #fff; font-weight: 600; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
         .apply-speed-btn:active { transform: scale(0.95); }
+
+        /* KHU VỰC HẸN GIỜ TÙY CHỈNH THEO GIỜ & PHÚT */
+        .timer-input-group { background: #24242c; padding: 14px 16px; border-radius: 12px; border: 1px solid #2a2a32; display: flex; flex-direction: column; gap: 12px; margin-bottom: 5px; }
+        .timer-fields { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .timer-field-item { display: flex; align-items: center; gap: 6px; flex: 1; }
+        .timer-field-item span { font-size: 13px; color: #aaa; font-weight: 600; }
+        .timer-input { background: #1a1a20; border: 1px solid #3a3a46; color: #fff; font-size: 15px; font-weight: 700; padding: 6px; border-radius: 8px; width: 100%; text-align: center; outline: none; }
+        .timer-input:focus { border-color: #d95a52; }
+        .apply-timer-btn { background: #d95a52; border: none; color: #fff; font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 14px; width: 100%; }
+        .apply-timer-btn:active { transform: scale(0.98); }
     </style>
 </head>
 <body id="playerBody">
@@ -143,11 +152,9 @@
 
     <div class="modal-overlay" id="overlay" onclick="closeAllPopups()"></div>
 
-    <!-- BẢNG CHỌN TỐC ĐỘ CÓ THÊM Ô NHẬP SỐ TÙY CHỈNH -->
     <div class="bottom-sheet" id="speedPopup">
         <div class="sheet-header">Chọn tốc độ phát <span class="close-sheet" onclick="closeAllPopups()">&times;</span></div>
         <div class="sheet-content">
-            <!-- Ô nhập tốc độ tùy chỉnh -->
             <div class="custom-speed-box">
                 <label>Nhập số tùy chỉnh:</label>
                 <div class="custom-speed-input-wrapper">
@@ -155,8 +162,6 @@
                     <button class="apply-speed-btn" onclick="applyCustomSpeed()">Áp dụng</button>
                 </div>
             </div>
-
-            <!-- Các lựa chọn tốc độ có sẵn -->
             <div class="sheet-item" onclick="setSpeed(0.75)">0.75x (Chậm)</div>
             <div class="sheet-item selected" onclick="setSpeed(1.0)" id="speed_1.0">1.0x (Bình thường)</div>
             <div class="sheet-item" onclick="setSpeed(1.25)">1.25x (Hơi nhanh)</div>
@@ -165,14 +170,28 @@
         </div>
     </div>
 
+    <!-- BẢNG HẸN GIỜ CÓ Ô NHẬP GIỜ VÀ PHÚT TÙY CHỈNH -->
     <div class="bottom-sheet" id="timerPopup">
         <div class="sheet-header">Hẹn giờ tự động tắt <span class="close-sheet" onclick="closeAllPopups()">&times;</span></div>
         <div class="sheet-content">
-            <div class="sheet-item selected" onclick="setTimer(0)" id="timer_0">Tắt hẹn giờ</div>
-            <div class="sheet-item" onclick="setTimer(15)">15 phút</div>
-            <div class="sheet-item" onclick="setTimer(30)">30 phút</div>
-            <div class="sheet-item" onclick="setTimer(45)">45 phút</div>
-            <div class="sheet-item" onclick="setTimer(60)">60 phút (1 giờ)</div>
+            <div class="timer-input-group">
+                <div class="timer-fields">
+                    <div class="timer-field-item">
+                        <input type="number" id="customHourInput" class="timer-input" min="0" placeholder="0">
+                        <span>Giờ</span>
+                    </div>
+                    <div class="timer-field-item">
+                        <input type="number" id="customMinuteInput" class="timer-input" min="0" placeholder="0">
+                        <span>Phút</span>
+                    </div>
+                </div>
+                <button class="apply-timer-btn" onclick="applyCustomTimer()">Bắt đầu hẹn giờ</button>
+            </div>
+            <div class="sheet-item selected" onclick="setTimerMinutes(0)" id="timer_0">Tắt hẹn giờ</div>
+            <div class="sheet-item" onclick="setTimerMinutes(15)">15 phút</div>
+            <div class="sheet-item" onclick="setTimerMinutes(30)">30 phút</div>
+            <div class="sheet-item" onclick="setTimerMinutes(45)">45 phút</div>
+            <div class="sheet-item" onclick="setTimerMinutes(60)">60 phút (1 giờ)</div>
         </div>
     </div>
 
@@ -199,6 +218,7 @@
         let timerInterval = null;
         let timerEndTime = 0;
         let hasRestoredTime = false;
+        let storyEpisodes = []; // Lưu trữ danh sách các tập của truyện
 
         function formatTime(seconds) {
             if (isNaN(seconds) || seconds < 0) return "00:00:00";
@@ -233,25 +253,8 @@
                     document.getElementById('playerStoryName').textContent = storyName;
                     document.getElementById('playerCover').src = coverUrl;
                     
-                    if ('mediaSession' in navigator) {
-                        navigator.mediaSession.metadata = new MediaMetadata({
-                            title: episodeTitle,
-                            artist: storyName,
-                            album: "AudioBook App",
-                            artwork: [
-                                { src: coverUrl, sizes: '512x512', type: 'image/jpeg' }
-                            ]
-                        });
-
-                        navigator.mediaSession.setActionHandler('play', async () => {
-                            try { await audio.play(); } catch(err) {}
-                        });
-                        navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); });
-                        navigator.mediaSession.setActionHandler('seekbackward', () => { skip(-10); });
-                        navigator.mediaSession.setActionHandler('seekforward', () => { skip(10); });
-                    }
-
                     if(story.episodes) {
+                        storyEpisodes = story.episodes; // Lưu lại để dùng cho tính năng tự chuyển tập
                         let html = story.episodes.map(ep => {
                             let isPlaying = ep.audioKey === currentAudioKey ? 'selected' : '';
                             return `<div class="sheet-item ${isPlaying}" onclick="switchEpisode('${ep.title}', '${ep.audioKey}')">
@@ -313,22 +316,28 @@
         audio.addEventListener('play', () => {
             playerBody.classList.add('playing');
             startProgressLoop();
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = "playing";
-            }
         });
 
         audio.addEventListener('pause', () => {
             playerBody.classList.remove('playing');
             stopProgressLoop();
             localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = "paused";
-            }
         });
 
+        // TỰ ĐỘNG CHUYỂN TẬP TIẾP THEO KHI HẾT AUDIO
         audio.addEventListener('ended', () => {
             stopProgressLoop();
+            localStorage.setItem('history_' + currentAudioKey, audio.duration); // Đánh dấu đã nghe xong tập này
+            
+            if (storyEpisodes.length > 0) {
+                let currentIndex = storyEpisodes.findIndex(ep => ep.audioKey === currentAudioKey);
+                if (currentIndex !== -1 && currentIndex < storyEpisodes.length - 1) {
+                    let nextEp = storyEpisodes[currentIndex + 1];
+                    switchEpisode(nextEp.title, nextEp.audioKey);
+                } else {
+                    console.log("Đã phát hết danh sách tập của truyện.");
+                }
+            }
         });
 
         audio.addEventListener('loadedmetadata', () => {
@@ -348,6 +357,8 @@
                 }
                 hasRestoredTime = true;
             }
+            // Tự động phát luôn khi chuyển sang tập mới
+            audio.play().catch(err => console.log(err));
         });
 
         function updateSliderUI(percent) {
@@ -432,45 +443,57 @@
         function setSpeed(speed) {
             audio.playbackRate = speed;
             document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
-            
-            // Bỏ chọn tất cả các mục có sẵn
             let items = document.querySelectorAll('#speedPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
-            
-            // Nếu có nút trùng khớp tốc độ có sẵn thì gán sáng
             let target = document.getElementById('speed_' + speed);
             if(target) target.classList.add('selected');
-
             closeAllPopups();
         }
 
-        /* HÀM XỬ LÝ KHI NHẬP TỐC ĐỘ TÙY CHỈNH BẰNG TAY */
         function applyCustomSpeed() {
             let inputVal = parseFloat(document.getElementById('customSpeedInput').value);
             if (isNaN(inputVal) || inputVal <= 0) {
                 alert('Vui lòng nhập một số hợp lệ cho tốc độ!');
                 return;
             }
-            // Giới hạn tốc độ an toàn từ 0.25x đến 4.0x
             let speed = Math.max(0.25, Math.min(4.0, inputVal));
-            
             audio.playbackRate = speed;
             document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
-            
-            // Bỏ chọn các nút mặc định vì đang dùng số tùy chỉnh
             let items = document.querySelectorAll('#speedPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
-
             closeAllPopups();
         }
 
-        function setTimer(minutes) {
+        // XỬ LÝ HẸN GIỜ THEO Ô NHẬP GIỜ & PHÚT TÙY CHỈNH
+        function applyCustomTimer() {
+            let hoursVal = parseInt(document.getElementById('customHourInput').value) || 0;
+            let minutesVal = parseInt(document.getElementById('customMinuteInput').value) || 0;
+            
+            let totalMinutes = hoursVal * 60 + minutesVal;
+            if (totalMinutes <= 0) {
+                alert('Vui lòng nhập số giờ hoặc số phút lớn hơn 0!');
+                return;
+            }
+            
+            activateTimer(totalMinutes);
+            closeAllPopups();
+        }
+
+        function setTimerMinutes(minutes) {
             let items = document.querySelectorAll('#timerPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
             event.currentTarget.classList.add('selected');
 
-            clearInterval(timerInterval);
+            // Reset ô nhập thủ công khi bấm chọn mẫu sẵn
+            document.getElementById('customHourInput').value = '';
+            document.getElementById('customMinuteInput').value = '';
 
+            activateTimer(minutes);
+            closeAllPopups();
+        }
+
+        function activateTimer(minutes) {
+            clearInterval(timerInterval);
             if (minutes > 0) {
                 document.getElementById('timerBtn').classList.add('active-timer');
                 timerEndTime = Date.now() + minutes * 60000;
@@ -480,7 +503,6 @@
                 document.getElementById('timerBtn').classList.remove('active-timer');
                 document.getElementById('timerText').textContent = "Hẹn giờ";
             }
-            closeAllPopups();
         }
 
         function updateTimerDisplay() {
