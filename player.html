@@ -77,7 +77,6 @@
         .apply-speed-btn { background: #d95a52; border: none; color: #fff; font-weight: 600; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
         .apply-speed-btn:active { transform: scale(0.95); }
 
-        /* KHU VỰC HẸN GIỜ TÙY CHỈNH THEO GIỜ & PHÚT */
         .timer-input-group { background: #24242c; padding: 14px 16px; border-radius: 12px; border: 1px solid #2a2a32; display: flex; flex-direction: column; gap: 12px; margin-bottom: 5px; }
         .timer-fields { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .timer-field-item { display: flex; align-items: center; gap: 6px; flex: 1; }
@@ -170,7 +169,6 @@
         </div>
     </div>
 
-    <!-- BẢNG HẸN GIỜ CÓ Ô NHẬP GIỜ VÀ PHÚT TÙY CHỈNH -->
     <div class="bottom-sheet" id="timerPopup">
         <div class="sheet-header">Hẹn giờ tự động tắt <span class="close-sheet" onclick="closeAllPopups()">&times;</span></div>
         <div class="sheet-content">
@@ -218,7 +216,7 @@
         let timerInterval = null;
         let timerEndTime = 0;
         let hasRestoredTime = false;
-        let storyEpisodes = []; // Lưu trữ danh sách các tập của truyện
+        let storyEpisodes = [];
 
         function formatTime(seconds) {
             if (isNaN(seconds) || seconds < 0) return "00:00:00";
@@ -254,7 +252,7 @@
                     document.getElementById('playerCover').src = coverUrl;
                     
                     if(story.episodes) {
-                        storyEpisodes = story.episodes; // Lưu lại để dùng cho tính năng tự chuyển tập
+                        storyEpisodes = story.episodes;
                         let html = story.episodes.map(ep => {
                             let isPlaying = ep.audioKey === currentAudioKey ? 'selected' : '';
                             return `<div class="sheet-item ${isPlaying}" onclick="switchEpisode('${ep.title}', '${ep.audioKey}')">
@@ -324,10 +322,10 @@
             localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
         });
 
-        // TỰ ĐỘNG CHUYỂN TẬP TIẾP THEO KHI HẾT AUDIO
+        // SỰ KIỆN KHI HẾT TẬP HIỆN TẠI -> TỰ CHUYỂN SANG TẬP KẾ TIẾP
         audio.addEventListener('ended', () => {
             stopProgressLoop();
-            localStorage.setItem('history_' + currentAudioKey, audio.duration); // Đánh dấu đã nghe xong tập này
+            localStorage.setItem('history_' + currentAudioKey, audio.duration);
             
             if (storyEpisodes.length > 0) {
                 let currentIndex = storyEpisodes.findIndex(ep => ep.audioKey === currentAudioKey);
@@ -357,8 +355,14 @@
                 }
                 hasRestoredTime = true;
             }
-            // Tự động phát luôn khi chuyển sang tập mới
-            audio.play().catch(err => console.log(err));
+
+            // ÉP BUỘC TỰ ĐỘNG PHÁT NGAY LẬP TỨC KHI TẢI XONG TẬP
+            let playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Trình duyệt chặn tự động phát, cần người dùng tương tác:", error);
+                });
+            }
         });
 
         function updateSliderUI(percent) {
@@ -464,7 +468,6 @@
             closeAllPopups();
         }
 
-        // XỬ LÝ HẸN GIỜ THEO Ô NHẬP GIỜ & PHÚT TÙY CHỈNH
         function applyCustomTimer() {
             let hoursVal = parseInt(document.getElementById('customHourInput').value) || 0;
             let minutesVal = parseInt(document.getElementById('customMinuteInput').value) || 0;
@@ -484,7 +487,6 @@
             items.forEach(item => item.classList.remove('selected'));
             event.currentTarget.classList.add('selected');
 
-            // Reset ô nhập thủ công khi bấm chọn mẫu sẵn
             document.getElementById('customHourInput').value = '';
             document.getElementById('customMinuteInput').value = '';
 
