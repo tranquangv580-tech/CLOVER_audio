@@ -214,9 +214,9 @@
         let playInterval = null;
         
         let timerInterval = null;
-        let hasRestoredTime = false;
         let storyEpisodes = [];
-        let currentAudioBlob = null; // Lưu trữ blob để phòng trường hợp bị ngắt nền lâu
+        let currentAudioBlob = null;
+        let dbInstance = null;
 
         function formatTime(seconds) {
             if (isNaN(seconds) || seconds < 0) return "00:00:00";
@@ -232,15 +232,12 @@
         }
 
         async function initPlayer() {
-            let episodeTitle = localStorage.getItem('currentEpisodeTitle') || "Tập không xác định";
-            document.getElementById('playerTitle').textContent = episodeTitle;
-
-            let db = await new Promise((resolve) => {
+            dbInstance = await new Promise((resolve) => {
                 let req = indexedDB.open('AudioBookDB', 2);
                 req.onsuccess = e => resolve(e.target.result);
             });
 
-            let txStory = db.transaction('stories', 'readonly');
+            let txStory = dbInstance.transaction('stories', 'readonly');
             let storyReq = txStory.objectStore('stories').get(currentStoryId);
             storyReq.onsuccess = (e) => {
                 let story = e.target.result;
@@ -253,59 +250,84 @@
                     
                     if(story.episodes) {
                         storyEpisodes = story.episodes;
-                        let html = story.episodes.map(ep => {
-                            let isPlaying = ep.audioKey === currentAudioKey ? 'selected' : '';
-                            return `<div class="sheet-item ${isPlaying}" onclick="switchEpisode('${ep.title}', '${ep.audioKey}')">
-                                <span>${ep.title}</span>
-                                ${isPlaying ? '<span>🔊</span>' : ''}
-                            </div>`;
-                        }).join('');
-                        document.getElementById('episodePopupList').innerHTML = html;
+                        updateEpisodeListUI();
                     }
                 }
             };
 
-            let txAudio = db.transaction('audios', 'readonly');
-            let audioReq = txAudio.objectStore('audios').get(currentAudioKey);
+            loadAndPlayEpisode(currentAudioKey, false);
+            checkAndRestoreTimer();
+        }
+
+        function updateEpisodeListUI() {
+            let html = storyEpisodes.map(ep => {
+                let isPlaying = ep.audioKey === currentAudioKey ? 'selected' : '';
+                return `<div class="sheet-item ${isPlaying}" onclick="switchEpisode('${ep.title}', '${ep.audioKey}')">
+                    <span>${ep.title}</span>
+                    ${isPlaying ? '<span>🔊</span>' : ''}
+                </div>`;
+            }).join('');
+            document.getElementById('episodePopupList').innerHTML = html;
+        }
+
+        // HÀM TẢI VÀ PHÁT TẬP MỚI (KHÔNG CẦN RELOAD TRANG ĐỂ TRÁNH BỊ CHẶN TỰ ĐỘNG PHÁT)
+        async function loadAndPlayEpisode(audioKey, autoPlay = true) {
+            currentAudioKey = audioKey;
+            localStorage.setItem('currentAudioKey', audioKey);
+            
+            let currentEp = storyEpisodes.find(ep => ep.audioKey === audioKey);
+            if (currentEp) {
+                document.getElementById('playerTitle').textContent = currentEp.title;
+                localStorage.setItem('currentEpisodeTitle', currentEp.title);
+            }
+            updateEpisodeListUI();
+
+            let txAudio = dbInstance.transaction('audios', 'readonly');
+            let audioReq = txAudio.objectStore('audios').get(audioKey);
             audioReq.onsuccess = (e) => {
                 let blob = e.target.result;
                 if(blob) {
                     currentAudioBlob = blob;
-                    loadAudioSource(blob);
+                    const audioFile = new File([blob], "audio.mp3", { type: 'audio/mpeg' });
+                    audio.src = URL.createObjectURL(audioFile);
+                    audio.load();
+
+                    // Khôi phục mốc thời gian cũ (nếu có)
+                    let savedTime = localStorage.getItem('history_' + audioKey);
+                    let startTime = 0;
+                    if (savedTime && parseFloat(savedTime) > 0) {
+                        startTime = parseFloat(savedTime);
+                    }
+
+                    audio.onloadedmetadata = () => {
+                        if (audio.duration && audio.duration !== Infinity && (audio.duration - startTime < 2)) {
+                            startTime = 0;
+                            localStorage.setItem('history_' + audioKey, 0);
+                        }
+                        audio.currentTime = startTime;
+                        
+                        if (autoPlay) {
+                            audio.play().catch(err => {
+                                console.log("Trình duyệt chặn tự động phát:", err);
+                            });
+                        }
+                    };
                 }
             };
-
-            // Khôi phục hẹn giờ nếu trước đó đã bật và chưa hết giờ
-            checkAndRestoreTimer();
-        }
-
-        function loadAudioSource(blob) {
-            const audioFile = new File([blob], "audio.mp3", { type: 'audio/mpeg' });
-            audio.src = URL.createObjectURL(audioFile);
-            audio.load();
         }
 
         function togglePlay() {
-            // Kiểm tra nếu audio bị "chết" ngầm do để nền quá lâu (readyState thấp hoặc bị lỗi stream)
             if (audio.error || (audio.paused && audio.networkState === HTMLMediaElement.NETWORK_EMPTY)) {
                 if (currentAudioBlob) {
                     let currentTimeBackup = audio.currentTime;
-                    loadAudioSource(currentAudioBlob);
+                    const audioFile = new File([currentAudioBlob], "audio.mp3", { type: 'audio/mpeg' });
+                    audio.src = URL.createObjectURL(audioFile);
                     audio.currentTime = currentTimeBackup;
                 }
             }
 
             if (audio.paused) {
-                audio.play().catch(err => {
-                    console.log("Lỗi phát:", err);
-                    // Ép tải lại nguồn dự phòng nếu bấm play không có tiếng
-                    if(currentAudioBlob) {
-                        let t = audio.currentTime;
-                        loadAudioSource(currentAudioBlob);
-                        audio.currentTime = t;
-                        audio.play();
-                    }
-                });
+                audio.play().catch(err => console.log(err));
             } else {
                 audio.pause();
             }
@@ -348,7 +370,7 @@
             localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
         });
 
-        // SỰ KIỆN KHI HẾT TẬP HIỆN TẠI -> TỰ CHUYỂN SANG TẬP KẾ TIẾP
+        // SỰ KIỆN KHI HẾT TẬP HIỆN TẠI -> TỰ CHUYỂN SANG TẬP KẾ TIẾP VÀ PHÁT LUÔN
         audio.addEventListener('ended', () => {
             stopProgressLoop();
             localStorage.setItem('history_' + currentAudioKey, audio.duration);
@@ -357,45 +379,17 @@
                 let currentIndex = storyEpisodes.findIndex(ep => ep.audioKey === currentAudioKey);
                 if (currentIndex !== -1 && currentIndex < storyEpisodes.length - 1) {
                     let nextEp = storyEpisodes[currentIndex + 1];
-                    // Chuyển tập nhưng giữ nguyên trạng thái hẹn giờ
-                    switchEpisode(nextEp.title, nextEp.audioKey);
+                    // Chuyển tập mượt mà và tự động phát ngay lập tức
+                    loadAndPlayEpisode(nextEp.audioKey, true);
                 } else {
                     console.log("Đã phát hết danh sách tập của truyện.");
                 }
             }
         });
 
-        audio.addEventListener('loadedmetadata', () => {
-            let duration = audio.duration || 0;
-            if (!isNaN(duration) && duration > 0 && duration !== Infinity) {
-                document.getElementById('remainingTime').textContent = "-" + formatTime(duration);
-            }
-            
-            if (!hasRestoredTime) {
-                let savedTime = localStorage.getItem('history_' + currentAudioKey);
-                if (savedTime && parseFloat(savedTime) > 0) {
-                    let timeToSet = parseFloat(savedTime);
-                    
-                    if (duration > 0 && duration !== Infinity && (duration - timeToSet < 2)) {
-                        timeToSet = 0;
-                        localStorage.setItem('history_' + currentAudioKey, 0);
-                    }
-
-                    audio.currentTime = timeToSet;
-                    document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
-                    if (duration > 0 && duration !== Infinity) {
-                        updateSliderUI((audio.currentTime / duration) * 100);
-                    }
-                }
-                hasRestoredTime = true;
-            }
-
-            // Ép phát tự động ngay khi dữ liệu sẵn sàng
-            let playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("Trình duyệt chặn tự động phát:", error);
-                });
+        audio.addEventListener('timeupdate', () => {
+            if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                document.getElementById('remainingTime').textContent = "-" + formatTime(audio.duration - audio.currentTime);
             }
         });
 
@@ -581,9 +575,8 @@
         }
 
         function switchEpisode(title, audioKey) {
-            localStorage.setItem('currentEpisodeTitle', title);
-            localStorage.setItem('currentAudioKey', audioKey);
-            window.location.reload(); 
+            closeAllPopups();
+            loadAndPlayEpisode(audioKey, true);
         }
 
         window.addEventListener('DOMContentLoaded', initPlayer);
