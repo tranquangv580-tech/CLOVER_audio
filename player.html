@@ -214,9 +214,9 @@
         let playInterval = null;
         
         let timerInterval = null;
-        let timerEndTime = 0;
         let hasRestoredTime = false;
         let storyEpisodes = [];
+        let currentAudioBlob = null; // Lưu trữ blob để phòng trường hợp bị ngắt nền lâu
 
         function formatTime(seconds) {
             if (isNaN(seconds) || seconds < 0) return "00:00:00";
@@ -270,16 +270,42 @@
             audioReq.onsuccess = (e) => {
                 let blob = e.target.result;
                 if(blob) {
-                    const audioFile = new File([blob], "audio.mp3", { type: 'audio/mpeg' });
-                    audio.src = URL.createObjectURL(audioFile);
-                    audio.load();
+                    currentAudioBlob = blob;
+                    loadAudioSource(blob);
                 }
             };
+
+            // Khôi phục hẹn giờ nếu trước đó đã bật và chưa hết giờ
+            checkAndRestoreTimer();
+        }
+
+        function loadAudioSource(blob) {
+            const audioFile = new File([blob], "audio.mp3", { type: 'audio/mpeg' });
+            audio.src = URL.createObjectURL(audioFile);
+            audio.load();
         }
 
         function togglePlay() {
+            // Kiểm tra nếu audio bị "chết" ngầm do để nền quá lâu (readyState thấp hoặc bị lỗi stream)
+            if (audio.error || (audio.paused && audio.networkState === HTMLMediaElement.NETWORK_EMPTY)) {
+                if (currentAudioBlob) {
+                    let currentTimeBackup = audio.currentTime;
+                    loadAudioSource(currentAudioBlob);
+                    audio.currentTime = currentTimeBackup;
+                }
+            }
+
             if (audio.paused) {
-                audio.play().catch(err => console.log(err));
+                audio.play().catch(err => {
+                    console.log("Lỗi phát:", err);
+                    // Ép tải lại nguồn dự phòng nếu bấm play không có tiếng
+                    if(currentAudioBlob) {
+                        let t = audio.currentTime;
+                        loadAudioSource(currentAudioBlob);
+                        audio.currentTime = t;
+                        audio.play();
+                    }
+                });
             } else {
                 audio.pause();
             }
@@ -331,6 +357,7 @@
                 let currentIndex = storyEpisodes.findIndex(ep => ep.audioKey === currentAudioKey);
                 if (currentIndex !== -1 && currentIndex < storyEpisodes.length - 1) {
                     let nextEp = storyEpisodes[currentIndex + 1];
+                    // Chuyển tập nhưng giữ nguyên trạng thái hẹn giờ
                     switchEpisode(nextEp.title, nextEp.audioKey);
                 } else {
                     console.log("Đã phát hết danh sách tập của truyện.");
@@ -347,7 +374,14 @@
             if (!hasRestoredTime) {
                 let savedTime = localStorage.getItem('history_' + currentAudioKey);
                 if (savedTime && parseFloat(savedTime) > 0) {
-                    audio.currentTime = parseFloat(savedTime);
+                    let timeToSet = parseFloat(savedTime);
+                    
+                    if (duration > 0 && duration !== Infinity && (duration - timeToSet < 2)) {
+                        timeToSet = 0;
+                        localStorage.setItem('history_' + currentAudioKey, 0);
+                    }
+
+                    audio.currentTime = timeToSet;
                     document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
                     if (duration > 0 && duration !== Infinity) {
                         updateSliderUI((audio.currentTime / duration) * 100);
@@ -356,11 +390,11 @@
                 hasRestoredTime = true;
             }
 
-            // ÉP BUỘC TỰ ĐỘNG PHÁT NGAY LẬP TỨC KHI TẢI XONG TẬP
+            // Ép phát tự động ngay khi dữ liệu sẵn sàng
             let playPromise = audio.play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
-                    console.log("Trình duyệt chặn tự động phát, cần người dùng tương tác:", error);
+                    console.log("Trình duyệt chặn tự động phát:", error);
                 });
             }
         });
@@ -485,7 +519,7 @@
         function setTimerMinutes(minutes) {
             let items = document.querySelectorAll('#timerPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+            if(event && event.currentTarget) event.currentTarget.classList.add('selected');
 
             document.getElementById('customHourInput').value = '';
             document.getElementById('customMinuteInput').value = '';
@@ -497,29 +531,49 @@
         function activateTimer(minutes) {
             clearInterval(timerInterval);
             if (minutes > 0) {
+                let endTime = Date.now() + minutes * 60000;
+                localStorage.setItem('timerEndTime', endTime);
                 document.getElementById('timerBtn').classList.add('active-timer');
-                timerEndTime = Date.now() + minutes * 60000;
-                updateTimerDisplay();
-                timerInterval = setInterval(updateTimerDisplay, 1000);
+                updateTimerDisplay(endTime);
+                timerInterval = setInterval(() => {
+                    updateTimerDisplay(localStorage.getItem('timerEndTime'));
+                }, 1000);
             } else {
+                localStorage.removeItem('timerEndTime');
                 document.getElementById('timerBtn').classList.remove('active-timer');
                 document.getElementById('timerText').textContent = "Hẹn giờ";
             }
         }
 
-        function updateTimerDisplay() {
-            let remain = timerEndTime - Date.now();
+        function checkAndRestoreTimer() {
+            let savedEndTime = localStorage.getItem('timerEndTime');
+            if (savedEndTime) {
+                let remain = parseInt(savedEndTime) - Date.now();
+                if (remain > 0) {
+                    document.getElementById('timerBtn').classList.add('active-timer');
+                    updateTimerDisplay(savedEndTime);
+                    timerInterval = setInterval(() => {
+                        updateTimerDisplay(localStorage.getItem('timerEndTime'));
+                    }, 1000);
+                } else {
+                    localStorage.removeItem('timerEndTime');
+                }
+            }
+        }
+
+        function updateTimerDisplay(endTime) {
+            let remain = parseInt(endTime) - Date.now();
             if (remain <= 0) {
                 clearInterval(timerInterval);
                 audio.pause();
+                localStorage.removeItem('timerEndTime');
                 document.getElementById('timerBtn').classList.remove('active-timer');
                 document.getElementById('timerText').textContent = "Hẹn giờ";
                 
                 let items = document.querySelectorAll('#timerPopup .sheet-item');
                 items.forEach(item => item.classList.remove('selected'));
-                document.getElementById('timer_0').classList.add('selected');
-                
-                alert('Đã hết thời gian hẹn giờ! Nhạc đã dừng.');
+                let target0 = document.getElementById('timer_0');
+                if(target0) target0.classList.add('selected');
                 return;
             }
             let totalSeconds = Math.floor(remain / 1000);
