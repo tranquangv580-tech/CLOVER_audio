@@ -75,6 +75,13 @@
     </div>
 
     <script>
+        if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
+        .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
+    });
+}
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open('AudioBookDB', 2);

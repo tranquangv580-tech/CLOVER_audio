@@ -201,6 +201,13 @@
     <audio id="audioPlayer" preload="auto" playsinline webkit-playsinline></audio>
 
     <script>
+        if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
+        .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
+    });
+}
         const audio = document.getElementById('audioPlayer');
         const progressContainer = document.getElementById('progressContainer');
         const progressFill = document.getElementById('progressFill');

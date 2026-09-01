@@ -155,7 +155,14 @@
         <button class="image-viewer-close" onclick="closeImageViewer()">&times;</button>
     </div>
 
-    <script>
+    <script> 
+    if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
+        .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
+    });
+}
         const currentStoryId = localStorage.getItem('currentStoryId') || '';
         let currentStoryData = null;
         let activeMenuIndex = null;
