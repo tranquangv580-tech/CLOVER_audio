@@ -52,6 +52,13 @@
     <button class="submit-btn" onclick="saveNewStory()">Lưu bộ truyện</button>
 
     <script>
+        if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
+        .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
+    });
+}
         // Mở cơ sở dữ liệu với phiên bản tăng lên 2 để tự động tạo kho lưu trữ 'stories'
         function openDB() {
             return new Promise((resolve, reject) => {
