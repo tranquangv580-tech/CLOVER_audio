@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Màn Hình Nghe</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background-color: #0f0f13; color: #fff; font-family: -apple-system, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; max-width: 480px; margin: 0 auto; }
@@ -161,11 +162,11 @@
                     <button class="apply-speed-btn" onclick="applyCustomSpeed()">Áp dụng</button>
                 </div>
             </div>
-            <div class="sheet-item" onclick="setSpeed(0.75)">0.75x (Chậm)</div>
-            <div class="sheet-item selected" onclick="setSpeed(1.0)" id="speed_1.0">1.0x (Bình thường)</div>
-            <div class="sheet-item" onclick="setSpeed(1.25)">1.25x (Hơi nhanh)</div>
-            <div class="sheet-item" onclick="setSpeed(1.5)">1.5x (Nhanh)</div>
-            <div class="sheet-item" onclick="setSpeed(2.0)">2.0x (Rất nhanh)</div>
+            <div class="sheet-item" onclick="setSpeed(0.75)" id="speed_0.75">0.75x (Chậm)</div>
+            <div class="sheet-item selected" onclick="setSpeed(1.0)" id="speed_1">1.0x (Bình thường)</div>
+            <div class="sheet-item" onclick="setSpeed(1.25)" id="speed_1.25">1.25x (Hơi nhanh)</div>
+            <div class="sheet-item" onclick="setSpeed(1.5)" id="speed_1.5">1.5x (Nhanh)</div>
+            <div class="sheet-item" onclick="setSpeed(2.0)" id="speed_2">2.0x (Rất nhanh)</div>
         </div>
     </div>
 
@@ -202,12 +203,13 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
-        .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
-    });
-}
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
+                .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
+            });
+        }
+
         const audio = document.getElementById('audioPlayer');
         const progressContainer = document.getElementById('progressContainer');
         const progressFill = document.getElementById('progressFill');
@@ -238,7 +240,27 @@
             return `${hStr}:${mStr}:${sStr}`;
         }
 
+        function initSavedSpeedUI() {
+            let savedSpeed = parseFloat(localStorage.getItem('playbackSpeed')) || 1.0;
+            document.getElementById('speedText').textContent = `Tốc độ (${savedSpeed}x)`;
+            
+            let items = document.querySelectorAll('#speedPopup .sheet-item');
+            items.forEach(item => item.classList.remove('selected'));
+            
+            let target = document.getElementById('speed_' + savedSpeed);
+            if(target) {
+                target.classList.add('selected');
+            } else {
+                document.getElementById('customSpeedInput').value = savedSpeed;
+            }
+        }
+
         async function initPlayer() {
+            initSavedSpeedUI();
+
+            let fallbackTitle = localStorage.getItem('currentEpisodeTitle');
+            if(fallbackTitle) document.getElementById('playerTitle').textContent = fallbackTitle;
+
             dbInstance = await new Promise((resolve) => {
                 let req = indexedDB.open('AudioBookDB', 2);
                 req.onsuccess = e => resolve(e.target.result);
@@ -246,6 +268,7 @@
 
             let txStory = dbInstance.transaction('stories', 'readonly');
             let storyReq = txStory.objectStore('stories').get(currentStoryId);
+            
             storyReq.onsuccess = (e) => {
                 let story = e.target.result;
                 if(story) {
@@ -257,12 +280,11 @@
                     
                     if(story.episodes) {
                         storyEpisodes = story.episodes;
-                        updateEpisodeListUI();
+                        loadAndPlayEpisode(currentAudioKey, false);
                     }
                 }
             };
 
-            loadAndPlayEpisode(currentAudioKey, false);
             checkAndRestoreTimer();
         }
 
@@ -277,7 +299,6 @@
             document.getElementById('episodePopupList').innerHTML = html;
         }
 
-        // HÀM TẢI VÀ PHÁT TẬP MỚI (KHÔNG CẦN RELOAD TRANG ĐỂ TRÁNH BỊ CHẶN TỰ ĐỘNG PHÁT)
         async function loadAndPlayEpisode(audioKey, autoPlay = true) {
             currentAudioKey = audioKey;
             localStorage.setItem('currentAudioKey', audioKey);
@@ -299,7 +320,6 @@
                     audio.src = URL.createObjectURL(audioFile);
                     audio.load();
 
-                    // Khôi phục mốc thời gian cũ (nếu có)
                     let savedTime = localStorage.getItem('history_' + audioKey);
                     let startTime = 0;
                     if (savedTime && parseFloat(savedTime) > 0) {
@@ -312,6 +332,9 @@
                             localStorage.setItem('history_' + audioKey, 0);
                         }
                         audio.currentTime = startTime;
+
+                        let savedSpeed = parseFloat(localStorage.getItem('playbackSpeed')) || 1.0;
+                        audio.playbackRate = savedSpeed;
                         
                         if (autoPlay) {
                             audio.play().catch(err => {
@@ -332,7 +355,6 @@
                     audio.currentTime = currentTimeBackup;
                 }
             }
-
             if (audio.paused) {
                 audio.play().catch(err => console.log(err));
             } else {
@@ -377,7 +399,6 @@
             localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
         });
 
-        // SỰ KIỆN KHI HẾT TẬP HIỆN TẠI -> TỰ CHUYỂN SANG TẬP KẾ TIẾP VÀ PHÁT LUÔN
         audio.addEventListener('ended', () => {
             stopProgressLoop();
             localStorage.setItem('history_' + currentAudioKey, audio.duration);
@@ -386,10 +407,7 @@
                 let currentIndex = storyEpisodes.findIndex(ep => ep.audioKey === currentAudioKey);
                 if (currentIndex !== -1 && currentIndex < storyEpisodes.length - 1) {
                     let nextEp = storyEpisodes[currentIndex + 1];
-                    // Chuyển tập mượt mà và tự động phát ngay lập tức
                     loadAndPlayEpisode(nextEp.audioKey, true);
-                } else {
-                    console.log("Đã phát hết danh sách tập của truyện.");
                 }
             }
         });
@@ -481,6 +499,8 @@
 
         function setSpeed(speed) {
             audio.playbackRate = speed;
+            localStorage.setItem('playbackSpeed', speed);
+            
             document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
             let items = document.querySelectorAll('#speedPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
@@ -497,6 +517,8 @@
             }
             let speed = Math.max(0.25, Math.min(4.0, inputVal));
             audio.playbackRate = speed;
+            localStorage.setItem('playbackSpeed', speed);
+            
             document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
             let items = document.querySelectorAll('#speedPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
@@ -512,7 +534,6 @@
                 alert('Vui lòng nhập số giờ hoặc số phút lớn hơn 0!');
                 return;
             }
-            
             activateTimer(totalMinutes);
             closeAllPopups();
         }
