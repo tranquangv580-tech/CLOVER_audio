@@ -255,6 +255,32 @@
             }
         }
 
+        function updateMediaSession(title, storyName, coverUrl) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: title || 'Đang phát truyện',
+                    artist: storyName || 'Truyện nói',
+                    album: 'Ứng dụng Nghe Truyện',
+                    artwork: [
+                        { src: coverUrl || 'https://via.placeholder.com/300', sizes: '300x300', type: 'image/jpeg' }
+                    ]
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => { audio.play(); });
+                navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); });
+                navigator.mediaSession.setActionHandler('seekbackward', () => { skip(-10); });
+                navigator.mediaSession.setActionHandler('seekforward', () => { skip(10); });
+                
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    let currentIndex = storyEpisodes.findIndex(ep => ep.audioKey === currentAudioKey);
+                    if (currentIndex !== -1 && currentIndex < storyEpisodes.length - 1) {
+                        let nextEp = storyEpisodes[currentIndex + 1];
+                        loadAndPlayEpisode(nextEp.audioKey, true);
+                    }
+                });
+            }
+        }
+
         async function initPlayer() {
             initSavedSpeedUI();
 
@@ -309,6 +335,10 @@
                 localStorage.setItem('currentEpisodeTitle', currentEp.title);
             }
             updateEpisodeListUI();
+
+            let currentStoryName = document.getElementById('playerStoryName').textContent;
+            let currentCoverUrl = document.getElementById('playerCover').src;
+            updateMediaSession(currentEp ? currentEp.title : '', currentStoryName, currentCoverUrl);
 
             let txAudio = dbInstance.transaction('audios', 'readonly');
             let audioReq = txAudio.objectStore('audios').get(audioKey);
