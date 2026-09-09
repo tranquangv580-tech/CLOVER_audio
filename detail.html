@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chi Tiết Truyện</title>
     <style>
-        /* [Giữ nguyên CSS cốt lõi, thêm hiệu ứng mượt mà và CSS cho xem ảnh] */
         * { -webkit-tap-highlight-color: transparent; }
         body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; margin: 0; padding: 16px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
         
@@ -15,7 +14,6 @@
         
         .story-header { display: flex; gap: 15px; margin-bottom: 15px; background: #1a1a20; padding: 12px; border-radius: 12px; border: 1px solid #2a2a32; align-items: center; transition: 0.3s; }
         
-        /* Chỉnh lại CSS Ảnh bìa để có hiệu ứng hover/active */
         .story-cover { width: 90px; height: 120px; object-fit: cover; border-radius: 8px; background: #222; flex-shrink: 0; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s; }
         .story-cover:active { transform: scale(0.95); }
         
@@ -58,7 +56,6 @@
         .menu-dots-btn { background: none; border: none; color: #aaa; font-size: 18px; font-weight: bold; cursor: pointer; padding: 6px 10px; border-radius: 6px; transition: 0.2s; }
         .menu-dots-btn:active { background: #2a2a32; transform: scale(0.9); }
         
-        /* Tối ưu hiệu ứng mượt mà cho Bottom Sheet Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); backdrop-filter: blur(5px); }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background-color: #1a1a1e; border-radius: 24px 24px 0 0; padding: 24px 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); max-height: 85vh; overflow-y: auto; box-shadow: 0 -5px 25px rgba(0,0,0,0.5); }
@@ -78,7 +75,6 @@
         .option-item { padding: 12px 14px; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 8px; text-align: center; margin-bottom: 4px; transition: 0.2s; }
         .option-item:active { background: #2a2a32; transform: scale(0.98); }
 
-        /* MỚI: CSS CHO PHÓNG TO ẢNH BÌA */
         .image-viewer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; backdrop-filter: blur(8px); }
         .image-viewer-overlay.active { opacity: 1; visibility: visible; }
         .image-viewer-img { max-width: 90%; max-height: 80%; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transform: scale(0.7); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -156,13 +152,14 @@
     </div>
 
     <script> 
-    if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
-        .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
-    });
-}
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
+                .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
+            });
+        }
+
         const currentStoryId = localStorage.getItem('currentStoryId') || '';
         let currentStoryData = null;
         let activeMenuIndex = null;
@@ -228,7 +225,6 @@
             } catch (err) { console.error(err); }
         }
 
-        // --- CÁC HÀM CHO TRÌNH XEM ẢNH MỚI ---
         function viewCover(src) {
             document.getElementById('imageViewerImg').src = src;
             document.getElementById('imageViewerOverlay').classList.add('active');
@@ -237,7 +233,6 @@
             document.getElementById('imageViewerOverlay').classList.remove('active');
         }
 
-        // --- CÁC HÀM XỬ LÝ KHÁC (GIỮ NGUYÊN HOÀN TOÀN LOGIC) ---
         function renderEpisodes() {
             const container = document.getElementById('episodeListContainer');
             let episodes = currentStoryData.episodes || [];
@@ -280,11 +275,13 @@
 
         function enableBatchModeFromMenu() {
             closeOptionPopup();
-            isBatchMode = true; selectedIndices.clear();
+            isBatchMode = true; 
+            selectedIndices.clear();
             if (activeMenuIndex !== null) selectedIndices.add(activeMenuIndex);
             document.getElementById('batchActionBar').classList.add('active');
             document.getElementById('toggleBatchBtn').textContent = 'Hủy chọn';
-            renderEpisodes(); updateSelectedCount();
+            renderEpisodes(); 
+            updateSelectedCount();
         }
 
         function toggleSelectEpisode(index) {
@@ -298,7 +295,9 @@
             updateSelectedCount();
         }
 
-        function updateSelectedCount() { document.getElementById('selectedCountText').textContent = `Đã chọn: ${selectedIndices.size}`; }
+        function updateSelectedCount() { 
+            document.getElementById('selectedCountText').textContent = `Đã chọn: ${selectedIndices.size}`; 
+        }
 
         async function deleteSelectedEpisodes() {
             if (selectedIndices.size === 0) { alert('Vui lòng chọn ít nhất một tập để xóa!'); return; }
@@ -308,7 +307,8 @@
                 let tx = db.transaction('stories', 'readwrite');
                 tx.objectStore('stories').put(currentStoryData);
                 tx.oncomplete = function() {
-                    isBatchMode = false; selectedIndices.clear();
+                    isBatchMode = false; 
+                    selectedIndices.clear();
                     document.getElementById('batchActionBar').classList.remove('active');
                     document.getElementById('toggleBatchBtn').textContent = 'Chọn nhiều';
                     loadStoryDetail();
@@ -317,10 +317,14 @@
         }
 
         function openOptionMenu(event, index) {
-            event.stopPropagation(); activeMenuIndex = index;
+            event.stopPropagation(); 
+            activeMenuIndex = index;
             document.getElementById('optionPopupOverlay').classList.add('active');
         }
-        function closeOptionPopup() { document.getElementById('optionPopupOverlay').classList.remove('active'); activeMenuIndex = null; }
+        function closeOptionPopup() { 
+            document.getElementById('optionPopupOverlay').classList.remove('active'); 
+            activeMenuIndex = null; 
+        }
 
         function confirmDeleteSingleEpisode() {
             closeOptionPopup();
@@ -371,7 +375,8 @@
             txStory.objectStore('stories').put(currentStoryData);
 
             txStory.oncomplete = function() {
-                closeEpisodeModal(); loadStoryDetail();
+                closeEpisodeModal(); 
+                loadStoryDetail();
             };
         }
 
