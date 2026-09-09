@@ -24,7 +24,7 @@
         
         .summary-box { background: #17171c; padding: 14px; border-radius: 12px; font-size: 13px; color: #ccc; margin-bottom: 15px; border: 1px solid #25252c; line-height: 1.5; }
 
-        .action-desktop-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .action-desktop-row { display: flex; gap: 10px; margin-bottom: 15px; }
         .btn-style { flex: 1; background: #24242c; border: 1px solid #3d3d4a; color: #fff; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.2s ease; }
         .btn-style:active { transform: scale(0.97); }
         .btn-primary { background: #d95a52; border-color: #d95a52; }
@@ -35,6 +35,16 @@
         .batch-action-bar { display: none; background: #1f1f27; border: 1px solid #d95a52; padding: 12px; border-radius: 10px; margin-bottom: 12px; justify-content: space-between; align-items: center; animation: fadeIn 0.3s ease; }
         .batch-action-bar.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* CSS CHO PHẦN DANH SÁCH & THU GỌN / MỞ RỘNG */
+        .list-section-container { margin-bottom: 20px; }
+        .list-group-box { background: #16161a; border: 1px solid #2a2a32; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .list-group-header { background: #1c1c24; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; font-size: 14px; border-bottom: 1px solid #2a2a32; }
+        .list-group-header:active { background: #24242e; }
+        .list-group-content { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .list-group-content.collapsed { display: none; }
+        .toggle-arrow { transition: transform 0.3s ease; font-size: 12px; color: #aaa; }
+        .list-group-box.collapsed .toggle-arrow { transform: rotate(-90deg); }
 
         .episode-list { display: flex; flex-direction: column; gap: 10px; }
         .episode-item { background: #1a1a20; border: 1px solid #2a2a32; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; transition: all 0.25s ease; }
@@ -96,6 +106,12 @@
 
     <div class="summary-box" id="storySummaryText">Đang tải tóm tắt...</div>
 
+    <!-- KHUNG THÊM DANH SÁCH MỚI -->
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <input type="text" class="popup-input" id="inputNewListName" placeholder="Nhập tên danh sách mới (VD: Phần 1)..." style="margin-bottom: 0;">
+        <button class="btn-style" onclick="addNewList()" style="flex: unset; padding: 0 16px; white-space: nowrap;">+ Tạo DS</button>
+    </div>
+
     <div class="action-desktop-row">
         <button class="btn-style btn-primary" onclick="openEpisodeModal()">+ Thêm tập audio</button>
     </div>
@@ -110,8 +126,9 @@
         <button class="btn-style" onclick="deleteSelectedEpisodes()" style="background: #e74c3c; border-color: #e74c3c; padding: 8px 14px; font-size: 12px;">Xóa đã chọn</button>
     </div>
 
-    <div class="episode-list" id="episodeListContainer">
-        <div style="color: #888; font-size: 13px; text-align: center; padding: 20px;">Chưa có tập audio nào.</div>
+    <!-- KHU VỰC HIỂN THỊ CÁC DANH SÁCH VÀ TẬP TRUYỆN -->
+    <div class="list-section-container" id="episodeListContainer">
+        <div style="color: #888; font-size: 13px; text-align: center; padding: 20px;">Chưa có danh sách hoặc tập audio nào.</div>
     </div>
 
     <div class="modal-overlay" id="episodeModalOverlay" onclick="closeEpisodeModal()"></div>
@@ -121,6 +138,11 @@
             <span style="cursor: pointer; font-size: 24px; color: #aaa; padding: 5px;" onclick="closeEpisodeModal()">&times;</span>
         </div>
         
+        <label class="popup-label">Chọn danh sách lưu vào</label>
+        <select class="popup-input" id="inputEpisodeListSelect">
+            <!-- Được điền động bằng JS -->
+        </select>
+
         <div class="dual-input-row">
             <div>
                 <label class="popup-label">Số chương (Trái)</label>
@@ -165,6 +187,7 @@
         let activeMenuIndex = null;
         let isBatchMode = false;
         let selectedIndices = new Set();
+        let collapsedLists = {}; // Theo dõi trạng thái mở/đóng của danh sách
 
         function openDB() {
             return new Promise((resolve, reject) => {
@@ -209,6 +232,14 @@
                     currentStoryData = e.target.result;
                     if (!currentStoryData) { window.location.href = 'index.html'; return; }
 
+                    // Khởi tạo mảng lists và gán danh sách mặc định nếu chưa có
+                    if (!currentStoryData.lists || !Array.isArray(currentStoryData.lists)) {
+                        currentStoryData.lists = ['Danh sách chung'];
+                    }
+                    if (!currentStoryData.episodes) {
+                        currentStoryData.episodes = [];
+                    }
+
                     const coverSrc = currentStoryData.cover || 'https://via.placeholder.com/150';
                     document.getElementById('storyHeaderContainer').innerHTML = `
                         <img src="${coverSrc}" alt="Bìa" class="story-cover" onclick="viewCover('${coverSrc}')" title="Bấm để xem ảnh lớn">
@@ -233,31 +264,96 @@
             document.getElementById('imageViewerOverlay').classList.remove('active');
         }
 
+        // --- CHỨC NĂNG THÊM DANH SÁCH MỚI ---
+        async function addNewList() {
+            const inputName = document.getElementById('inputNewListName');
+            const listName = inputName.value.trim();
+            if (!listName) {
+                alert('Vui lòng nhập tên danh sách!');
+                return;
+            }
+            if (currentStoryData.lists.includes(listName)) {
+                alert('Danh sách này đã tồn tại!');
+                return;
+            }
+
+            currentStoryData.lists.push(listName);
+            inputName.value = '';
+
+            let db = await openDB();
+            let tx = db.transaction('stories', 'readwrite');
+            tx.objectStore('stories').put(currentStoryData);
+            tx.oncomplete = function() {
+                loadStoryDetail();
+            };
+        }
+
+        // --- HÀM THU GỌN / MỞ RỘNG DANH SÁCH ---
+        function toggleListCollapse(listName) {
+            collapsedLists[listName] = !collapsedLists[listName];
+            renderEpisodes();
+        }
+
         function renderEpisodes() {
             const container = document.getElementById('episodeListContainer');
+            let lists = currentStoryData.lists || [];
             let episodes = currentStoryData.episodes || [];
-            if (episodes.length > 0) {
-                container.innerHTML = episodes.map((ep, index) => {
-                    let isChecked = selectedIndices.has(index) ? 'checked' : '';
-                    return `
-                        <div class="episode-item ${isBatchMode ? 'selecting' : ''}" id="ep_item_${index}">
-                            <div class="episode-checkbox ${isChecked}" onclick="toggleSelectEpisode(${index})"></div>
-                            <div class="episode-info" onclick="handleItemClick(${index}, '${ep.title}', '${ep.audioKey}')">
-                                <div class="episode-title">${ep.title}</div>
-                                <div class="episode-date">Thứ tự: ${index + 1}</div>
-                            </div>
-                            <div class="episode-actions">
-                                <button class="listen-btn-box" onclick="playEpisode('${ep.title}', '${ep.audioKey}')">
-                                    <span>&#9658;</span> Nghe
-                                </button>
-                                <button class="menu-dots-btn" onclick="openOptionMenu(event, ${index})">&#8942;</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                container.innerHTML = `<div style="color: #888; font-size: 13px; text-align: center; padding: 20px;">Chưa có tập audio nào.</div>`;
+
+            if (lists.length === 0 && episodes.length === 0) {
+                container.innerHTML = `<div style="color: #888; font-size: 13px; text-align: center; padding: 20px;">Chưa có danh sách hoặc tập audio nào.</div>`;
+                return;
             }
+
+            // Gom nhóm tập theo danh sách
+            let htmlContent = '';
+            lists.forEach((listName, listIdx) => {
+                let listEpisodes = episodes.filter(ep => (ep.listName || lists[0]) === listName);
+                let isCollapsed = !!collapsedLists[listName];
+
+                htmlContent += `
+                    <div class="list-group-box ${isCollapsed ? 'collapsed' : ''}" id="group_${listIdx}">
+                        <div class="list-group-header" onclick="toggleListCollapse('${listName}')">
+                            <span>${listName} (${listEpisodes.length} tập)</span>
+                            <span class="toggle-arrow">&#9660; Mở/Đóng</span>
+                        </div>
+                        <div class="list-group-content ${isCollapsed ? 'collapsed' : ''}">
+                `;
+
+                if (listEpisodes.length > 0) {
+                    htmlContent += `<div class="episode-list">`;
+                    listEpisodes.forEach((ep) => {
+                        // Tìm index thực tế của tập trong mảng gốc currentStoryData.episodes
+                        let globalIndex = episodes.findIndex(item => item.audioKey === ep.audioKey);
+                        let isChecked = selectedIndices.has(globalIndex) ? 'checked' : '';
+                        
+                        htmlContent += `
+                            <div class="episode-item ${isBatchMode ? 'selecting' : ''}" id="ep_item_${globalIndex}">
+                                <div class="episode-checkbox ${isChecked}" onclick="toggleSelectEpisode(${globalIndex})"></div>
+                                <div class="episode-info" onclick="handleItemClick(${globalIndex}, '${ep.title}', '${ep.audioKey}')">
+                                    <div class="episode-title">${ep.title}</div>
+                                    <div class="episode-date">Đã thêm: ${new Date(ep.createdAt || Date.now()).toLocaleDateString()}</div>
+                                </div>
+                                <div class="episode-actions">
+                                    <button class="listen-btn-box" onclick="playEpisode('${ep.title}', '${ep.audioKey}')">
+                                        <span>&#9658;</span> Nghe
+                                    </button>
+                                    <button class="menu-dots-btn" onclick="openOptionMenu(event, ${globalIndex})">&#8942;</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    htmlContent += `</div>`;
+                } else {
+                    htmlContent += `<div style="color: #777; font-size: 12px; text-align: center; padding: 10px;">Chưa có tập nào trong danh sách này.</div>`;
+                }
+
+                htmlContent += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = htmlContent;
         }
 
         function handleItemClick(index, title, audioKey) {
@@ -287,10 +383,12 @@
         function toggleSelectEpisode(index) {
             if (selectedIndices.has(index)) {
                 selectedIndices.delete(index);
-                document.getElementById(`ep_item_${index}`).querySelector('.episode-checkbox').classList.remove('checked');
+                let el = document.getElementById(`ep_item_${index}`);
+                if(el) el.querySelector('.episode-checkbox').classList.remove('checked');
             } else {
                 selectedIndices.add(index);
-                document.getElementById(`ep_item_${index}`).querySelector('.episode-checkbox').classList.add('checked');
+                let el = document.getElementById(`ep_item_${index}`);
+                if(el) el.querySelector('.episode-checkbox').classList.add('checked');
             }
             updateSelectedCount();
         }
@@ -340,6 +438,10 @@
         }
 
         function openEpisodeModal() {
+            // Đổ danh sách vào select
+            const selectEl = document.getElementById('inputEpisodeListSelect');
+            selectEl.innerHTML = (currentStoryData.lists || ['Danh sách chung']).map(l => `<option value="${l}">${l}</option>`).join('');
+
             document.getElementById('inputChapterNum').value = '';
             document.getElementById('inputEpisodeNum').value = `Tập ${(currentStoryData.episodes?.length || 0) + 1}`;
             document.getElementById('newAudioFileInput').value = '';
@@ -353,6 +455,7 @@
         }
 
         async function saveEpisodeData() {
+            const targetList = document.getElementById('inputEpisodeListSelect').value;
             const chapNum = document.getElementById('inputChapterNum').value.trim();
             const epNum = document.getElementById('inputEpisodeNum').value.trim();
             const audioInput = document.getElementById('newAudioFileInput');
@@ -369,7 +472,12 @@
             txAudio.objectStore('audios').put(audioFile, audioKey);
 
             if (!currentStoryData.episodes) currentStoryData.episodes = [];
-            currentStoryData.episodes.push({ title: fullTitle, audioKey: audioKey, createdAt: new Date().toISOString() });
+            currentStoryData.episodes.push({ 
+                title: fullTitle, 
+                audioKey: audioKey, 
+                listName: targetList,
+                createdAt: new Date().toISOString() 
+            });
 
             let txStory = db.transaction('stories', 'readwrite');
             txStory.objectStore('stories').put(currentStoryData);
