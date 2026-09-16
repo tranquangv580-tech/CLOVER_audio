@@ -36,14 +36,15 @@
         .batch-action-bar.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* CSS CHO PHẦN DANH SÁCH & THU GỌN / MỞ RỘNG */
+        /* CSS CHO PHẦN DANH SÁCH & THU GỌN / MỞ RỘNG ĐÃ SỬA LỖI XOAY */
         .list-section-container { margin-bottom: 20px; }
         .list-group-box { background: #16161a; border: 1px solid #2a2a32; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
         .list-group-header { background: #1c1c24; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; font-size: 14px; border-bottom: 1px solid #2a2a32; }
         .list-group-header:active { background: #24242e; }
         .list-group-content { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
         .list-group-content.collapsed { display: none; }
-        .toggle-arrow { transition: transform 0.3s ease; font-size: 12px; color: #aaa; }
+        
+        .toggle-arrow { display: inline-block; transition: transform 0.3s ease; font-size: 12px; color: #aaa; }
         .list-group-box.collapsed .toggle-arrow { transform: rotate(-90deg); }
 
         .episode-list { display: flex; flex-direction: column; gap: 10px; }
@@ -187,7 +188,7 @@
         let activeMenuIndex = null;
         let isBatchMode = false;
         let selectedIndices = new Set();
-        let collapsedLists = {}; // Theo dõi trạng thái mở/đóng của danh sách
+        let collapsedLists = {}; 
 
         function openDB() {
             return new Promise((resolve, reject) => {
@@ -232,7 +233,6 @@
                     currentStoryData = e.target.result;
                     if (!currentStoryData) { window.location.href = 'index.html'; return; }
 
-                    // Khởi tạo mảng lists và gán danh sách mặc định nếu chưa có
                     if (!currentStoryData.lists || !Array.isArray(currentStoryData.lists)) {
                         currentStoryData.lists = ['Danh sách chung'];
                     }
@@ -264,7 +264,6 @@
             document.getElementById('imageViewerOverlay').classList.remove('active');
         }
 
-        // --- CHỨC NĂNG THÊM DANH SÁCH MỚI ---
         async function addNewList() {
             const inputName = document.getElementById('inputNewListName');
             const listName = inputName.value.trim();
@@ -288,7 +287,6 @@
             };
         }
 
-        // --- HÀM THU GỌN / MỞ RỘNG DANH SÁCH ---
         function toggleListCollapse(listName) {
             collapsedLists[listName] = !collapsedLists[listName];
             renderEpisodes();
@@ -304,7 +302,6 @@
                 return;
             }
 
-            // Gom nhóm tập theo danh sách
             let htmlContent = '';
             lists.forEach((listName, listIdx) => {
                 let listEpisodes = episodes.filter(ep => (ep.listName || lists[0]) === listName);
@@ -314,7 +311,7 @@
                     <div class="list-group-box ${isCollapsed ? 'collapsed' : ''}" id="group_${listIdx}">
                         <div class="list-group-header" onclick="toggleListCollapse('${listName}')">
                             <span>${listName} (${listEpisodes.length} tập)</span>
-                            <span class="toggle-arrow">&#9660; Mở/Đóng</span>
+                            <span class="toggle-arrow">&#9660;</span>
                         </div>
                         <div class="list-group-content ${isCollapsed ? 'collapsed' : ''}">
                 `;
@@ -322,7 +319,6 @@
                 if (listEpisodes.length > 0) {
                     htmlContent += `<div class="episode-list">`;
                     listEpisodes.forEach((ep) => {
-                        // Tìm index thực tế của tập trong mảng gốc currentStoryData.episodes
                         let globalIndex = episodes.findIndex(item => item.audioKey === ep.audioKey);
                         let isChecked = selectedIndices.has(globalIndex) ? 'checked' : '';
                         
@@ -438,7 +434,6 @@
         }
 
         function openEpisodeModal() {
-            // Đổ danh sách vào select
             const selectEl = document.getElementById('inputEpisodeListSelect');
             selectEl.innerHTML = (currentStoryData.lists || ['Danh sách chung']).map(l => `<option value="${l}">${l}</option>`).join('');
 

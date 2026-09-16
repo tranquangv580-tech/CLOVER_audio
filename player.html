@@ -48,9 +48,9 @@
         .playing .play-icon { display: none; }
         .playing .pause-icon { display: block; margin-left: 0; }
 
-        .bottom-actions { display: flex; justify-content: space-between; gap: 6px; padding: 15px 16px 30px; background: linear-gradient(transparent, #0a0a0d); }
-        .action-btn { flex: 1; max-width: 24%; background: #1a1a20; border: 1px solid #2a2a32; color: #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 0; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; gap: 6px; }
-        .action-btn svg { width: 20px; height: 20px; fill: #ccc; transition: 0.2s; }
+        .bottom-actions { display: flex; justify-content: space-around; padding: 15px 20px 30px; background: linear-gradient(transparent, #0a0a0d); }
+        .action-btn { background: #1a1a20; border: 1px solid #2a2a32; color: #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 30%; padding: 12px 0; border-radius: 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; gap: 6px; }
+        .action-btn svg { width: 22px; height: 22px; fill: #ccc; transition: 0.2s; }
         .action-btn:active { background: #2a2a36; transform: scale(0.95); border-color: #d95a52; color: #fff; }
         .action-btn:active svg { fill: #d95a52; }
         .action-btn.active-timer { border-color: #d95a52; color: #d95a52; }
@@ -59,7 +59,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); backdrop-filter: blur(5px); }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         
-        .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background-color: #1a1a1e; border-radius: 24px 24px 0 0; padding: 24px 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 -5px 25px rgba(0,0,0,0.5); }
+        .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background-color: #1a1a1e; border-radius: 24px 24px 0 0; padding: 24px 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 -5px 25px rgba(0,0,0,0.5); }
         .bottom-sheet.active { bottom: 0; }
         
         .sheet-header { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 700; margin-bottom: 20px; color: #fff; padding-bottom: 12px; border-bottom: 1px solid #2a2a32; }
@@ -70,29 +70,22 @@
         .sheet-item:active { background: #2e2e38; transform: scale(0.98); }
         .sheet-item.selected { border-color: #d95a52; color: #d95a52; }
 
-        .preset-row { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 8px; }
-        .preset-btn { background: #24242c; border: 1px solid #3d3d4a; color: #aaa; padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; }
-        .preset-btn.selected { background: #d95a52; border-color: #d95a52; color: #fff; }
-        .eq-group { background: #24242c; border: 1px solid #2a2a32; padding: 14px; border-radius: 12px; margin-bottom: 5px; }
-        .eq-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #ccc; margin-bottom: 10px; }
-        .eq-slider { width: 100%; height: 5px; background: #3a3a46; border-radius: 3px; outline: none; appearance: none; accent-color: #d95a52; cursor: pointer; }
-
-        .custom-speed-box, .timer-input-group { background: #24242c; padding: 14px 16px; border-radius: 12px; display: flex; border: 1px solid #2a2a32; margin-bottom: 5px; }
-        .custom-speed-box { align-items: center; justify-content: space-between; }
+        .custom-speed-box { background: #24242c; padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #2a2a32; margin-bottom: 5px; }
         .custom-speed-box label { font-size: 14px; font-weight: 600; color: #fff; }
         .custom-speed-input-wrapper { display: flex; align-items: center; gap: 8px; }
-        .custom-speed-input, .timer-input { background: #1a1a20; border: 1px solid #3a3a46; color: #fff; font-size: 15px; font-weight: 700; padding: 6px 10px; border-radius: 8px; outline: none; text-align: center; }
-        .custom-speed-input { width: 75px; }
-        .custom-speed-input:focus, .timer-input:focus { border-color: #d95a52; }
-        .apply-speed-btn, .apply-timer-btn { background: #d95a52; border: none; color: #fff; font-weight: 600; border-radius: 8px; cursor: pointer; }
-        .apply-speed-btn { padding: 7px 12px; font-size: 13px; }
-        .apply-timer-btn { padding: 10px; font-size: 14px; width: 100%; }
-        
-        .timer-input-group { flex-direction: column; gap: 12px; }
+        .custom-speed-input { background: #1a1a20; border: 1px solid #3a3a46; color: #fff; font-size: 15px; font-weight: 700; padding: 6px 10px; border-radius: 8px; width: 75px; text-align: center; outline: none; }
+        .custom-speed-input:focus { border-color: #d95a52; }
+        .apply-speed-btn { background: #d95a52; border: none; color: #fff; font-weight: 600; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .apply-speed-btn:active { transform: scale(0.95); }
+
+        .timer-input-group { background: #24242c; padding: 14px 16px; border-radius: 12px; border: 1px solid #2a2a32; display: flex; flex-direction: column; gap: 12px; margin-bottom: 5px; }
         .timer-fields { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .timer-field-item { display: flex; align-items: center; gap: 6px; flex: 1; }
         .timer-field-item span { font-size: 13px; color: #aaa; font-weight: 600; }
-        .timer-input { width: 100%; padding: 6px; }
+        .timer-input { background: #1a1a20; border: 1px solid #3a3a46; color: #fff; font-size: 15px; font-weight: 700; padding: 6px; border-radius: 8px; width: 100%; text-align: center; outline: none; }
+        .timer-input:focus { border-color: #d95a52; }
+        .apply-timer-btn { background: #d95a52; border: none; color: #fff; font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 14px; width: 100%; }
+        .apply-timer-btn:active { transform: scale(0.98); }
     </style>
 </head>
 <body id="playerBody">
@@ -147,10 +140,6 @@
             <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
             <span id="speedText">Tốc độ (1x)</span>
         </div>
-        <div class="action-btn" onclick="openPopup('eqPopup')">
-            <svg viewBox="0 0 24 24"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"/></svg>
-            <span>Hiệu ứng</span>
-        </div>
         <div class="action-btn" onclick="openPopup('listPopup')">
             <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
             <span>Danh sách</span>
@@ -163,42 +152,13 @@
 
     <div class="modal-overlay" id="overlay" onclick="closeAllPopups()"></div>
 
-    <div class="bottom-sheet" id="eqPopup">
-        <div class="sheet-header">Chỉnh âm & Hiệu ứng <span class="close-sheet" onclick="closeAllPopups()">&times;</span></div>
-        <div class="sheet-content">
-            <div class="preset-row">
-                <button class="preset-btn selected" onclick="applyEqPreset('normal', this)">Mặc định</button>
-                <button class="preset-btn" onclick="applyEqPreset('cup', this)">Vang (Trong cốc)</button>
-                <button class="preset-btn" onclick="applyEqPreset('voice', this)">Rõ giọng</button>
-                <button class="preset-btn" onclick="applyEqPreset('bass', this)">Bass</button>
-            </div>
-            
-            <div class="eq-group">
-                <div class="eq-label"><span>Trầm (Bass)</span> <span id="bassVal">0 dB</span></div>
-                <input type="range" class="eq-slider" id="bassSlider" min="-20" max="20" value="0" oninput="updateAudioEffects()">
-            </div>
-            <div class="eq-group">
-                <div class="eq-label"><span>Trung (Giọng đọc)</span> <span id="midVal">0 dB</span></div>
-                <input type="range" class="eq-slider" id="midSlider" min="-20" max="20" value="0" oninput="updateAudioEffects()">
-            </div>
-            <div class="eq-group">
-                <div class="eq-label"><span>Cao (Treble)</span> <span id="trebleVal">0 dB</span></div>
-                <input type="range" class="eq-slider" id="trebleSlider" min="-20" max="20" value="0" oninput="updateAudioEffects()">
-            </div>
-            <div class="eq-group" style="border-color: #d95a5240;">
-                <div class="eq-label"><span style="color:#d95a52">Hiệu ứng Vang (Reverb)</span> <span id="reverbVal">0%</span></div>
-                <input type="range" class="eq-slider" id="reverbSlider" min="0" max="100" value="0" oninput="updateAudioEffects()">
-            </div>
-        </div>
-    </div>
-
     <div class="bottom-sheet" id="speedPopup">
         <div class="sheet-header">Chọn tốc độ phát <span class="close-sheet" onclick="closeAllPopups()">&times;</span></div>
         <div class="sheet-content">
             <div class="custom-speed-box">
                 <label>Nhập số tùy chỉnh:</label>
                 <div class="custom-speed-input-wrapper">
-                    <input type="number" id="customSpeedInput" class="custom-speed-input" step="0.05" min="0.25" max="4.0" placeholder="1.1">
+                    <input type="number" id="customSpeedInput" class="custom-speed-input" step="0.05" min="0.25" max="4.0" placeholder="VD: 1.1">
                     <button class="apply-speed-btn" onclick="applyCustomSpeed()">Áp dụng</button>
                 </div>
             </div>
@@ -239,12 +199,14 @@
         <div class="sheet-content" id="episodePopupList"></div>
     </div>
 
-    <audio id="audioPlayer" preload="auto" playsinline webkit-playsinline crossorigin="anonymous"></audio>
+    <audio id="audioPlayer" preload="auto" playsinline webkit-playsinline></audio>
 
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('Lỗi đăng ký SW:', err));
+                navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
+                .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
             });
         }
 
@@ -259,132 +221,43 @@
         let lastSaveTime = 0;
         let isDragging = false; 
         let playInterval = null;
+        
         let timerInterval = null;
         let storyEpisodes = [];
         let currentAudioBlob = null;
         let dbInstance = null;
-        let currentStory = null; // Lưu trữ metadata truyện hiện tại
-
-        // ---- BIẾN WEB AUDIO API ĐÃ NÂNG CẤP ----
-        let audioCtx, audioSource, bassNode, midNode, trebleNode, dryGain, wetGain, delayNode, feedbackNode, compressor;
-        let isAudioSetup = false;
-
-        function initAudioAPI() {
-            if (isAudioSetup) return;
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-                audioSource = audioCtx.createMediaElementSource(audio);
-
-                // 1. Equalizer 3 dải
-                bassNode = audioCtx.createBiquadFilter(); bassNode.type = 'lowshelf'; bassNode.frequency.value = 250;
-                midNode = audioCtx.createBiquadFilter(); midNode.type = 'peaking'; midNode.frequency.value = 1500;
-                trebleNode = audioCtx.createBiquadFilter(); trebleNode.type = 'highshelf'; trebleNode.frequency.value = 4000;
-
-                // 2. Mạch vang (Reverb)
-                dryGain = audioCtx.createGain(); dryGain.gain.value = 1;
-                wetGain = audioCtx.createGain(); wetGain.gain.value = 0;
-
-                delayNode = audioCtx.createDelay(); delayNode.delayTime.value = 0.05;
-                feedbackNode = audioCtx.createGain(); feedbackNode.gain.value = 0.3;
-
-                // 3. (MỚI) Bộ Nén Âm - Giới hạn ngưỡng âm lượng tối đa để KHÔNG BỊ VỠ TIẾNG (Tapping/Popping)
-                compressor = audioCtx.createDynamicsCompressor();
-                compressor.threshold.value = -3;    // Bắt đầu nén khi âm lượng vượt -3dB
-                compressor.knee.value = 12;         // Độ dốc mềm
-                compressor.ratio.value = 4;         // Tỉ lệ nén
-                compressor.attack.value = 0.003;    // Thời gian phản hồi rất nhanh
-                compressor.release.value = 0.25;
-
-                // Kết nối luồng âm thanh
-                audioSource.connect(bassNode); bassNode.connect(midNode); midNode.connect(trebleNode);
-
-                // Đường chính
-                trebleNode.connect(dryGain);
-                // Đường vang
-                trebleNode.connect(wetGain); wetGain.connect(delayNode); delayNode.connect(feedbackNode); feedbackNode.connect(delayNode); 
-                
-                // Gom tất cả vào Cục Nén trước khi ra Loa
-                dryGain.connect(compressor);
-                delayNode.connect(compressor);
-                compressor.connect(audioCtx.destination);
-
-                isAudioSetup = true;
-                updateAudioEffects();
-            } catch (e) { console.log("Web Audio API không hỗ trợ:", e); }
-        }
-
-        function updateAudioEffects() {
-            if (!isAudioSetup) initAudioAPI();
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
-            let b = parseFloat(document.getElementById('bassSlider').value);
-            let m = parseFloat(document.getElementById('midSlider').value);
-            let t = parseFloat(document.getElementById('trebleSlider').value);
-            let r = parseFloat(document.getElementById('reverbSlider').value);
-
-            document.getElementById('bassVal').textContent = b + " dB";
-            document.getElementById('midVal').textContent = m + " dB";
-            document.getElementById('trebleVal').textContent = t + " dB";
-            document.getElementById('reverbVal').textContent = r + "%";
-
-            if(isAudioSetup) {
-                const now = audioCtx.currentTime;
-                // SỬ DỤNG setTargetAtTime để thay đổi giá trị MƯỢT MÀ trong 0.1s -> CHỐNG TIẾNG "BỤP/ĐẬP"
-                bassNode.gain.setTargetAtTime(b, now, 0.1);
-                midNode.gain.setTargetAtTime(m, now, 0.1);
-                trebleNode.gain.setTargetAtTime(t, now, 0.1);
-                wetGain.gain.setTargetAtTime((r / 100) * 0.7, now, 0.1);
-            }
-        }
-
-        function applyEqPreset(type, btn) {
-            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
-            if(btn) btn.classList.add('selected');
-
-            let b = 0, m = 0, t = 0, r = 0;
-            if (type === 'cup') { b = 2; m = -1; t = 3; r = 55; if(isAudioSetup && delayNode) delayNode.delayTime.value = 0.055; } 
-            else if (type === 'voice') { b = -3; m = 6; t = 4; r = 0; } 
-            else if (type === 'bass') { b = 10; m = -2; t = 1; r = 0; }
-
-            document.getElementById('bassSlider').value = b; document.getElementById('midSlider').value = m;
-            document.getElementById('trebleSlider').value = t; document.getElementById('reverbSlider').value = r;
-            updateAudioEffects();
-        }
-
-        // ---- HỖ TRỢ NGHE DƯỚI NỀN VÀ MÀN HÌNH KHÓA ----
-        function setupMediaSession(episodeTitle) {
-            if ('mediaSession' in navigator && currentStory) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: episodeTitle,
-                    artist: currentStory.name || 'Truyện Nói',
-                    album: 'Ứng Dụng Nghe Truyện',
-                    artwork: [ { src: currentStory.cover || 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/jpeg' } ]
-                });
-
-                navigator.mediaSession.setActionHandler('play', () => togglePlay());
-                navigator.mediaSession.setActionHandler('pause', () => togglePlay());
-                navigator.mediaSession.setActionHandler('seekbackward', () => skip(-10));
-                navigator.mediaSession.setActionHandler('seekforward', () => skip(10));
-            }
-        }
 
         function formatTime(seconds) {
             if (isNaN(seconds) || seconds < 0) return "00:00:00";
-            let h = Math.floor(seconds / 3600); let m = Math.floor((seconds % 3600) / 60); let s = Math.floor(seconds % 60);
-            return (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+            let h = Math.floor(seconds / 3600);
+            let m = Math.floor((seconds % 3600) / 60);
+            let s = Math.floor(seconds % 60);
+            
+            let hStr = h < 10 ? "0" + h : h;
+            let mStr = m < 10 ? "0" + m : m;
+            let sStr = s < 10 ? "0" + s : s;
+            
+            return `${hStr}:${mStr}:${sStr}`;
         }
 
         function initSavedSpeedUI() {
             let savedSpeed = parseFloat(localStorage.getItem('playbackSpeed')) || 1.0;
             document.getElementById('speedText').textContent = `Tốc độ (${savedSpeed}x)`;
-            document.querySelectorAll('#speedPopup .sheet-item').forEach(item => item.classList.remove('selected'));
+            
+            let items = document.querySelectorAll('#speedPopup .sheet-item');
+            items.forEach(item => item.classList.remove('selected'));
+            
             let target = document.getElementById('speed_' + savedSpeed);
-            if(target) target.classList.add('selected'); else document.getElementById('customSpeedInput').value = savedSpeed;
+            if(target) {
+                target.classList.add('selected');
+            } else {
+                document.getElementById('customSpeedInput').value = savedSpeed;
+            }
         }
 
         async function initPlayer() {
             initSavedSpeedUI();
+
             let fallbackTitle = localStorage.getItem('currentEpisodeTitle');
             if(fallbackTitle) document.getElementById('playerTitle').textContent = fallbackTitle;
 
@@ -397,16 +270,21 @@
             let storyReq = txStory.objectStore('stories').get(currentStoryId);
             
             storyReq.onsuccess = (e) => {
-                currentStory = e.target.result;
-                if(currentStory) {
-                    document.getElementById('playerStoryName').textContent = currentStory.name || "Truyện nói";
-                    document.getElementById('playerCover').src = currentStory.cover || 'https://via.placeholder.com/300';
-                    if(currentStory.episodes) {
-                        storyEpisodes = currentStory.episodes;
+                let story = e.target.result;
+                if(story) {
+                    let storyName = story.name || "Truyện nói";
+                    let coverUrl = story.cover || 'https://via.placeholder.com/300';
+
+                    document.getElementById('playerStoryName').textContent = storyName;
+                    document.getElementById('playerCover').src = coverUrl;
+                    
+                    if(story.episodes) {
+                        storyEpisodes = story.episodes;
                         loadAndPlayEpisode(currentAudioKey, false);
                     }
                 }
             };
+
             checkAndRestoreTimer();
         }
 
@@ -414,19 +292,21 @@
             let html = storyEpisodes.map(ep => {
                 let isPlaying = ep.audioKey === currentAudioKey ? 'selected' : '';
                 return `<div class="sheet-item ${isPlaying}" onclick="switchEpisode('${ep.title}', '${ep.audioKey}')">
-                    <span>${ep.title}</span>${isPlaying ? '<span>🔊</span>' : ''}</div>`;
+                    <span>${ep.title}</span>
+                    ${isPlaying ? '<span>🔊</span>' : ''}
+                </div>`;
             }).join('');
             document.getElementById('episodePopupList').innerHTML = html;
         }
 
         async function loadAndPlayEpisode(audioKey, autoPlay = true) {
-            currentAudioKey = audioKey; localStorage.setItem('currentAudioKey', audioKey);
+            currentAudioKey = audioKey;
+            localStorage.setItem('currentAudioKey', audioKey);
             
             let currentEp = storyEpisodes.find(ep => ep.audioKey === audioKey);
             if (currentEp) {
                 document.getElementById('playerTitle').textContent = currentEp.title;
                 localStorage.setItem('currentEpisodeTitle', currentEp.title);
-                setupMediaSession(currentEp.title); // Khai báo với OS ngay khi nạp tập mới
             }
             updateEpisodeListUI();
 
@@ -441,28 +321,37 @@
                     audio.load();
 
                     let savedTime = localStorage.getItem('history_' + audioKey);
-                    let startTime = (savedTime && parseFloat(savedTime) > 0) ? parseFloat(savedTime) : 0;
+                    let startTime = 0;
+                    if (savedTime && parseFloat(savedTime) > 0) {
+                        startTime = parseFloat(savedTime);
+                    }
 
                     audio.onloadedmetadata = () => {
                         if (audio.duration && audio.duration !== Infinity && (audio.duration - startTime < 2)) {
-                            startTime = 0; localStorage.setItem('history_' + audioKey, 0);
+                            startTime = 0;
+                            localStorage.setItem('history_' + audioKey, 0);
                         }
                         audio.currentTime = startTime;
-                        audio.playbackRate = parseFloat(localStorage.getItem('playbackSpeed')) || 1.0;
-                        if (autoPlay) togglePlay(); 
+
+                        let savedSpeed = parseFloat(localStorage.getItem('playbackSpeed')) || 1.0;
+                        audio.playbackRate = savedSpeed;
+                        
+                        if (autoPlay) {
+                            audio.play().catch(err => {
+                                console.log("Trình duyệt chặn tự động phát:", err);
+                            });
+                        }
                     };
                 }
             };
         }
 
         function togglePlay() {
-            if (!isAudioSetup) initAudioAPI();
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); // Quan trọng để mở khóa nền iOS/Android
-
             if (audio.error || (audio.paused && audio.networkState === HTMLMediaElement.NETWORK_EMPTY)) {
                 if (currentAudioBlob) {
                     let currentTimeBackup = audio.currentTime;
-                    audio.src = URL.createObjectURL(new File([currentAudioBlob], "audio.mp3", { type: 'audio/mpeg' }));
+                    const audioFile = new File([currentAudioBlob], "audio.mp3", { type: 'audio/mpeg' });
+                    audio.src = URL.createObjectURL(audioFile);
                     audio.currentTime = currentTimeBackup;
                 }
             }
@@ -479,8 +368,10 @@
                 if (audio && !isDragging && !audio.paused && !isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
                     let percent = (audio.currentTime / audio.duration) * 100;
                     updateSliderUI(percent);
+                    
                     document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
-                    document.getElementById('remainingTime').textContent = "-" + formatTime(audio.duration - audio.currentTime);
+                    let remaining = audio.duration - audio.currentTime;
+                    document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
 
                     if (Math.abs(audio.currentTime - lastSaveTime) > 5) {
                         localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
@@ -490,16 +381,34 @@
             }, 100);
         }
 
-        function stopProgressLoop() { if (playInterval) { clearInterval(playInterval); playInterval = null; } }
+        function stopProgressLoop() {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
 
-        audio.addEventListener('play', () => { playerBody.classList.add('playing'); startProgressLoop(); });
-        audio.addEventListener('pause', () => { playerBody.classList.remove('playing'); stopProgressLoop(); localStorage.setItem('history_' + currentAudioKey, audio.currentTime); });
-        
+        audio.addEventListener('play', () => {
+            playerBody.classList.add('playing');
+            startProgressLoop();
+        });
+
+        audio.addEventListener('pause', () => {
+            playerBody.classList.remove('playing');
+            stopProgressLoop();
+            localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
+        });
+
         audio.addEventListener('ended', () => {
-            stopProgressLoop(); localStorage.setItem('history_' + currentAudioKey, audio.duration);
+            stopProgressLoop();
+            localStorage.setItem('history_' + currentAudioKey, audio.duration);
+            
             if (storyEpisodes.length > 0) {
                 let currentIndex = storyEpisodes.findIndex(ep => ep.audioKey === currentAudioKey);
-                if (currentIndex !== -1 && currentIndex < storyEpisodes.length - 1) { loadAndPlayEpisode(storyEpisodes[currentIndex + 1].audioKey, true); }
+                if (currentIndex !== -1 && currentIndex < storyEpisodes.length - 1) {
+                    let nextEp = storyEpisodes[currentIndex + 1];
+                    loadAndPlayEpisode(nextEp.audioKey, true);
+                }
             }
         });
 
@@ -511,24 +420,40 @@
 
         function updateSliderUI(percent) {
             percent = Math.max(0, Math.min(100, percent));
-            progressFill.style.width = percent + '%'; progressThumb.style.left = percent + '%';
+            progressFill.style.width = percent + '%';
+            progressThumb.style.left = percent + '%';
         }
 
         function calculateProgressFromEvent(e) {
             const rect = progressContainer.getBoundingClientRect();
-            return Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            let x = e.clientX - rect.left;
+            let percent = x / rect.width;
+            return Math.max(0, Math.min(1, percent));
         }
 
         progressContainer.addEventListener('pointerdown', (e) => {
-            isDragging = true; progressContainer.setPointerCapture(e.pointerId);
-            let percent = calculateProgressFromEvent(e); updateSliderUI(percent * 100);
-            if (audio.duration) document.getElementById('currentTime').textContent = formatTime(percent * audio.duration);
+            isDragging = true;
+            progressContainer.setPointerCapture(e.pointerId);
+            let percent = calculateProgressFromEvent(e);
+            updateSliderUI(percent * 100);
+            if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                let current = percent * audio.duration;
+                document.getElementById('currentTime').textContent = formatTime(current);
+                let remaining = audio.duration - current;
+                document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
+            }
         });
 
         progressContainer.addEventListener('pointermove', (e) => {
             if (isDragging) {
-                let percent = calculateProgressFromEvent(e); updateSliderUI(percent * 100);
-                if (audio.duration) document.getElementById('currentTime').textContent = formatTime(percent * audio.duration);
+                let percent = calculateProgressFromEvent(e);
+                updateSliderUI(percent * 100);
+                if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                    let current = percent * audio.duration;
+                    document.getElementById('currentTime').textContent = formatTime(current);
+                    let remaining = audio.duration - current;
+                    document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
+                }
             }
         });
 
@@ -537,21 +462,34 @@
                 isDragging = false;
                 try { progressContainer.releasePointerCapture(e.pointerId); } catch(err) {}
                 let percent = calculateProgressFromEvent(e);
-                if (audio.duration) { let newTime = percent * audio.duration; audio.currentTime = newTime; localStorage.setItem('history_' + currentAudioKey, newTime); }
+                if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                    let newTime = percent * audio.duration;
+                    audio.currentTime = newTime; 
+                    updateSliderUI(percent * 100);
+                    document.getElementById('currentTime').textContent = formatTime(newTime);
+                    localStorage.setItem('history_' + currentAudioKey, newTime);
+                }
+            }
+        });
+
+        progressContainer.addEventListener('pointercancel', (e) => {
+            if (isDragging) {
+                isDragging = false;
+                try { progressContainer.releasePointerCapture(e.pointerId); } catch(err) {}
             }
         });
 
         function skip(seconds) {
-            if (audio.duration) {
-                audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
-                localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
+            if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                let newTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
+                audio.currentTime = newTime;
+                localStorage.setItem('history_' + currentAudioKey, newTime);
             }
         }
 
         function openPopup(id) {
-            if (!isAudioSetup) initAudioAPI();
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-            document.getElementById('overlay').classList.add('active'); document.getElementById(id).classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById(id).classList.add('active');
         }
 
         function closeAllPopups() {
@@ -560,65 +498,115 @@
         }
 
         function setSpeed(speed) {
-            audio.playbackRate = speed; localStorage.setItem('playbackSpeed', speed);
+            audio.playbackRate = speed;
+            localStorage.setItem('playbackSpeed', speed);
+            
             document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
-            document.querySelectorAll('#speedPopup .sheet-item').forEach(i => i.classList.remove('selected'));
-            if(document.getElementById('speed_' + speed)) document.getElementById('speed_' + speed).classList.add('selected');
+            let items = document.querySelectorAll('#speedPopup .sheet-item');
+            items.forEach(item => item.classList.remove('selected'));
+            let target = document.getElementById('speed_' + speed);
+            if(target) target.classList.add('selected');
             closeAllPopups();
         }
 
         function applyCustomSpeed() {
             let inputVal = parseFloat(document.getElementById('customSpeedInput').value);
-            if (isNaN(inputVal) || inputVal <= 0) { alert('Vui lòng nhập một số hợp lệ!'); return; }
-            setSpeed(Math.max(0.25, Math.min(4.0, inputVal)));
+            if (isNaN(inputVal) || inputVal <= 0) {
+                alert('Vui lòng nhập một số hợp lệ cho tốc độ!');
+                return;
+            }
+            let speed = Math.max(0.25, Math.min(4.0, inputVal));
+            audio.playbackRate = speed;
+            localStorage.setItem('playbackSpeed', speed);
+            
+            document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
+            let items = document.querySelectorAll('#speedPopup .sheet-item');
+            items.forEach(item => item.classList.remove('selected'));
+            closeAllPopups();
         }
 
         function applyCustomTimer() {
-            let totalMinutes = (parseInt(document.getElementById('customHourInput').value) || 0) * 60 + (parseInt(document.getElementById('customMinuteInput').value) || 0);
-            if (totalMinutes <= 0) { alert('Vui lòng nhập số lớn hơn 0!'); return; }
-            activateTimer(totalMinutes); closeAllPopups();
+            let hoursVal = parseInt(document.getElementById('customHourInput').value) || 0;
+            let minutesVal = parseInt(document.getElementById('customMinuteInput').value) || 0;
+            
+            let totalMinutes = hoursVal * 60 + minutesVal;
+            if (totalMinutes <= 0) {
+                alert('Vui lòng nhập số giờ hoặc số phút lớn hơn 0!');
+                return;
+            }
+            activateTimer(totalMinutes);
+            closeAllPopups();
         }
 
         function setTimerMinutes(minutes) {
-            document.querySelectorAll('#timerPopup .sheet-item').forEach(i => i.classList.remove('selected'));
+            let items = document.querySelectorAll('#timerPopup .sheet-item');
+            items.forEach(item => item.classList.remove('selected'));
             if(event && event.currentTarget) event.currentTarget.classList.add('selected');
-            document.getElementById('customHourInput').value = ''; document.getElementById('customMinuteInput').value = '';
-            activateTimer(minutes); closeAllPopups();
+
+            document.getElementById('customHourInput').value = '';
+            document.getElementById('customMinuteInput').value = '';
+
+            activateTimer(minutes);
+            closeAllPopups();
         }
 
         function activateTimer(minutes) {
             clearInterval(timerInterval);
             if (minutes > 0) {
-                let endTime = Date.now() + minutes * 60000; localStorage.setItem('timerEndTime', endTime);
-                document.getElementById('timerBtn').classList.add('active-timer'); updateTimerDisplay(endTime);
-                timerInterval = setInterval(() => updateTimerDisplay(localStorage.getItem('timerEndTime')), 1000);
+                let endTime = Date.now() + minutes * 60000;
+                localStorage.setItem('timerEndTime', endTime);
+                document.getElementById('timerBtn').classList.add('active-timer');
+                updateTimerDisplay(endTime);
+                timerInterval = setInterval(() => {
+                    updateTimerDisplay(localStorage.getItem('timerEndTime'));
+                }, 1000);
             } else {
                 localStorage.removeItem('timerEndTime');
-                document.getElementById('timerBtn').classList.remove('active-timer'); document.getElementById('timerText').textContent = "Hẹn giờ";
+                document.getElementById('timerBtn').classList.remove('active-timer');
+                document.getElementById('timerText').textContent = "Hẹn giờ";
             }
         }
 
         function checkAndRestoreTimer() {
             let savedEndTime = localStorage.getItem('timerEndTime');
-            if (savedEndTime && (parseInt(savedEndTime) - Date.now() > 0)) {
-                document.getElementById('timerBtn').classList.add('active-timer'); updateTimerDisplay(savedEndTime);
-                timerInterval = setInterval(() => updateTimerDisplay(localStorage.getItem('timerEndTime')), 1000);
-            } else { localStorage.removeItem('timerEndTime'); }
+            if (savedEndTime) {
+                let remain = parseInt(savedEndTime) - Date.now();
+                if (remain > 0) {
+                    document.getElementById('timerBtn').classList.add('active-timer');
+                    updateTimerDisplay(savedEndTime);
+                    timerInterval = setInterval(() => {
+                        updateTimerDisplay(localStorage.getItem('timerEndTime'));
+                    }, 1000);
+                } else {
+                    localStorage.removeItem('timerEndTime');
+                }
+            }
         }
 
         function updateTimerDisplay(endTime) {
             let remain = parseInt(endTime) - Date.now();
             if (remain <= 0) {
-                clearInterval(timerInterval); audio.pause(); localStorage.removeItem('timerEndTime');
-                document.getElementById('timerBtn').classList.remove('active-timer'); document.getElementById('timerText').textContent = "Hẹn giờ";
-                document.querySelectorAll('#timerPopup .sheet-item').forEach(i => i.classList.remove('selected'));
-                if(document.getElementById('timer_0')) document.getElementById('timer_0').classList.add('selected');
+                clearInterval(timerInterval);
+                audio.pause();
+                localStorage.removeItem('timerEndTime');
+                document.getElementById('timerBtn').classList.remove('active-timer');
+                document.getElementById('timerText').textContent = "Hẹn giờ";
+                
+                let items = document.querySelectorAll('#timerPopup .sheet-item');
+                items.forEach(item => item.classList.remove('selected'));
+                let target0 = document.getElementById('timer_0');
+                if(target0) target0.classList.add('selected');
                 return;
             }
-            document.getElementById('timerText').textContent = formatTime(Math.floor(remain / 1000));
+            let totalSeconds = Math.floor(remain / 1000);
+            document.getElementById('timerText').textContent = formatTime(totalSeconds);
         }
 
-        function switchEpisode(title, audioKey) { closeAllPopups(); loadAndPlayEpisode(audioKey, true); }
+        function switchEpisode(title, audioKey) {
+            closeAllPopups();
+            loadAndPlayEpisode(audioKey, true);
+        }
+
         window.addEventListener('DOMContentLoaded', initPlayer);
     </script>
 </body>
