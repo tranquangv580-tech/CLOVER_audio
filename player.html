@@ -48,7 +48,6 @@
         .playing .play-icon { display: none; }
         .playing .pause-icon { display: block; margin-left: 0; }
 
-        /* Đã chỉnh lại flex để chứa 4 nút đều nhau */
         .bottom-actions { display: flex; justify-content: space-between; gap: 6px; padding: 15px 16px 30px; background: linear-gradient(transparent, #0a0a0d); }
         .action-btn { flex: 1; max-width: 24%; background: #1a1a20; border: 1px solid #2a2a32; color: #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 0; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; gap: 6px; }
         .action-btn svg { width: 20px; height: 20px; fill: #ccc; transition: 0.2s; }
@@ -71,7 +70,6 @@
         .sheet-item:active { background: #2e2e38; transform: scale(0.98); }
         .sheet-item.selected { border-color: #d95a52; color: #d95a52; }
 
-        /* UI MỚI CHO BỘ CHỈNH ÂM */
         .preset-row { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 8px; }
         .preset-btn { background: #24242c; border: 1px solid #3d3d4a; color: #aaa; padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; }
         .preset-btn.selected { background: #d95a52; border-color: #d95a52; color: #fff; }
@@ -144,7 +142,6 @@
         </button>
     </div>
 
-    <!-- Bổ sung nút Hiệu ứng vào bộ tứ -->
     <div class="bottom-actions">
         <div class="action-btn" onclick="openPopup('speedPopup')">
             <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
@@ -166,7 +163,6 @@
 
     <div class="modal-overlay" id="overlay" onclick="closeAllPopups()"></div>
 
-    <!-- POPUP: BỘ CHỈNH ÂM (EQUALIZER) -->
     <div class="bottom-sheet" id="eqPopup">
         <div class="sheet-header">Chỉnh âm & Hiệu ứng <span class="close-sheet" onclick="closeAllPopups()">&times;</span></div>
         <div class="sheet-content">
@@ -196,7 +192,6 @@
         </div>
     </div>
 
-    <!-- CÁC POPUP KHÁC (GIỮ NGUYÊN) -->
     <div class="bottom-sheet" id="speedPopup">
         <div class="sheet-header">Chọn tốc độ phát <span class="close-sheet" onclick="closeAllPopups()">&times;</span></div>
         <div class="sheet-content">
@@ -249,8 +244,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('Lỗi đăng ký SW:', err));
             });
         }
 
@@ -269,12 +263,12 @@
         let storyEpisodes = [];
         let currentAudioBlob = null;
         let dbInstance = null;
+        let currentStory = null; // Lưu trữ metadata truyện hiện tại
 
-        // ---- BIẾN WEB AUDIO API ----
-        let audioCtx, audioSource, bassNode, midNode, trebleNode, dryGain, wetGain, delayNode, feedbackNode;
+        // ---- BIẾN WEB AUDIO API ĐÃ NÂNG CẤP ----
+        let audioCtx, audioSource, bassNode, midNode, trebleNode, dryGain, wetGain, delayNode, feedbackNode, compressor;
         let isAudioSetup = false;
 
-        // Khởi tạo AudioContext (Bộ lọc & Hiệu ứng)
         function initAudioAPI() {
             if (isAudioSetup) return;
             try {
@@ -283,53 +277,43 @@
                 audioSource = audioCtx.createMediaElementSource(audio);
 
                 // 1. Equalizer 3 dải
-                bassNode = audioCtx.createBiquadFilter();
-                bassNode.type = 'lowshelf';
-                bassNode.frequency.value = 250;
+                bassNode = audioCtx.createBiquadFilter(); bassNode.type = 'lowshelf'; bassNode.frequency.value = 250;
+                midNode = audioCtx.createBiquadFilter(); midNode.type = 'peaking'; midNode.frequency.value = 1500;
+                trebleNode = audioCtx.createBiquadFilter(); trebleNode.type = 'highshelf'; trebleNode.frequency.value = 4000;
 
-                midNode = audioCtx.createBiquadFilter();
-                midNode.type = 'peaking';
-                midNode.frequency.value = 1500;
+                // 2. Mạch vang (Reverb)
+                dryGain = audioCtx.createGain(); dryGain.gain.value = 1;
+                wetGain = audioCtx.createGain(); wetGain.gain.value = 0;
 
-                trebleNode = audioCtx.createBiquadFilter();
-                trebleNode.type = 'highshelf';
-                trebleNode.frequency.value = 4000;
+                delayNode = audioCtx.createDelay(); delayNode.delayTime.value = 0.05;
+                feedbackNode = audioCtx.createGain(); feedbackNode.gain.value = 0.3;
 
-                // 2. Mạch vang (Reverb / Echo)
-                dryGain = audioCtx.createGain(); // Âm gốc
-                wetGain = audioCtx.createGain(); // Âm vang
-                dryGain.gain.value = 1;
-                wetGain.gain.value = 0;
+                // 3. (MỚI) Bộ Nén Âm - Giới hạn ngưỡng âm lượng tối đa để KHÔNG BỊ VỠ TIẾNG (Tapping/Popping)
+                compressor = audioCtx.createDynamicsCompressor();
+                compressor.threshold.value = -3;    // Bắt đầu nén khi âm lượng vượt -3dB
+                compressor.knee.value = 12;         // Độ dốc mềm
+                compressor.ratio.value = 4;         // Tỉ lệ nén
+                compressor.attack.value = 0.003;    // Thời gian phản hồi rất nhanh
+                compressor.release.value = 0.25;
 
-                delayNode = audioCtx.createDelay();
-                delayNode.delayTime.value = 0.05; // Độ trễ cốc ~50ms
-                feedbackNode = audioCtx.createGain();
-                feedbackNode.gain.value = 0.3; // Độ lặp lại
+                // Kết nối luồng âm thanh
+                audioSource.connect(bassNode); bassNode.connect(midNode); midNode.connect(trebleNode);
 
-                // 3. Kết nối luồng âm thanh
-                audioSource.connect(bassNode);
-                bassNode.connect(midNode);
-                midNode.connect(trebleNode);
-
-                // Đường truyền chính (nghe gốc)
+                // Đường chính
                 trebleNode.connect(dryGain);
-                dryGain.connect(audioCtx.destination);
-
-                // Đường truyền vang
-                trebleNode.connect(wetGain);
-                wetGain.connect(delayNode);
-                delayNode.connect(feedbackNode);
-                feedbackNode.connect(delayNode); // Vòng lặp
-                delayNode.connect(audioCtx.destination);
+                // Đường vang
+                trebleNode.connect(wetGain); wetGain.connect(delayNode); delayNode.connect(feedbackNode); feedbackNode.connect(delayNode); 
+                
+                // Gom tất cả vào Cục Nén trước khi ra Loa
+                dryGain.connect(compressor);
+                delayNode.connect(compressor);
+                compressor.connect(audioCtx.destination);
 
                 isAudioSetup = true;
-                updateAudioEffects(); // Cập nhật lần đầu
-            } catch (e) {
-                console.log("Trình duyệt không hỗ trợ Web Audio API:", e);
-            }
+                updateAudioEffects();
+            } catch (e) { console.log("Web Audio API không hỗ trợ:", e); }
         }
 
-        // Cập nhật thông số từ thanh trượt
         function updateAudioEffects() {
             if (!isAudioSetup) initAudioAPI();
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
@@ -345,65 +329,62 @@
             document.getElementById('reverbVal').textContent = r + "%";
 
             if(isAudioSetup) {
-                bassNode.gain.value = b;
-                midNode.gain.value = m;
-                trebleNode.gain.value = t;
-                // Ánh xạ 0-100% sang hệ số gain (0.0 đến 0.7 để bảo vệ loa)
-                wetGain.gain.value = (r / 100) * 0.7; 
+                const now = audioCtx.currentTime;
+                // SỬ DỤNG setTargetAtTime để thay đổi giá trị MƯỢT MÀ trong 0.1s -> CHỐNG TIẾNG "BỤP/ĐẬP"
+                bassNode.gain.setTargetAtTime(b, now, 0.1);
+                midNode.gain.setTargetAtTime(m, now, 0.1);
+                trebleNode.gain.setTargetAtTime(t, now, 0.1);
+                wetGain.gain.setTargetAtTime((r / 100) * 0.7, now, 0.1);
             }
         }
 
-        // Áp dụng bộ cài đặt sẵn
         function applyEqPreset(type, btn) {
             document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
             if(btn) btn.classList.add('selected');
 
             let b = 0, m = 0, t = 0, r = 0;
-            if (type === 'cup') {
-                // Hiệu ứng "Trong cốc" của Pure Tuber
-                b = 2; m = -1; t = 3; r = 55;
-                if(isAudioSetup && delayNode) delayNode.delayTime.value = 0.055;
-            } else if (type === 'voice') {
-                // Rõ giọng đọc truyện
-                b = -3; m = 6; t = 4; r = 0;
-            } else if (type === 'bass') {
-                // Sâu trầm
-                b = 10; m = -2; t = 1; r = 0;
-            } else {
-                // Mặc định
-                b = 0; m = 0; t = 0; r = 0;
-            }
+            if (type === 'cup') { b = 2; m = -1; t = 3; r = 55; if(isAudioSetup && delayNode) delayNode.delayTime.value = 0.055; } 
+            else if (type === 'voice') { b = -3; m = 6; t = 4; r = 0; } 
+            else if (type === 'bass') { b = 10; m = -2; t = 1; r = 0; }
 
-            document.getElementById('bassSlider').value = b;
-            document.getElementById('midSlider').value = m;
-            document.getElementById('trebleSlider').value = t;
-            document.getElementById('reverbSlider').value = r;
+            document.getElementById('bassSlider').value = b; document.getElementById('midSlider').value = m;
+            document.getElementById('trebleSlider').value = t; document.getElementById('reverbSlider').value = r;
             updateAudioEffects();
+        }
+
+        // ---- HỖ TRỢ NGHE DƯỚI NỀN VÀ MÀN HÌNH KHÓA ----
+        function setupMediaSession(episodeTitle) {
+            if ('mediaSession' in navigator && currentStory) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: episodeTitle,
+                    artist: currentStory.name || 'Truyện Nói',
+                    album: 'Ứng Dụng Nghe Truyện',
+                    artwork: [ { src: currentStory.cover || 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/jpeg' } ]
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => togglePlay());
+                navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+                navigator.mediaSession.setActionHandler('seekbackward', () => skip(-10));
+                navigator.mediaSession.setActionHandler('seekforward', () => skip(10));
+            }
         }
 
         function formatTime(seconds) {
             if (isNaN(seconds) || seconds < 0) return "00:00:00";
-            let h = Math.floor(seconds / 3600);
-            let m = Math.floor((seconds % 3600) / 60);
-            let s = Math.floor(seconds % 60);
+            let h = Math.floor(seconds / 3600); let m = Math.floor((seconds % 3600) / 60); let s = Math.floor(seconds % 60);
             return (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
         }
 
         function initSavedSpeedUI() {
             let savedSpeed = parseFloat(localStorage.getItem('playbackSpeed')) || 1.0;
             document.getElementById('speedText').textContent = `Tốc độ (${savedSpeed}x)`;
-            
-            let items = document.querySelectorAll('#speedPopup .sheet-item');
-            items.forEach(item => item.classList.remove('selected'));
-            
+            document.querySelectorAll('#speedPopup .sheet-item').forEach(item => item.classList.remove('selected'));
             let target = document.getElementById('speed_' + savedSpeed);
-            if(target) target.classList.add('selected');
-            else document.getElementById('customSpeedInput').value = savedSpeed;
+            if(target) target.classList.add('selected'); else document.getElementById('customSpeedInput').value = savedSpeed;
         }
 
         async function initPlayer() {
             initSavedSpeedUI();
-
             let fallbackTitle = localStorage.getItem('currentEpisodeTitle');
             if(fallbackTitle) document.getElementById('playerTitle').textContent = fallbackTitle;
 
@@ -416,13 +397,12 @@
             let storyReq = txStory.objectStore('stories').get(currentStoryId);
             
             storyReq.onsuccess = (e) => {
-                let story = e.target.result;
-                if(story) {
-                    document.getElementById('playerStoryName').textContent = story.name || "Truyện nói";
-                    document.getElementById('playerCover').src = story.cover || 'https://via.placeholder.com/300';
-                    
-                    if(story.episodes) {
-                        storyEpisodes = story.episodes;
+                currentStory = e.target.result;
+                if(currentStory) {
+                    document.getElementById('playerStoryName').textContent = currentStory.name || "Truyện nói";
+                    document.getElementById('playerCover').src = currentStory.cover || 'https://via.placeholder.com/300';
+                    if(currentStory.episodes) {
+                        storyEpisodes = currentStory.episodes;
                         loadAndPlayEpisode(currentAudioKey, false);
                     }
                 }
@@ -434,21 +414,19 @@
             let html = storyEpisodes.map(ep => {
                 let isPlaying = ep.audioKey === currentAudioKey ? 'selected' : '';
                 return `<div class="sheet-item ${isPlaying}" onclick="switchEpisode('${ep.title}', '${ep.audioKey}')">
-                    <span>${ep.title}</span>
-                    ${isPlaying ? '<span>🔊</span>' : ''}
-                </div>`;
+                    <span>${ep.title}</span>${isPlaying ? '<span>🔊</span>' : ''}</div>`;
             }).join('');
             document.getElementById('episodePopupList').innerHTML = html;
         }
 
         async function loadAndPlayEpisode(audioKey, autoPlay = true) {
-            currentAudioKey = audioKey;
-            localStorage.setItem('currentAudioKey', audioKey);
+            currentAudioKey = audioKey; localStorage.setItem('currentAudioKey', audioKey);
             
             let currentEp = storyEpisodes.find(ep => ep.audioKey === audioKey);
             if (currentEp) {
                 document.getElementById('playerTitle').textContent = currentEp.title;
                 localStorage.setItem('currentEpisodeTitle', currentEp.title);
+                setupMediaSession(currentEp.title); // Khai báo với OS ngay khi nạp tập mới
             }
             updateEpisodeListUI();
 
@@ -467,12 +445,10 @@
 
                     audio.onloadedmetadata = () => {
                         if (audio.duration && audio.duration !== Infinity && (audio.duration - startTime < 2)) {
-                            startTime = 0;
-                            localStorage.setItem('history_' + audioKey, 0);
+                            startTime = 0; localStorage.setItem('history_' + audioKey, 0);
                         }
                         audio.currentTime = startTime;
                         audio.playbackRate = parseFloat(localStorage.getItem('playbackSpeed')) || 1.0;
-                        
                         if (autoPlay) togglePlay(); 
                     };
                 }
@@ -480,9 +456,8 @@
         }
 
         function togglePlay() {
-            // Khởi tạo/Resume Web Audio Context khi người dùng tương tác
             if (!isAudioSetup) initAudioAPI();
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); // Quan trọng để mở khóa nền iOS/Android
 
             if (audio.error || (audio.paused && audio.networkState === HTMLMediaElement.NETWORK_EMPTY)) {
                 if (currentAudioBlob) {
@@ -515,21 +490,16 @@
             }, 100);
         }
 
-        function stopProgressLoop() {
-            if (playInterval) { clearInterval(playInterval); playInterval = null; }
-        }
+        function stopProgressLoop() { if (playInterval) { clearInterval(playInterval); playInterval = null; } }
 
         audio.addEventListener('play', () => { playerBody.classList.add('playing'); startProgressLoop(); });
         audio.addEventListener('pause', () => { playerBody.classList.remove('playing'); stopProgressLoop(); localStorage.setItem('history_' + currentAudioKey, audio.currentTime); });
         
         audio.addEventListener('ended', () => {
-            stopProgressLoop();
-            localStorage.setItem('history_' + currentAudioKey, audio.duration);
+            stopProgressLoop(); localStorage.setItem('history_' + currentAudioKey, audio.duration);
             if (storyEpisodes.length > 0) {
                 let currentIndex = storyEpisodes.findIndex(ep => ep.audioKey === currentAudioKey);
-                if (currentIndex !== -1 && currentIndex < storyEpisodes.length - 1) {
-                    loadAndPlayEpisode(storyEpisodes[currentIndex + 1].audioKey, true);
-                }
+                if (currentIndex !== -1 && currentIndex < storyEpisodes.length - 1) { loadAndPlayEpisode(storyEpisodes[currentIndex + 1].audioKey, true); }
             }
         });
 
@@ -541,28 +511,23 @@
 
         function updateSliderUI(percent) {
             percent = Math.max(0, Math.min(100, percent));
-            progressFill.style.width = percent + '%';
-            progressThumb.style.left = percent + '%';
+            progressFill.style.width = percent + '%'; progressThumb.style.left = percent + '%';
         }
 
         function calculateProgressFromEvent(e) {
             const rect = progressContainer.getBoundingClientRect();
-            let percent = (e.clientX - rect.left) / rect.width;
-            return Math.max(0, Math.min(1, percent));
+            return Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         }
 
         progressContainer.addEventListener('pointerdown', (e) => {
-            isDragging = true;
-            progressContainer.setPointerCapture(e.pointerId);
-            let percent = calculateProgressFromEvent(e);
-            updateSliderUI(percent * 100);
+            isDragging = true; progressContainer.setPointerCapture(e.pointerId);
+            let percent = calculateProgressFromEvent(e); updateSliderUI(percent * 100);
             if (audio.duration) document.getElementById('currentTime').textContent = formatTime(percent * audio.duration);
         });
 
         progressContainer.addEventListener('pointermove', (e) => {
             if (isDragging) {
-                let percent = calculateProgressFromEvent(e);
-                updateSliderUI(percent * 100);
+                let percent = calculateProgressFromEvent(e); updateSliderUI(percent * 100);
                 if (audio.duration) document.getElementById('currentTime').textContent = formatTime(percent * audio.duration);
             }
         });
@@ -572,11 +537,7 @@
                 isDragging = false;
                 try { progressContainer.releasePointerCapture(e.pointerId); } catch(err) {}
                 let percent = calculateProgressFromEvent(e);
-                if (audio.duration) {
-                    let newTime = percent * audio.duration;
-                    audio.currentTime = newTime; 
-                    localStorage.setItem('history_' + currentAudioKey, newTime);
-                }
+                if (audio.duration) { let newTime = percent * audio.duration; audio.currentTime = newTime; localStorage.setItem('history_' + currentAudioKey, newTime); }
             }
         });
 
@@ -588,12 +549,9 @@
         }
 
         function openPopup(id) {
-            // Khi mở bất kỳ popup nào (nhất là Bộ chỉnh âm), kích hoạt AudioContext nếu nó bị trình duyệt chặn (Suspend)
             if (!isAudioSetup) initAudioAPI();
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-            
-            document.getElementById('overlay').classList.add('active');
-            document.getElementById(id).classList.add('active');
+            document.getElementById('overlay').classList.add('active'); document.getElementById(id).classList.add('active');
         }
 
         function closeAllPopups() {
@@ -602,8 +560,7 @@
         }
 
         function setSpeed(speed) {
-            audio.playbackRate = speed;
-            localStorage.setItem('playbackSpeed', speed);
+            audio.playbackRate = speed; localStorage.setItem('playbackSpeed', speed);
             document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
             document.querySelectorAll('#speedPopup .sheet-item').forEach(i => i.classList.remove('selected'));
             if(document.getElementById('speed_' + speed)) document.getElementById('speed_' + speed).classList.add('selected');
@@ -619,38 +576,32 @@
         function applyCustomTimer() {
             let totalMinutes = (parseInt(document.getElementById('customHourInput').value) || 0) * 60 + (parseInt(document.getElementById('customMinuteInput').value) || 0);
             if (totalMinutes <= 0) { alert('Vui lòng nhập số lớn hơn 0!'); return; }
-            activateTimer(totalMinutes);
-            closeAllPopups();
+            activateTimer(totalMinutes); closeAllPopups();
         }
 
         function setTimerMinutes(minutes) {
             document.querySelectorAll('#timerPopup .sheet-item').forEach(i => i.classList.remove('selected'));
             if(event && event.currentTarget) event.currentTarget.classList.add('selected');
             document.getElementById('customHourInput').value = ''; document.getElementById('customMinuteInput').value = '';
-            activateTimer(minutes);
-            closeAllPopups();
+            activateTimer(minutes); closeAllPopups();
         }
 
         function activateTimer(minutes) {
             clearInterval(timerInterval);
             if (minutes > 0) {
-                let endTime = Date.now() + minutes * 60000;
-                localStorage.setItem('timerEndTime', endTime);
-                document.getElementById('timerBtn').classList.add('active-timer');
-                updateTimerDisplay(endTime);
+                let endTime = Date.now() + minutes * 60000; localStorage.setItem('timerEndTime', endTime);
+                document.getElementById('timerBtn').classList.add('active-timer'); updateTimerDisplay(endTime);
                 timerInterval = setInterval(() => updateTimerDisplay(localStorage.getItem('timerEndTime')), 1000);
             } else {
                 localStorage.removeItem('timerEndTime');
-                document.getElementById('timerBtn').classList.remove('active-timer');
-                document.getElementById('timerText').textContent = "Hẹn giờ";
+                document.getElementById('timerBtn').classList.remove('active-timer'); document.getElementById('timerText').textContent = "Hẹn giờ";
             }
         }
 
         function checkAndRestoreTimer() {
             let savedEndTime = localStorage.getItem('timerEndTime');
             if (savedEndTime && (parseInt(savedEndTime) - Date.now() > 0)) {
-                document.getElementById('timerBtn').classList.add('active-timer');
-                updateTimerDisplay(savedEndTime);
+                document.getElementById('timerBtn').classList.add('active-timer'); updateTimerDisplay(savedEndTime);
                 timerInterval = setInterval(() => updateTimerDisplay(localStorage.getItem('timerEndTime')), 1000);
             } else { localStorage.removeItem('timerEndTime'); }
         }
@@ -658,11 +609,8 @@
         function updateTimerDisplay(endTime) {
             let remain = parseInt(endTime) - Date.now();
             if (remain <= 0) {
-                clearInterval(timerInterval);
-                audio.pause();
-                localStorage.removeItem('timerEndTime');
-                document.getElementById('timerBtn').classList.remove('active-timer');
-                document.getElementById('timerText').textContent = "Hẹn giờ";
+                clearInterval(timerInterval); audio.pause(); localStorage.removeItem('timerEndTime');
+                document.getElementById('timerBtn').classList.remove('active-timer'); document.getElementById('timerText').textContent = "Hẹn giờ";
                 document.querySelectorAll('#timerPopup .sheet-item').forEach(i => i.classList.remove('selected'));
                 if(document.getElementById('timer_0')) document.getElementById('timer_0').classList.add('selected');
                 return;
@@ -670,10 +618,7 @@
             document.getElementById('timerText').textContent = formatTime(Math.floor(remain / 1000));
         }
 
-        function switchEpisode(title, audioKey) {
-            closeAllPopups(); loadAndPlayEpisode(audioKey, true);
-        }
-
+        function switchEpisode(title, audioKey) { closeAllPopups(); loadAndPlayEpisode(audioKey, true); }
         window.addEventListener('DOMContentLoaded', initPlayer);
     </script>
 </body>
