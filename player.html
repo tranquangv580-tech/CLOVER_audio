@@ -228,7 +228,7 @@
         let dbInstance = null;
 
         function formatTime(seconds) {
-            if (isNaN(seconds) || seconds < 0) return "00:00:00";
+            if (isNaN(seconds) || seconds < 0 || seconds === Infinity) return "00:00:00";
             let h = Math.floor(seconds / 3600);
             let m = Math.floor((seconds % 3600) / 60);
             let s = Math.floor(seconds % 60);
@@ -238,6 +238,33 @@
             let sStr = s < 10 ? "0" + s : s;
             
             return `${hStr}:${mStr}:${sStr}`;
+        }
+
+        function updateSliderUI(percent) {
+            percent = Math.max(0, Math.min(100, percent));
+            progressFill.style.width = percent + '%';
+            progressThumb.style.left = percent + '%';
+        }
+
+        // HÀM MỚI: Gom chung xử lý tính toán và hiển thị thời gian, gọi mọi lúc mọi nơi để chống kẹt giao diện
+        function updatePlayerUI() {
+            if (!audio || isNaN(audio.duration) || audio.duration <= 0) return;
+            
+            let speed = audio.playbackRate || 1;
+            let current = audio.currentTime;
+            let duration = audio.duration;
+            
+            if (duration !== Infinity) {
+                if (!isDragging) {
+                    let percent = (current / duration) * 100;
+                    updateSliderUI(percent);
+                }
+                document.getElementById('currentTime').textContent = formatTime(current / speed);
+                document.getElementById('remainingTime').textContent = "-" + formatTime((duration - current) / speed);
+            } else {
+                // Đề phòng lỗi trình duyệt trả về file audio duration = Infinity lúc mới tải
+                document.getElementById('currentTime').textContent = formatTime(current / speed);
+            }
         }
 
         function initSavedSpeedUI() {
@@ -336,6 +363,8 @@
                         let savedSpeed = parseFloat(localStorage.getItem('playbackSpeed')) || 1.0;
                         audio.playbackRate = savedSpeed;
                         
+                        updatePlayerUI(); // Ép cập nhật thông số ngay cả khi chưa bấm Play
+
                         if (autoPlay) {
                             audio.play().catch(err => {
                                 console.log("Trình duyệt chặn tự động phát:", err);
@@ -365,15 +394,8 @@
         function startProgressLoop() {
             if (playInterval) clearInterval(playInterval);
             playInterval = setInterval(() => {
-                if (audio && !isDragging && !audio.paused && !isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
-                    let percent = (audio.currentTime / audio.duration) * 100;
-                    updateSliderUI(percent);
-                    
-                    let speed = audio.playbackRate || 1;
-                    document.getElementById('currentTime').textContent = formatTime(audio.currentTime / speed);
-                    let remaining = audio.duration - audio.currentTime;
-                    document.getElementById('remainingTime').textContent = "-" + formatTime(remaining / speed);
-
+                if (audio && !isDragging && !audio.paused) {
+                    updatePlayerUI(); // Dùng chung logic hiển thị
                     if (Math.abs(audio.currentTime - lastSaveTime) > 5) {
                         localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
                         lastSaveTime = audio.currentTime;
@@ -413,18 +435,15 @@
             }
         });
 
+        // Hỗ trợ hiển thị khi người dùng Pause nhưng kéo tua/đổi tốc độ
         audio.addEventListener('timeupdate', () => {
-            if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
-                let speed = audio.playbackRate || 1;
-                document.getElementById('remainingTime').textContent = "-" + formatTime((audio.duration - audio.currentTime) / speed);
-            }
+            if (audio.paused && !isDragging) updatePlayerUI();
         });
 
-        function updateSliderUI(percent) {
-            percent = Math.max(0, Math.min(100, percent));
-            progressFill.style.width = percent + '%';
-            progressThumb.style.left = percent + '%';
-        }
+        // Bắt sự kiện duration để phòng lỗi load Blob
+        audio.addEventListener('durationchange', () => {
+            updatePlayerUI();
+        });
 
         function calculateProgressFromEvent(e) {
             const rect = progressContainer.getBoundingClientRect();
@@ -442,8 +461,7 @@
                 let speed = audio.playbackRate || 1;
                 let current = percent * audio.duration;
                 document.getElementById('currentTime').textContent = formatTime(current / speed);
-                let remaining = audio.duration - current;
-                document.getElementById('remainingTime').textContent = "-" + formatTime(remaining / speed);
+                document.getElementById('remainingTime').textContent = "-" + formatTime((audio.duration - current) / speed);
             }
         });
 
@@ -455,8 +473,7 @@
                     let speed = audio.playbackRate || 1;
                     let current = percent * audio.duration;
                     document.getElementById('currentTime').textContent = formatTime(current / speed);
-                    let remaining = audio.duration - current;
-                    document.getElementById('remainingTime').textContent = "-" + formatTime(remaining / speed);
+                    document.getElementById('remainingTime').textContent = "-" + formatTime((audio.duration - current) / speed);
                 }
             }
         });
@@ -467,12 +484,10 @@
                 try { progressContainer.releasePointerCapture(e.pointerId); } catch(err) {}
                 let percent = calculateProgressFromEvent(e);
                 if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
-                    let speed = audio.playbackRate || 1;
                     let newTime = percent * audio.duration;
                     audio.currentTime = newTime; 
-                    updateSliderUI(percent * 100);
-                    document.getElementById('currentTime').textContent = formatTime(newTime / speed);
                     localStorage.setItem('history_' + currentAudioKey, newTime);
+                    updatePlayerUI();
                 }
             }
         });
@@ -489,6 +504,7 @@
                 let newTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
                 audio.currentTime = newTime;
                 localStorage.setItem('history_' + currentAudioKey, newTime);
+                updatePlayerUI(); // Bắt buộc cập nhật UI khi bấm tua (kể cả khi đang pause)
             }
         }
 
@@ -512,12 +528,7 @@
             let target = document.getElementById('speed_' + speed);
             if(target) target.classList.add('selected');
             
-            // Cập nhật ngay thời gian hiển thị khi vừa bấm chọn
-            if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
-                document.getElementById('currentTime').textContent = formatTime(audio.currentTime / speed);
-                document.getElementById('remainingTime').textContent = "-" + formatTime((audio.duration - audio.currentTime) / speed);
-            }
-            
+            updatePlayerUI(); // Tính toán lại ngay thời gian thực hiển thị khi chọn
             closeAllPopups();
         }
 
@@ -535,12 +546,7 @@
             let items = document.querySelectorAll('#speedPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
             
-            // Cập nhật ngay thời gian hiển thị khi vừa áp dụng
-            if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
-                document.getElementById('currentTime').textContent = formatTime(audio.currentTime / speed);
-                document.getElementById('remainingTime').textContent = "-" + formatTime((audio.duration - audio.currentTime) / speed);
-            }
-            
+            updatePlayerUI(); // Tính toán lại ngay thời gian thực hiển thị khi chọn
             closeAllPopups();
         }
 
