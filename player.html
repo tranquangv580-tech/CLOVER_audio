@@ -369,9 +369,10 @@
                     let percent = (audio.currentTime / audio.duration) * 100;
                     updateSliderUI(percent);
                     
-                    document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+                    let speed = audio.playbackRate || 1;
+                    document.getElementById('currentTime').textContent = formatTime(audio.currentTime / speed);
                     let remaining = audio.duration - audio.currentTime;
-                    document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
+                    document.getElementById('remainingTime').textContent = "-" + formatTime(remaining / speed);
 
                     if (Math.abs(audio.currentTime - lastSaveTime) > 5) {
                         localStorage.setItem('history_' + currentAudioKey, audio.currentTime);
@@ -414,7 +415,8 @@
 
         audio.addEventListener('timeupdate', () => {
             if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
-                document.getElementById('remainingTime').textContent = "-" + formatTime(audio.duration - audio.currentTime);
+                let speed = audio.playbackRate || 1;
+                document.getElementById('remainingTime').textContent = "-" + formatTime((audio.duration - audio.currentTime) / speed);
             }
         });
 
@@ -437,10 +439,11 @@
             let percent = calculateProgressFromEvent(e);
             updateSliderUI(percent * 100);
             if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                let speed = audio.playbackRate || 1;
                 let current = percent * audio.duration;
-                document.getElementById('currentTime').textContent = formatTime(current);
+                document.getElementById('currentTime').textContent = formatTime(current / speed);
                 let remaining = audio.duration - current;
-                document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
+                document.getElementById('remainingTime').textContent = "-" + formatTime(remaining / speed);
             }
         });
 
@@ -449,10 +452,11 @@
                 let percent = calculateProgressFromEvent(e);
                 updateSliderUI(percent * 100);
                 if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                    let speed = audio.playbackRate || 1;
                     let current = percent * audio.duration;
-                    document.getElementById('currentTime').textContent = formatTime(current);
+                    document.getElementById('currentTime').textContent = formatTime(current / speed);
                     let remaining = audio.duration - current;
-                    document.getElementById('remainingTime').textContent = "-" + formatTime(remaining);
+                    document.getElementById('remainingTime').textContent = "-" + formatTime(remaining / speed);
                 }
             }
         });
@@ -463,10 +467,11 @@
                 try { progressContainer.releasePointerCapture(e.pointerId); } catch(err) {}
                 let percent = calculateProgressFromEvent(e);
                 if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                    let speed = audio.playbackRate || 1;
                     let newTime = percent * audio.duration;
                     audio.currentTime = newTime; 
                     updateSliderUI(percent * 100);
-                    document.getElementById('currentTime').textContent = formatTime(newTime);
+                    document.getElementById('currentTime').textContent = formatTime(newTime / speed);
                     localStorage.setItem('history_' + currentAudioKey, newTime);
                 }
             }
@@ -506,6 +511,13 @@
             items.forEach(item => item.classList.remove('selected'));
             let target = document.getElementById('speed_' + speed);
             if(target) target.classList.add('selected');
+            
+            // Cập nhật ngay thời gian hiển thị khi vừa bấm chọn
+            if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                document.getElementById('currentTime').textContent = formatTime(audio.currentTime / speed);
+                document.getElementById('remainingTime').textContent = "-" + formatTime((audio.duration - audio.currentTime) / speed);
+            }
+            
             closeAllPopups();
         }
 
@@ -522,6 +534,13 @@
             document.getElementById('speedText').textContent = `Tốc độ (${speed}x)`;
             let items = document.querySelectorAll('#speedPopup .sheet-item');
             items.forEach(item => item.classList.remove('selected'));
+            
+            // Cập nhật ngay thời gian hiển thị khi vừa áp dụng
+            if (!isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
+                document.getElementById('currentTime').textContent = formatTime(audio.currentTime / speed);
+                document.getElementById('remainingTime').textContent = "-" + formatTime((audio.duration - audio.currentTime) / speed);
+            }
+            
             closeAllPopups();
         }
 
