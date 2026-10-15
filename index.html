@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="light dark">
     <title>Thư Viện Sách Nói & Audio Tiểu Thuyết</title>
     <!-- Font chữ hiện đại Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,21 +13,21 @@
         :root {
             --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             
-            /* Dark Theme (Chế độ Ban Đêm & Bầu Trời Sao / Mặt Trăng) */
-            --bg-gradient-dark: radial-gradient(circle at 85% 15%, #1e1b4b 0%, #0f172a 40%, #020617 100%);
-            --card-bg-dark: rgba(30, 41, 59, 0.65);
-            --card-border-dark: rgba(255, 255, 255, 0.1);
-            --card-hover-dark: rgba(51, 65, 85, 0.8);
+            /* Dark Theme (Chế độ Ban Đêm sâu thẳm, tối ưu cho màn hình OLED di động) */
+            --bg-gradient-dark: linear-gradient(135deg, #020617 0%, #090d1a 50%, #0f172a 100%);
+            --card-bg-dark: rgba(15, 23, 42, 0.85);
+            --card-border-dark: rgba(255, 255, 255, 0.08);
+            --card-hover-dark: rgba(30, 41, 59, 0.95);
             --text-primary-dark: #f8fafc;
             --text-secondary-dark: #94a3b8;
             --accent-color-dark: #f43f5e;
-            --accent-light-dark: rgba(244, 63, 94, 0.18);
+            --accent-light-dark: rgba(244, 63, 94, 0.2);
             
             /* Light Theme (Chế độ Ban Ngày & Ánh Sáng Mây Trời) */
             --bg-gradient-light: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #faf5ff 100%);
-            --card-bg-light: rgba(255, 255, 255, 0.75);
-            --card-border-light: rgba(226, 232, 240, 0.8);
-            --card-hover-light: rgba(255, 255, 255, 0.95);
+            --card-bg-light: rgba(255, 255, 255, 0.85);
+            --card-border-light: rgba(226, 232, 240, 0.9);
+            --card-hover-light: rgba(255, 255, 255, 1);
             --text-primary-light: #0f172a;
             --text-secondary-light: #64748b;
             --accent-color-light: #e11d48;
@@ -43,7 +44,7 @@
             --text-secondary: var(--text-secondary-dark);
             --accent: var(--accent-color-dark);
             --accent-bg: var(--accent-light-dark);
-            --shadow-color: rgba(0, 0, 0, 0.35);
+            --shadow-color: rgba(0, 0, 0, 0.5);
         }
 
         /* Chuyển sang Chế độ Sáng */
@@ -56,7 +57,7 @@
             --text-secondary: var(--text-secondary-light);
             --accent: var(--accent-color-light);
             --accent-bg: var(--accent-light-light);
-            --shadow-color: rgba(148, 163, 184, 0.2);
+            --shadow-color: rgba(148, 163, 184, 0.25);
         }
 
         * {
@@ -66,7 +67,7 @@
 
         body {
             background: var(--bg-gradient);
-            background-attachment: fixed;
+            background-color: #020617; /* Fallback màu tối tuyệt đối cho mobile */
             color: var(--text-primary);
             font-family: var(--font-main);
             margin: 0;
@@ -96,10 +97,10 @@
             position: absolute;
             top: 40px;
             right: 8%;
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            box-shadow: -12px 10px 0 2px #fef08a, 0 0 25px rgba(254, 240, 138, 0.3);
+            box-shadow: -10px 8px 0 2px #fef08a, 0 0 20px rgba(254, 240, 138, 0.25);
             opacity: 0.9;
             transition: opacity 0.5s ease, transform 0.5s ease;
         }
@@ -120,8 +121,8 @@
         }
 
         @keyframes twinkle {
-            0% { opacity: 0.4; }
-            100% { opacity: 0.85; }
+            0% { opacity: 0.3; }
+            100% { opacity: 0.9; }
         }
 
         /* Ban Ngày: Mây & Mặt Trời Ánh Sáng */
@@ -129,8 +130,8 @@
             position: absolute;
             top: -50px;
             right: -30px;
-            width: 220px;
-            height: 220px;
+            width: 200px;
+            height: 200px;
             background: radial-gradient(circle, rgba(253, 224, 71, 0.4) 0%, rgba(253, 186, 116, 0.15) 50%, rgba(255,255,255,0) 70%);
             border-radius: 50%;
             opacity: 0;
@@ -403,7 +404,7 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             z-index: 1000;
@@ -423,6 +424,7 @@
             left: 0;
             width: 100%;
             background: var(--bg-gradient);
+            background-color: #020617;
             border-radius: 28px 28px 0 0;
             padding: 24px 20px 32px;
             box-sizing: border-box;
@@ -431,7 +433,7 @@
             max-height: 88vh;
             overflow-y: auto;
             border-top: 1px solid var(--card-border);
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
             max-width: 540px;
             left: 50%;
             transform: translateX(-50%);
@@ -637,6 +639,10 @@
                 document.body.classList.add('light-theme');
                 document.getElementById('themeIconMoon').style.display = 'none';
                 document.getElementById('themeIconSun').style.display = 'block';
+            } else {
+                document.body.classList.remove('light-theme');
+                document.getElementById('themeIconMoon').style.display = 'block';
+                document.getElementById('themeIconSun').style.display = 'none';
             }
         }
 
@@ -807,10 +813,14 @@
         }
 
         function fileToBase64(file) {
-            return new Promise((resolve) => {
-                let reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(file);
+            return new Response(file).arrayBuffer().then(buffer => {
+                let binary = '';
+                let bytes = new Uint8Array(buffer);
+                let len = bytes.byteLength;
+                for (let i = 0; i < len; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return 'data:' + file.type + ';base64,' + btoa(binary);
             });
         }
 
