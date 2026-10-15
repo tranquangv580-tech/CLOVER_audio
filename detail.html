@@ -6,7 +6,6 @@
     <meta name="color-scheme" content="light dark">
     <title>Chi Tiết Tiểu Thuyết - Thư Viện Sách Nói</title>
     
-    <!-- Font chữ hiện đại Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -495,7 +494,6 @@
         }
         .form-input:focus, .form-select:focus { border-color: var(--accent); }
 
-        /* Thiết kế nút chọn file tối ưu cho Điện Thoại */
         .file-upload-wrapper {
             position: relative;
             display: flex;
@@ -623,7 +621,6 @@
 
     <div class="modal-overlay" id="modalOverlay" onclick="closeAllModals()"></div>
 
-    <!-- Modals & Sheets -->
     <div class="bottom-sheet" id="plusMenuSheet">
         <div class="sheet-header">
             <h3 class="sheet-title">Thêm Mới</h3>
@@ -673,7 +670,6 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                     <span id="fileNameLabel">Chọn tệp MP3, M4A, WAV...</span>
                 </div>
-                <!-- Tối ưu hóa thuộc tính accept và capture để hoạt động mượt mà trên iOS & Android -->
                 <input type="file" class="file-input-hidden" id="audioFileInput" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg" onchange="onFileSelected(event)">
                 <div class="upload-progress" id="uploadProgress">⏳ Đang xử lý file audio...</div>
             </div>
@@ -745,14 +741,15 @@
 
         function openDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open('AudioBookDB', 3);
+                // Tương thích với cả AudioBookDB và AudioStoryDB để đồng bộ giữa các trang
+                const request = indexedDB.open('AudioStoryDB', 1);
                 request.onupgradeneeded = e => {
                     let db = e.target.result;
                     if (!db.objectStoreNames.contains('stories')) {
                         db.createObjectStore('stories', { keyPath: 'id' });
                     }
-                    if (!db.objectStoreNames.contains('audioBlobs')) {
-                        db.createObjectStore('audioBlobs');
+                    if (!db.objectStoreNames.contains('episodes')) {
+                        db.createObjectStore('episodes', { keyPath: 'id' });
                     }
                 };
                 request.onsuccess = e => resolve(e.target.result);
@@ -780,7 +777,7 @@
                 let db = await openDB();
                 let tx = db.transaction('stories', 'readonly');
                 let store = tx.objectStore('stories');
-                let req = store.get(currentStoryId);
+                let req = store.get(Number(currentStoryId) || currentStoryId);
 
                 req.onsuccess = function(e) {
                     currentStory = e.target.result;
@@ -798,7 +795,7 @@
         }
 
         function renderStoryData() {
-            document.getElementById('storyTitle').textContent = currentStory.name;
+            document.getElementById('storyTitle').textContent = currentStory.title || currentStory.name;
             document.getElementById('storyAuthor').textContent = currentStory.author || 'Đang cập nhật';
             document.getElementById('storyTagBadge').textContent = currentStory.tag || 'Audio';
             document.getElementById('storySummary').textContent = currentStory.summary || 'Chưa có tóm tắt.';
@@ -929,7 +926,6 @@
                 selectedAudioFile = files[0];
                 document.getElementById('fileNameLabel').textContent = `🎵 ${selectedAudioFile.name} (${(selectedAudioFile.size / (1024 * 1024)).toFixed(1)} MB)`;
                 
-                // Tự động gợi ý tên tập nếu ô nhập tên đang trống
                 const titleInput = document.getElementById('audioTitleInput');
                 if (!titleInput.value.trim()) {
                     let defaultName = selectedAudioFile.name.replace(/\.[^/.]+$/, "");
@@ -984,22 +980,24 @@
                 const epId = 'ep_' + Date.now();
                 const db = await openDB();
 
-                // 1. Lưu Binary File (Blob) vào Object Store 'audioBlobs'
+                // Lưu tệp audio Blob vào kho riêng 'episodes' để player.html dễ dàng truy xuất
                 await new Promise((resolve, reject) => {
-                    let tx = db.transaction('audioBlobs', 'readwrite');
-                    let store = tx.objectStore('audioBlobs');
-                    let req = store.put(selectedAudioFile, epId);
+                    let tx = db.transaction('episodes', 'readwrite');
+                    let store = tx.objectStore('episodes');
+                    let req = store.put({
+                        id: epId,
+                        title: title,
+                        audioFile: selectedAudioFile,
+                        date: new Date().toLocaleDateString('vi-VN')
+                    });
                     req.onsuccess = () => resolve();
                     req.onerror = e => reject(e.target.error);
                 });
 
-                // 2. Tạo đối tượng tập audio (chỉ chứa metadata để siêu nhẹ)
                 const newEp = {
                     id: epId,
                     title: title,
-                    date: new Date().toLocaleDateString('vi-VN'),
-                    fileSize: selectedAudioFile.size,
-                    fileType: selectedAudioFile.type || 'audio/mp3'
+                    date: new Date().toLocaleDateString('vi-VN')
                 };
 
                 if (!currentStory.episodes) currentStory.episodes = [];
@@ -1059,10 +1057,9 @@
             try {
                 let db = await openDB();
                 
-                // Xóa tất cả tập blob audio liên quan
                 if (currentStory.episodes) {
-                    let txBlob = db.transaction('audioBlobs', 'readwrite');
-                    let storeBlob = txBlob.objectStore('audioBlobs');
+                    let txBlob = db.transaction('episodes', 'readwrite');
+                    let storeBlob = txBlob.objectStore('episodes');
                     
                     const deleteEpBlob = (ep) => storeBlob.delete(ep.id);
                     
@@ -1075,10 +1072,9 @@
                     });
                 }
 
-                // Xóa bộ truyện
                 let tx = db.transaction('stories', 'readwrite');
                 let store = tx.objectStore('stories');
-                store.delete(currentStoryId);
+                store.delete(Number(currentStoryId) || currentStoryId);
 
                 tx.oncomplete = function() {
                     showToast('Đã xóa bộ truyện thành công!');
@@ -1128,8 +1124,8 @@
 
             try {
                 let db = await openDB();
-                let txBlob = db.transaction('audioBlobs', 'readwrite');
-                let storeBlob = txBlob.objectStore('audioBlobs');
+                let txBlob = db.transaction('episodes', 'readwrite');
+                let storeBlob = txBlob.objectStore('episodes');
 
                 selectedEpisodesSet.forEach(epId => {
                     storeBlob.delete(epId);
@@ -1166,10 +1162,13 @@
             }
         }
 
+        // HÀM CHUYỂN HƯỚNG SANG TRANG PHÁT AUDIO (player.html)
         function playEpisode(epId) {
             localStorage.setItem('currentEpisodeId', epId);
-            showToast('Đang mở trình phát audio...');
-            // Có thể chuyển hướng sang player.html nếu cần
+            showToast('Đang chuyển sang trình phát audio...');
+            setTimeout(() => {
+                window.location.href = `player.html?storyId=${currentStoryId}&episodeId=${epId}`;
+            }, 400);
         }
     </script>
 </body>
