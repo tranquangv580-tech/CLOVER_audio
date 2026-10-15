@@ -1,1068 +1,624 @@
-<style>
-    :root {
-        --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chi Tiết Truyện & Trình Phát Audio</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --text-main: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-color: #d95a52;
+            --accent-hover: #c44740;
+            --glass-bg: rgba(20, 25, 38, 0.95);
+        }
+
+        body.light-theme {
+            --bg-color: #f0f4f8;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --border-color: rgba(0, 0, 0, 0.08);
+            --text-main: #1f2937;
+            --text-secondary: #4b5563;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
-        /* Dark Theme */
-        --bg-gradient-dark: radial-gradient(circle at 85% 15%, #1e1b4b 0%, #0f172a 40%, #020617 100%);
-        --card-bg-dark: rgba(30, 41, 59, 0.65);
-        --card-border-dark: rgba(255, 255, 255, 0.1);
-        --card-hover-dark: rgba(51, 65, 85, 0.8);
-        --text-primary-dark: #f8fafc;
-        --text-secondary-dark: #94a3b8;
-        --accent-color-dark: #f43f5e;
-        --accent-light-dark: rgba(244, 63, 94, 0.18);
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 16px;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding-bottom: 90px;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 20%, #1a233a 0%, #0b0f19 70%);
+        }
+        body.light-theme::before {
+            background: radial-gradient(circle at 50% 20%, #e0f2fe 0%, #f0f4f8 70%);
+        }
+
+        /* Top Bar */
+        .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; z-index: 10; }
+        .back-btn, .theme-toggle-btn { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; font-size: 18px; backdrop-filter: blur(10px); transition: 0.2s; }
+        .back-btn:active, .theme-toggle-btn:active { transform: scale(0.92); }
+        .page-header-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Story Info */
+        .story-header-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 20px; backdrop-filter: blur(10px); line-height: 1.6; font-size: 14px; color: var(--text-secondary); max-height: 180px; overflow-y: auto; }
+        .story-header-card strong { color: var(--text-main); display: block; margin-bottom: 6px; font-size: 16px; }
+
+        .section-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+
+        /* Playlist container */
+        .playlist-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .playlist-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); cursor: pointer; transition: 0.2s; }
+        .playlist-card:active { transform: scale(0.98); }
+        .playlist-card-info { overflow: hidden; margin-right: 12px; flex-grow: 1; }
+        .playlist-card-title { font-size: 14px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+        .playlist-card-subtitle { font-size: 12px; color: var(--text-secondary); }
+        .play-btn-pill { background: var(--accent-color); color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(217, 90, 82, 0.3); transition: 0.2s; }
+        .play-btn-pill:active { transform: scale(0.92); }
+
+        /* Bottom Floating Bar */
+        .bottom-floating-bar { position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px; background: var(--glass-bg); border-top: 1px solid var(--border-color); backdrop-filter: blur(15px); display: flex; justify-content: center; z-index: 100; box-sizing: border-box; }
+        .goto-player-btn { width: 100%; max-width: 448px; background: var(--accent-color); color: #fff; border: none; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 8px 20px rgba(217, 90, 82, 0.4); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .goto-player-btn:active { transform: scale(0.97); }
+
+        /* Player View Styles */
+        .player-cover-container { text-align: center; margin-bottom: 16px; position: relative; }
+        .player-cover { width: 160px; height: 210px; object-fit: cover; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); border: 1px solid var(--border-color); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; background: var(--card-bg); }
+        .player-cover:active { transform: scale(0.96); }
+
+        .story-title-display { font-size: 17px; font-weight: 700; margin-bottom: 4px; text-align: center; color: var(--text-main); padding: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .episode-title-display { font-size: 13px; color: var(--text-secondary); text-align: center; margin-bottom: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; }
+
+        /* Progress Bar */
+        .progress-container { background: var(--card-bg); border: 1px solid var(--border-color); padding: 14px 16px; border-radius: 16px; margin-bottom: 20px; backdrop-filter: blur(10px); }
+        .progress-bar-wrapper { position: relative; margin-bottom: 8px; cursor: pointer; height: 24px; display: flex; align-items: center; touch-action: none; }
+        .progress-bar-bg { width: 100%; height: 6px; background: rgba(150,150,150,0.2); border-radius: 3px; position: relative; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--accent-color); width: 0%; border-radius: 3px; }
+        .time-info-row { display: flex; justify-content: space-between; font-size: 12px; font-family: monospace; color: var(--text-secondary); font-weight: 600; }
+
+        /* Main Controls */
+        .main-controls { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px; }
+        .control-btn { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: 700; transition: 0.2s; backdrop-filter: blur(10px); }
+        .control-btn:active { transform: scale(0.9); }
+        .play-pause-btn { width: 64px; height: 64px; background: var(--accent-color); border-color: var(--accent-color); color: #fff; font-size: 24px; box-shadow: 0 8px 20px rgba(217, 90, 82, 0.4); }
+
+        /* Settings Grid */
+        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .setting-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; backdrop-filter: blur(10px); cursor: pointer; transition: 0.2s; }
+        .setting-card:active { transform: scale(0.98); }
+        .setting-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; display: block; }
+        .setting-value { font-size: 14px; font-weight: 700; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
+
+        .playlist-trigger-btn { width: 100%; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px 16px; border-radius: 14px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); margin-bottom: 16px; transition: 0.2s; }
+        .playlist-trigger-btn:active { transform: scale(0.98); }
+
+        /* Modals & Bottom Sheets */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(5px); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--glass-bg); border: 1px solid var(--border-color); border-radius: 24px 24px 0 0; padding: 24px 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.35s cubic-bezier(0.1, 0.9, 0.2, 1); max-height: 80vh; overflow-y: auto; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(15px); }
+        .bottom-sheet.active { bottom: 0; }
+
+        .sheet-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+        .speed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+        .speed-option-btn { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .speed-option-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: #fff; }
+
+        .popup-input { width: 100%; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 10px; font-size: 14px; box-sizing: border-box; margin-bottom: 12px; outline: none; }
+        .popup-input:focus { border-color: var(--accent-color); }
+        .btn-primary { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; }
+
+        .modal-playlist-container { max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .playlist-item { padding: 12px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border: 1px solid var(--border-color); background: var(--card-bg); }
+        .playlist-item.active { background: rgba(217, 90, 82, 0.15); border-color: var(--accent-color); color: var(--accent-color); }
+        .playlist-item-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex-grow: 1; }
+
+        /* Image Viewer */
+        .image-viewer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; backdrop-filter: blur(8px); }
+        .image-viewer-overlay.active { opacity: 1; visibility: visible; }
+        .image-viewer-img { max-width: 90%; max-height: 80%; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+        .image-viewer-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.15); border: none; color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <div id="detailView">
+        <div class="top-row">
+            <span class="back-btn" title="Quay lại" style="opacity: 0.5;">&#8592;</span>
+            <span class="page-header-title">Thông Tin Truyện</span>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleIconDetail">🌙</button>
+        </div>
+
+        <div class="story-header-card" id="storyDescriptionCard">
+            <strong id="storyNameDisplay">Đang tải tên truyện...</strong>
+            <span id="storyDescText">Bắt đầu gia gia lưu lại một tòa Thành trung thôn rách rưới phòng ở, phòng ở vốn không khách trọ, lại tại hắn chẩn đoán chính xác bệnh nan y lúc nghèh đón một cái tự xương đến từ Thiên Huyền Đại Lục Nữ Đế...</span>
+        </div>
+
+        <div class="section-title">Danh Sách Audio</div>
         
-        /* Light Theme */
-        --bg-gradient-light: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #faf5ff 100%);
-        --card-bg-light: rgba(255, 255, 255, 0.75);
-        --card-border-light: rgba(226, 232, 240, 0.8);
-        --card-hover-light: rgba(255, 255, 255, 0.95);
-        --text-primary-light: #0f172a;
-        --text-secondary-light: #64748b;
-        --accent-color-light: #e11d48;
-        --accent-light-light: rgba(225, 29, 72, 0.12);
-    }
+        <div class="playlist-container" id="detailPlaylistContainer">
+            <div style="text-align: center; color: var(--text-secondary); padding: 20px; font-size: 13px;">Đang tải danh sách tập...</div>
+        </div>
 
-    body {
-        --bg-gradient: var(--bg-gradient-dark);
-        --card-bg: var(--card-bg-dark);
-        --card-border: var(--card-border-dark);
-        --card-hover: var(--card-hover-dark);
-        --text-primary: var(--text-primary-dark);
-        --text-secondary: var(--text-secondary-dark);
-        --accent: var(--accent-color-dark);
-        --accent-bg: var(--accent-light-dark);
-        --shadow-color: rgba(0, 0, 0, 0.35);
-    }
-
-    body.light-theme {
-        --bg-gradient: var(--bg-gradient-light);
-        --card-bg: var(--card-bg-light);
-        --card-border: var(--card-border-light);
-        --card-hover: var(--card-hover-light);
-        --text-primary: var(--text-primary-light);
-        --text-secondary: var(--text-secondary-light);
-        --accent: var(--accent-color-light);
-        --accent-bg: var(--accent-light-light);
-        --shadow-color: rgba(148, 163, 184, 0.2);
-    }
-
-    * {
-        box-sizing: border-box;
-        transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease, transform 0.2s ease;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-        background: var(--bg-gradient);
-        background-attachment: fixed;
-        color: var(--text-primary);
-        font-family: var(--font-main);
-        margin: 0;
-        padding: 20px 16px 80px;
-        max-width: 540px;
-        margin-left: auto;
-        margin-right: auto;
-        min-height: 100vh;
-        position: relative;
-        overflow-x: hidden;
-        -webkit-font-smoothing: antialiased;
-    }
-
-    .sky-decorations {
-        position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
-        pointer-events: none; z-index: -1; overflow: hidden;
-    }
-
-    .moon {
-        position: absolute; top: 40px; right: 8%; width: 70px; height: 70px;
-        border-radius: 50%; box-shadow: -12px 10px 0 2px #fef08a, 0 0 25px rgba(254, 240, 138, 0.3);
-        opacity: 0.9; transition: opacity 0.5s ease;
-    }
-
-    .stars {
-        position: absolute; inset: 0;
-        background-image: 
-            radial-gradient(1.5px 1.5px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-            radial-gradient(1.5px 1.5px at 80px 120px, #fef08a, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 200px 70px, #ffffff, rgba(0,0,0,0));
-        background-size: 500px 500px; opacity: 0.7;
-        animation: twinkle 4s infinite alternate ease-in-out;
-    }
-
-    @keyframes twinkle { 0% { opacity: 0.4; } 100% { opacity: 0.85; } }
-
-    .sun-glow {
-        position: absolute; top: -50px; right: -30px; width: 220px; height: 220px;
-        background: radial-gradient(circle, rgba(253, 224, 71, 0.4) 0%, rgba(253, 186, 116, 0.15) 50%, rgba(255,255,255,0) 70%);
-        border-radius: 50%; opacity: 0; transition: opacity 0.5s ease;
-    }
-
-    .clouds {
-        position: absolute; inset: 0;
-        background-image: 
-            radial-gradient(50px 25px at 60px 80px, rgba(255, 255, 255, 0.8), rgba(255,255,255,0)),
-            radial-gradient(70px 35px at 280px 140px, rgba(255, 255, 255, 0.7), rgba(255,255,255,0));
-        opacity: 0; transition: opacity 0.5s ease;
-    }
-
-    body.light-theme .moon, body.light-theme .stars { opacity: 0; }
-    body.light-theme .sun-glow, body.light-theme .clouds { opacity: 1; }
-
-    .app-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    }
-
-    .header-left, .header-right {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .icon-btn {
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
-        border: 1px solid var(--card-border);
-        background: var(--card-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        color: var(--text-primary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 4px 12px var(--shadow-color);
-        text-decoration: none;
-    }
-
-    .icon-btn:active { transform: scale(0.92); }
-    .icon-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-    .icon-btn.danger { color: #f43f5e; border-color: rgba(244, 63, 94, 0.3); }
-
-    /* Story Info Card */
-    .story-card {
-        background: var(--card-bg);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid var(--card-border);
-        border-radius: 24px;
-        padding: 16px;
-        display: flex;
-        gap: 16px;
-        box-shadow: 0 8px 32px var(--shadow-color);
-        margin-bottom: 16px;
-        align-items: center;
-    }
-
-    .story-cover {
-        width: 90px;
-        height: 125px;
-        border-radius: 14px;
-        object-fit: cover;
-        flex-shrink: 0;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-        border: 1px solid var(--card-border);
-    }
-
-    .story-details {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        overflow: hidden;
-    }
-
-    .story-title {
-        font-size: 17px;
-        font-weight: 800;
-        margin: 0 0 6px 0;
-        color: var(--text-primary);
-        line-height: 1.3;
-    }
-
-    .story-author {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-secondary);
-        margin: 0 0 8px 0;
-    }
-
-    .story-meta-row {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-
-    .badge {
-        font-size: 11px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 20px;
-        background: var(--accent-bg);
-        color: var(--accent);
-    }
-
-    .badge-secondary {
-        background: rgba(148, 163, 184, 0.15);
-        color: var(--text-secondary);
-    }
-
-    .summary-box {
-        background: var(--card-bg);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border: 1px solid var(--card-border);
-        border-radius: 20px;
-        padding: 16px;
-        font-size: 13px;
-        color: var(--text-secondary);
-        margin-bottom: 20px;
-        line-height: 1.6;
-        box-shadow: 0 6px 20px var(--shadow-color);
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-        padding: 0 4px;
-    }
-
-    .section-title {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    /* Scrollable Audio Container */
-    .audio-container-box {
-        background: var(--card-bg);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid var(--card-border);
-        border-radius: 24px;
-        padding: 14px;
-        max-height: 420px;
-        overflow-y: auto;
-        box-shadow: 0 8px 32px var(--shadow-color);
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    /* Custom scrollbar inside audio box */
-    .audio-container-box::-webkit-scrollbar { width: 6px; }
-    .audio-container-box::-webkit-scrollbar-track { background: transparent; }
-    .audio-container-box::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 10px; }
-
-    /* Bo tròn các phần tử danh sách */
-    .list-group-card {
-        background: rgba(0, 0, 0, 0.12);
-        border: 1px solid var(--card-border);
-        border-radius: 20px;
-        overflow: hidden;
-        margin-bottom: 10px;
-    }
-
-    body.light-theme .list-group-card {
-        background: rgba(255, 255, 255, 0.5);
-    }
-
-    .list-group-header {
-        padding: 12px 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        font-weight: 700;
-        font-size: 14px;
-        color: var(--text-primary);
-    }
-
-    .list-group-header:active { background: var(--card-hover); }
-
-    .list-group-body {
-        padding: 10px 12px 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        border-top: 1px solid var(--card-border);
-    }
-
-    .list-group-body.collapsed { display: none; }
-
-    .episode-item {
-        display: flex;
-        align-items: center;
-        background: var(--card-bg);
-        border: 1px solid var(--card-border);
-        border-radius: 16px;
-        padding: 10px 14px;
-        gap: 12px;
-    }
-
-    .episode-item:hover { background: var(--card-hover); }
-
-    .episode-checkbox {
-        width: 20px; height: 20px;
-        border-radius: 6px;
-        border: 2px solid var(--text-secondary);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        flex-shrink: 0;
-    }
-    .episode-checkbox.checked {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: #fff;
-    }
-    .episode-checkbox.checked::after { content: '✓'; font-size: 12px; font-weight: 800; }
-    .selecting-mode .episode-checkbox { display: flex; }
-
-    .episode-info {
-        flex: 1;
-        cursor: pointer;
-        overflow: hidden;
-    }
-
-    .episode-name {
-        font-size: 14px;
-        font-weight: 700;
-        margin: 0 0 3px 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        color: var(--text-primary);
-    }
-
-    .episode-date {
-        font-size: 11px;
-        color: var(--text-secondary);
-        margin: 0;
-    }
-
-    .play-btn {
-        background: var(--accent);
-        color: #fff;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        flex-shrink: 0;
-        box-shadow: 0 4px 12px var(--accent-bg);
-    }
-
-    .play-btn:active { transform: scale(0.92); }
-    .play-btn svg { width: 14px; height: 14px; fill: currentColor; }
-
-    /* Floating Plus Button at Bottom Left */
-    .fab-btn {
-        position: fixed;
-        bottom: 24px;
-        left: 24px;
-        width: 56px;
-        height: 56px;
-        border-radius: 20px;
-        background: var(--accent);
-        color: #ffffff;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 8px 24px rgba(244, 63, 94, 0.4);
-        z-index: 100;
-    }
-    .fab-btn:active { transform: scale(0.92); }
-    .fab-btn svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 2.5; fill: none; }
-
-    /* Batch Action Bar for Deleting Episodes */
-    .batch-bar {
-        display: none;
-        position: fixed;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 90%;
-        max-width: 480px;
-        background: var(--card-bg);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--accent);
-        border-radius: 20px;
-        padding: 12px 20px;
-        box-sizing: border-box;
-        z-index: 101;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 10px 30px var(--shadow-color);
-    }
-    .batch-bar.active { display: flex; }
-
-    /* Bottom Sheet & Modals */
-    .modal-overlay {
-        position: fixed; inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(8px);
-        z-index: 1000;
-        opacity: 0; visibility: hidden;
-        transition: all 0.3s ease;
-    }
-    .modal-overlay.active { opacity: 1; visibility: visible; }
-
-    .bottom-sheet {
-        position: fixed; bottom: -100%; left: 0; width: 100%;
-        background: var(--bg-gradient);
-        border-radius: 28px 28px 0 0;
-        padding: 24px 20px 32px;
-        box-sizing: border-box; z-index: 1001;
-        transition: bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1);
-        max-height: 85vh; overflow-y: auto;
-        border-top: 1px solid var(--card-border);
-        box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-        max-width: 540px; left: 50%; transform: translateX(-50%);
-    }
-    .bottom-sheet.active { bottom: 0; }
-
-    .sheet-header {
-        display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 20px; padding-bottom: 12px;
-        border-bottom: 1px solid var(--card-border);
-    }
-    .sheet-title { font-size: 18px; font-weight: 800; margin: 0; color: var(--text-primary); }
-    .close-btn { background: transparent; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 0; }
-
-    .sheet-option-btn {
-        width: 100%;
-        background: var(--card-bg);
-        border: 1px solid var(--card-border);
-        color: var(--text-primary);
-        padding: 16px;
-        border-radius: 16px;
-        font-size: 15px;
-        font-weight: 700;
-        font-family: var(--font-main);
-        cursor: pointer;
-        margin-bottom: 12px;
-        text-align: left;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 4px 14px var(--shadow-color);
-    }
-    .sheet-option-btn:hover { background: var(--card-hover); border-color: var(--accent); }
-    .sheet-option-btn svg { width: 20px; height: 20px; stroke: var(--accent); fill: none; stroke-width: 2.2; }
-
-    .form-group { margin-bottom: 16px; }
-    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px; }
-    .form-input, .form-select {
-        width: 100%; background: var(--card-bg); border: 1px solid var(--card-border);
-        color: var(--text-primary); padding: 13px; border-radius: 14px; font-size: 14px;
-        font-family: var(--font-main); outline: none;
-    }
-    .form-input:focus, .form-select:focus { border-color: var(--accent); }
-
-    .submit-btn {
-        width: 100%; background: var(--accent); color: #ffffff; border: none;
-        padding: 15px; border-radius: 16px; font-size: 15px; font-weight: 700;
-        font-family: var(--font-main); cursor: pointer; margin-top: 10px;
-        box-shadow: 0 6px 18px rgba(244, 63, 94, 0.35);
-    }
-    .submit-btn:active { transform: scale(0.98); }
-
-    /* Toast thông báo */
-    #toast-container {
-        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-        z-index: 2000; display: flex; flex-direction: column; gap: 8px;
-        pointer-events: none; width: 90%; max-width: 380px; align-items: center;
-    }
-    .custom-toast {
-        background: var(--card-bg); backdrop-filter: blur(16px);
-        color: var(--text-primary); padding: 12px 20px; border-radius: 30px;
-        font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px var(--shadow-color);
-        opacity: 0; transform: translateY(15px); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        border: 1px solid var(--card-border); text-align: center;
-    }
-    .custom-toast.show { opacity: 1; transform: translateY(0); }
-
-    .empty-audio {
-        text-align: center; padding: 30px 10px; color: var(--text-secondary); font-size: 13px; font-weight: 500;
-    }
-</style>
-
-
-<div class="sky-decorations">
-    <div class="moon"></div>
-    <div class="stars"></div>
-    <div class="sun-glow"></div>
-    <div class="clouds"></div>
-</div>
-
-<!-- Header -->
-<div class="app-header">
-    <div class="header-left">
-        <!-- Nút Thùng Rác (Xóa bộ truyện hoặc xóa tập) -->
-        <button class="icon-btn danger" onclick="openTrashMenu()" title="Xóa dữ liệu">
-            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-        </button>
-    </div>
-    <div class="header-right">
-        <!-- Đổi Theme -->
-        <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Đổi giao diện">
-            <svg id="themeIconMoon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            <svg id="themeIconSun" viewBox="0 0 24 24" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        </button>
-        <!-- Nút Trở Về (Back Forward tới index.html) -->
-        <a href="index.html" class="icon-btn" title="Quay lại Thư Viện">
-            <svg viewBox="0 0 24 24"><path d="M9 19l-7-7 7-7"/><path d="M20 12H2"/></svg>
-        </a>
-    </div>
-</div>
-
-<!-- Thông Tin Truyện -->
-<div class="story-card" id="storyCardContainer">
-    <img id="storyCover" src="" alt="Bìa truyện" class="story-cover">
-    <div class="story-details">
-        <h1 class="story-title" id="storyTitle">Đang tải...</h1>
-        <p class="story-author" id="storyAuthor">Đang cập nhật</p>
-        <div class="story-meta-row">
-            <span class="badge" id="storyTagBadge">Audio</span>
-            <span class="badge badge-secondary" id="episodeCountBadge">0 tập</span>
+        <div class="bottom-floating-bar">
+            <button class="goto-player-btn" onclick="switchView('player')">
+                <span>🎧 Chuyển tới trình phát audio...</span>
+            </button>
         </div>
     </div>
-</div>
 
-<!-- Tóm Tắt Nội Dung -->
-<div class="summary-box" id="storySummary">
-    Chưa có tóm tắt nội dung cho bộ truyện này.
-</div>
+    <div id="playerView" style="display: none;">
+        <div class="top-row">
+            <button class="back-btn" onclick="switchView('detail')" title="Quay lại chi tiết">&#8592;</button>
+            <span class="page-header-title">Trình Phát Audio</span>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleIconPlayer">🌙</button>
+        </div>
 
-<!-- Danh Sách Tập Audio -->
-<div class="section-header">
-    <span class="section-title">Danh sách Audio</span>
-</div>
+        <div class="player-cover-container">
+            <img src="https://via.placeholder.com/180x240?text=AudioBook" class="player-cover" id="playerCoverImg" alt="Bìa truyện" onclick="openImageViewer()">
+        </div>
 
-<div class="audio-container-box" id="audioContainerBox">
-    <div class="empty-audio">Đang tải danh sách tập audio...</div>
-</div>
+        <div class="story-title-display" id="playerStoryTitle">Đang tải truyện...</div>
+        <div class="episode-title-display" id="playerEpisodeTitle">Đang tải tập...</div>
 
-<!-- Nút Dấu Cộng Góc Dưới Trái -->
-<button class="fab-btn" onclick="openPlusMenu()" title="Thêm danh sách hoặc audio">
-    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-</button>
+        <div class="progress-container">
+            <div class="progress-bar-wrapper" id="progressBarWrapper">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+            </div>
+            <div class="time-info-row">
+                <span id="currentTimeDisplay">0:00:00</span>
+                <span id="totalTimeDisplay">0:00:00</span>
+            </div>
+        </div>
 
-<!-- Batch Deleting Bar -->
-<div class="batch-bar" id="batchBar">
-    <span id="selectedCountText" style="font-size: 13px; font-weight: 700;">Đã chọn 0 tập</span>
-    <div style="display: flex; gap: 8px;">
-        <button onclick="cancelSelection()" style="background: transparent; border: 1px solid var(--card-border); color: var(--text-primary); padding: 8px 14px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 12px;">Hủy</button>
-        <button onclick="confirmDeleteSelectedEpisodes()" style="background: var(--accent); color: #fff; border: none; padding: 8px 14px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 12px;">Xóa đã chọn</button>
+        <div class="main-controls">
+            <button class="control-btn" onclick="skipTime(-10)" title="Lùi 10 giây">↺ 10s</button>
+            <button class="control-btn play-pause-btn" id="playPauseBtn" onclick="togglePlayPause()">▶</button>
+            <button class="control-btn" onclick="skipTime(10)" title="Tiến 10 giây">10s ↻</button>
+        </div>
+
+        <div class="settings-grid">
+            <div class="setting-card" onclick="openSpeedModal()">
+                <span class="setting-label">Tốc độ phát</span>
+                <div class="setting-value">
+                    <span id="currentSpeedDisplay">1.0x</span>
+                    <span>⚙️</span>
+                </div>
+            </div>
+            <div class="setting-card" onclick="openTimerModal()">
+                <span class="setting-label">Hẹn giờ tắt</span>
+                <div class="setting-value">
+                    <span id="currentTimerDisplay">Tắt</span>
+                    <span>⏱️</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="playlist-trigger-btn" onclick="openPlaylistModal()">
+            <span style="display: flex; align-items: center; gap: 8px;">📑 Danh sách tập truyện</span>
+            <span id="playlistCountInfo" style="color: var(--text-secondary); font-size: 12px;">0 tập</span>
+        </button>
     </div>
-</div>
 
-<!-- Modal Overlay -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeAllModals()"></div>
+    <div class="modal-overlay" id="modalOverlay" onclick="closeAllModals()"></div>
 
-<!-- 1. Menu Dấu Cộng (Thêm danh sách / Thêm audio) -->
-<div class="bottom-sheet" id="plusMenuSheet">
-    <div class="sheet-header">
-        <h3 class="sheet-title">Thêm Mới</h3>
-        <button class="close-btn" onclick="closeAllModals()">&times;</button>
+    <!-- Speed Modal -->
+    <div class="bottom-sheet" id="speedBottomSheet">
+        <div class="sheet-title">Chọn tốc độ phát</div>
+        <div class="speed-grid">
+            <button class="speed-option-btn" onclick="setPlaybackSpeed(0.75)">0.75x</button>
+            <button class="speed-option-btn active" onclick="setPlaybackSpeed(1.0)">1.0x</button>
+            <button class="speed-option-btn" onclick="setPlaybackSpeed(1.25)">1.25x</button>
+            <button class="speed-option-btn" onclick="setPlaybackSpeed(1.5)">1.5x</button>
+            <button class="speed-option-btn" onclick="setPlaybackSpeed(2.0)">2.0x</button>
+            <button class="speed-option-btn" onclick="setPlaybackSpeed(2.5)">2.5x</button>
+        </div>
     </div>
-    <button class="sheet-option-btn" onclick="openAddListModal()">
-        <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
-        Thêm Danh Sách (Group)
-    </button>
-    <button class="sheet-option-btn" onclick="openAddAudioModal()">
-        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-        Thêm Tập Audio (File từ điện thoại)
-    </button>
-</div>
 
-<!-- 2. Modal Thêm Danh Sách -->
-<div class="bottom-sheet" id="addListSheet">
-    <div class="sheet-header">
-        <h3 class="sheet-title">Thêm Danh Sách Mới</h3>
-        <button class="close-btn" onclick="closeAllModals()">&times;</button>
+    <!-- Timer Modal -->
+    <div class="bottom-sheet" id="timerBottomSheet">
+        <div class="sheet-title">Hẹn giờ tắt</div>
+        <div class="speed-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 12px;">
+            <button class="speed-option-btn" onclick="setSleepTimer(15)">15 phút</button>
+            <button class="speed-option-btn" onclick="setSleepTimer(30)">30 phút</button>
+            <button class="speed-option-btn" onclick="setSleepTimer(45)">45 phút</button>
+            <button class="speed-option-btn" onclick="setSleepTimer(60)">60 phút</button>
+        </div>
+        <button class="speed-option-btn" style="width: 100%; margin-bottom: 12px;" onclick="cancelSleepTimer()">Tắt hẹn giờ</button>
     </div>
-    <div class="form-group">
-        <label class="form-label">Tên danh sách</label>
-        <input type="text" class="form-input" id="newListNameInput" placeholder="VD: Phần 1 - Khởi Đầu...">
-    </div>
-    <button class="submit-btn" onclick="saveNewList()">Tạo Danh Sách</button>
-</div>
 
-<!-- 3. Modal Thêm Audio -->
-<div class="bottom-sheet" id="addAudioSheet">
-    <div class="sheet-header">
-        <h3 class="sheet-title">Thêm Tập Audio Mới</h3>
-        <button class="close-btn" onclick="closeAllModals()">&times;</button>
+    <!-- Playlist Modal -->
+    <div class="bottom-sheet" id="playlistBottomSheet">
+        <div class="sheet-title">Danh Sách Tập Audio</div>
+        <div class="modal-playlist-container" id="modalPlaylistContainer">
+            <!-- Rendered dynamically -->
+        </div>
     </div>
-    <div class="form-group">
-        <label class="form-label">Tên tập audio</label>
-        <input type="text" class="form-input" id="audioTitleInput" placeholder="VD: Tập 1: Thiếu niên lâm gia...">
-    </div>
-    <div class="form-group" id="listSelectGroup" style="display: none;">
-        <label class="form-label">Thuộc danh sách</label>
-        <select class="form-select" id="audioListSelect">
-            <option value="">-- Không chọn (Audio chung) --</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label class="form-label">Chọn tệp âm thanh (.mp3, .wav...)</label>
-        <input type="file" class="form-input" id="audioFileInput" accept="audio/*">
-    </div>
-    <button class="submit-btn" onclick="saveNewAudio()">Lưu Tập Audio</button>
-</div>
 
-<!-- 4. Menu Thùng Rác (Xóa bộ truyện / Xóa tập audio) -->
-<div class="bottom-sheet" id="trashMenuSheet">
-    <div class="sheet-header">
-        <h3 class="sheet-title">Quản Lý Xóa Dữ Liệu</h3>
-        <button class="close-btn" onclick="closeAllModals()">&times;</button>
+    <!-- Image Viewer Overlay -->
+    <div class="image-viewer-overlay" id="imageViewerOverlay" onclick="closeImageViewer()">
+        <button class="image-viewer-close">&times;</button>
+        <img src="" class="image-viewer-img" id="fullImageViewerImg" alt="Bìa lớn">
     </div>
-    <button class="sheet-option-btn" onclick="promptDeleteStory()" style="color: #f43f5e; border-color: rgba(244,63,94,0.3);">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        Xóa Toàn Bộ Bộ Truyện Này
-    </button>
-    <button class="sheet-option-btn" onclick="startDeleteEpisodesMode()">
-        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Xóa Các Tập Audio (Chọn nhiều)
-    </button>
-</div>
 
-<!-- 5. Modal Xác Nhận Xóa Bộ Truyện -->
-<div class="bottom-sheet" id="confirmDeleteStorySheet">
-    <div class="sheet-header">
-        <h3 class="sheet-title" style="color: #f43f5e;">Xác Nhận Xóa Bộ Truyện</h3>
-        <button class="close-btn" onclick="closeAllModals()">&times;</button>
-    </div>
-    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
-        Bạn có chắc chắn muốn xóa bộ truyện này cùng tất cả tập audio bên trong không? Thao tác này không thể hoàn tác!
-    </p>
-    <div style="display: flex; gap: 10px;">
-        <button onclick="closeAllModals()" style="flex: 1; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-primary); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer;">Hủy</button>
-        <button onclick="executeDeleteStory()" style="flex: 1; background: #f43f5e; color: #fff; border: none; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer;">Xóa Ngay</button>
-    </div>
-</div>
+    <script>
+        // --- STREAMING_CHUNK:Initializing Application State & DB ---
+        let db = null;
+        let currentStory = null;
+        let currentAudioElement = new Audio();
+        let currentAudioKey = localStorage.getItem('currentAudioKey') || 'audio_key_101_150';
+        let currentEpisodeTitle = localStorage.getItem('currentEpisodeTitle') || '[ TẬP 3 ] 101-150';
+        let currentStoryId = localStorage.getItem('currentStoryId') || 'story_sample_1';
+        let currentSpeed = parseFloat(localStorage.getItem('audioSpeed') || '1.0');
+        let sleepTimerEndTime = null;
+        let sleepTimerInterval = null;
 
-<div id="toast-container"></div>
-
-<script>
-    // Theme init
-    function initTheme() {
-        const savedTheme = localStorage.getItem('appTheme') || 'dark';
-        if (savedTheme === 'light') {
-            document.body.classList.add('light-theme');
-            document.getElementById('themeIconMoon').style.display = 'none';
-            document.getElementById('themeIconSun').style.display = 'block';
+        function initTheme() {
+            const savedTheme = localStorage.getItem('appTheme') || 'dark';
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('themeToggleIconDetail').textContent = '☀️';
+                document.getElementById('themeToggleIconPlayer').textContent = '☀️';
+            } else {
+                document.body.classList.remove('light-theme');
+                document.getElementById('themeToggleIconDetail').textContent = '🌙';
+                document.getElementById('themeToggleIconPlayer').textContent = '🌙';
+            }
         }
-    }
-
-    function toggleTheme() {
-        const isLight = document.body.classList.toggle('light-theme');
-        localStorage.setItem('appTheme', isLight ? 'light' : 'dark');
-        document.getElementById('themeIconMoon').style.display = isLight ? 'none' : 'block';
-        document.getElementById('themeIconSun').style.display = isLight ? 'block' : 'none';
-        showToast(isLight ? 'Chế độ Ban Ngày ☀️' : 'Chế độ Ban Đêm 🌙');
-    }
-
-    function showToast(message) {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'custom-toast';
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => { toast.classList.add('show'); }, 10);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    // IndexedDB
-    function openDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open('AudioBookDB', 2);
-            request.onupgradeneeded = e => {
-                let db = e.target.result;
-                if (!db.objectStoreNames.contains('stories')) {
-                    db.createObjectStore('stories', { keyPath: 'id' });
-                }
-                if (!db.objectStoreNames.contains('audios')) {
-                    db.createObjectStore('audios');
-                }
-            };
-            request.onsuccess = e => resolve(e.target.result);
-            request.onerror = e => reject(e.target.error);
-        });
-    }
-
-    let currentStoryId = localStorage.getItem('currentStoryId');
-    let currentStory = null;
-    let isSelectingMode = false;
-    let selectedEpisodesSet = new Set();
-
-    window.addEventListener('DOMContentLoaded', () => {
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('light-theme');
+            localStorage.setItem('appTheme', isLight ? 'light' : 'dark');
+            document.getElementById('themeToggleIconDetail').textContent = isLight ? '☀️' : '🌙';
+            document.getElementById('themeToggleIconPlayer').textContent = isLight ? '☀️' : '🌙';
+        }
         initTheme();
-        if (!currentStoryId) {
-            window.location.href = 'index.html';
-            return;
+
+        function switchView(viewName) {
+            if (viewName === 'detail') {
+                document.getElementById('detailView').style.display = 'block';
+                document.getElementById('playerView').style.display = 'none';
+            } else {
+                document.getElementById('detailView').style.display = 'none';
+                document.getElementById('playerView').style.display = 'block';
+                initPlayerState();
+            }
+            window.scrollTo(0, 0);
         }
-        loadStoryDetail();
-    });
 
-    async function loadStoryDetail() {
-        try {
-            let db = await openDB();
-            let tx = db.transaction('stories', 'readonly');
-            let store = tx.objectStore('stories');
-            let req = store.get(currentStoryId);
+        // --- STREAMING_CHUNK:IndexedDB setup and seeding ---
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('AudioBookDB', 2);
+                request.onerror = e => reject(e.target.error);
+                request.onsuccess = e => resolve(e.target.result);
+                request.onupgradeneeded = e => {
+                    let dbInstance = e.target.result;
+                    if (!dbInstance.objectStoreNames.contains('stories')) {
+                        dbInstance.createObjectStore('stories', { keyPath: 'id' });
+                    }
+                    if (!dbInstance.objectStoreNames.contains('audios')) {
+                        dbInstance.createObjectStore('audios');
+                    }
+                };
+            });
+        }
 
-            req.onsuccess = function(e) {
-                currentStory = e.target.result;
-                if (!currentStory) {
-                    showToast('Không tìm thấy bộ truyện!');
-                    setTimeout(() => window.location.href = 'index.html', 1000);
-                    return;
+        async function ensureSampleData(database) {
+            return new Promise((resolve, reject) => {
+                let tx = database.transaction('stories', 'readwrite');
+                let store = tx.objectStore('stories');
+                let req = store.getAll();
+                req.onsuccess = async function(e) {
+                    let stories = e.target.result;
+                    if (!stories || stories.length === 0) {
+                        let sampleStoryId = 'story_sample_1';
+                        let sampleAudioKey = 'audio_key_101_150';
+                        
+                        let sampleStory = {
+                            id: sampleStoryId,
+                            name: 'Hệ Thống Trọ Trấn Thiên Huyền',
+                            cover: 'https://via.placeholder.com/180x240?text=AudioBook',
+                            episodes: [
+                                { audioKey: sampleAudioKey, title: '[ TẬP 3 ] 101-150' },
+                                { audioKey: 'audio_key_151_200', title: '[ TẬP 4 ] 151-200' }
+                            ]
+                        };
+                        store.put(sampleStory);
+
+                        let audioTx = database.transaction('audios', 'readwrite');
+                        let audioStore = audioTx.objectStore('audios');
+                        
+                        // Silent MP3 Blob for demonstration
+                        const sampleMp3Bytes = new Uint8Array([255, 251, 144, 196, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+                        let sampleBlob = new Blob([sampleMp3Bytes], { type: 'audio/mp3' });
+                        
+                        audioStore.put(sampleBlob, sampleAudioKey);
+                        audioStore.put(sampleBlob, 'audio_key_151_200');
+
+                        localStorage.setItem('currentStoryId', sampleStoryId);
+                        localStorage.setItem('currentAudioKey', sampleAudioKey);
+                        localStorage.setItem('currentEpisodeTitle', '[ TẬP 3 ] 101-150');
+                        
+                        resolve(sampleStory);
+                    } else {
+                        resolve(stories[0]);
+                    }
+                };
+                req.onerror = e => reject(e.target.error);
+            });
+        }
+
+        // --- STREAMING_CHUNK:Rendering UI lists and data ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                db = await openDB();
+                currentStory = await ensureSampleData(db);
+
+                document.getElementById('storyNameDisplay').textContent = currentStory.name || 'Truyện Audio';
+                document.getElementById('playerStoryTitle').textContent = currentStory.name || 'Truyện Audio';
+                
+                renderDetailPlaylist();
+                renderModalPlaylist();
+                
+                // Preload audio element bindings
+                setupAudioEvents();
+            } catch (err) {
+                console.error("Lỗi khởi tạo ứng dụng:", err);
+            }
+        });
+
+        function renderDetailPlaylist() {
+            const container = document.getElementById('detailPlaylistContainer');
+            let episodes = currentStory.episodes || [];
+            document.getElementById('playlistCountInfo').textContent = episodes.length + ' tập';
+
+            if (episodes.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 20px;">Không có tập audio nào.</div>`;
+                return;
+            }
+
+            container.innerHTML = episodes.map(ep => `
+                <div class="playlist-card" onclick="selectAndPlay('${ep.audioKey}', '${encodeURIComponent(ep.title)}')">
+                    <div class="playlist-card-info">
+                        <div class="playlist-card-title">${ep.title}</div>
+                        <div class="playlist-card-subtitle">Chạm để nghe audio</div>
+                    </div>
+                    <button class="play-btn-pill">
+                        <span>▶ Nghe</span>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function renderModalPlaylist() {
+            const container = document.getElementById('modalPlaylistContainer');
+            let episodes = currentStory.episodes || [];
+            container.innerHTML = episodes.map(ep => `
+                <div class="playlist-item ${ep.audioKey === currentAudioKey ? 'active' : ''}" onclick="selectAndPlay('${ep.audioKey}', '${encodeURIComponent(ep.title)}')">
+                    <div class="playlist-item-title">${ep.title}</div>
+                    <span>${ep.audioKey === currentAudioKey ? ' đang phát' : ''}</span>
+                </div>
+            `).join('');
+        }
+
+        // --- STREAMING_CHUNK:Audio Player Control & Time Formatter ---
+        async function selectAndPlay(audioKey, encodedTitle) {
+            currentAudioKey = audioKey;
+            currentEpisodeTitle = decodeURIComponent(encodedTitle);
+            localStorage.setItem('currentAudioKey', currentAudioKey);
+            localStorage.setItem('currentEpisodeTitle', currentEpisodeTitle);
+
+            closeAllModals();
+            renderModalPlaylist();
+            switchView('player');
+            await loadAudioBlob(audioKey);
+        }
+
+        async function loadAudioBlob(audioKey) {
+            try {
+                document.getElementById('playerEpisodeTitle').textContent = currentEpisodeTitle;
+                let tx = db.transaction('audios', 'readonly');
+                let store = tx.objectStore('audios');
+                let req = store.get(audioKey);
+                
+                req.onsuccess = async function(e) {
+                    let blob = e.target.result;
+                    if (blob) {
+                        let audioUrl = URL.createObjectURL(blob);
+                        currentAudioElement.src = audioUrl;
+                        currentAudioElement.playbackRate = currentSpeed;
+                        
+                        // Restore saved progress
+                        let savedTime = parseFloat(localStorage.getItem('audioProgress_' + audioKey) || '0');
+                        if (savedTime > 0) {
+                            currentAudioElement.currentTime = savedTime;
+                        }
+                        
+                        await currentAudioElement.play();
+                        document.getElementById('playPauseBtn').textContent = '⏸';
+                    }
+                };
+            } catch (err) {
+                console.error("Lỗi nạp tệp audio:", err);
+            }
+        }
+
+        async function initPlayerState() {
+            document.getElementById('playerStoryTitle').textContent = currentStory ? currentStory.name : 'Truyện Audio';
+            document.getElementById('playerEpisodeTitle').textContent = currentEpisodeTitle;
+            document.getElementById('currentSpeedDisplay').textContent = currentSpeed.toFixed(1) + 'x';
+            
+            if (!currentAudioElement.src) {
+                await loadAudioBlob(currentAudioKey);
+            }
+        }
+
+        function formatTimeXYS(seconds, speed) {
+            if (isNaN(seconds) || seconds < 0) seconds = 0;
+            // Tính theo tỷ lệ nghịch tốc độ phát (như yêu cầu)
+            let adjusted = seconds / (speed || 1.0);
+            let hrs = Math.floor(adjusted / 3600);
+            let mins = Math.floor((adjusted % 3600) / 60);
+            let secs = Math.floor(adjusted % 60);
+            return `${hrs}:${mins < 10 ? '0' + mins : mins}:${secs < 10 ? '0' + secs : secs}`;
+        }
+
+        function setupAudioEvents() {
+            currentAudioElement.addEventListener('timeupdate', () => {
+                let current = currentAudioElement.currentTime;
+                let duration = currentAudioElement.duration || 0;
+                
+                if (duration > 0) {
+                    let percent = (current / duration) * 100;
+                    document.getElementById('progressBarFill').style.width = percent + '%';
                 }
-                renderStoryData();
-            };
-        } catch (err) {
-            console.error(err);
-            showToast('Lỗi tải thông tin truyện!');
-        }
-    }
+                
+                document.getElementById('currentTimeDisplay').textContent = formatTimeXYS(current, currentSpeed);
+                document.getElementById('totalTimeDisplay').textContent = formatTimeXYS(duration, currentSpeed);
 
-    function renderStoryData() {
-        document.getElementById('storyTitle').textContent = currentStory.name;
-        document.getElementById('storyAuthor').textContent = currentStory.author || 'Đang cập nhật';
-        document.getElementById('storyTagBadge').textContent = currentStory.tag || 'Audio';
-        document.getElementById('storySummary').textContent = currentStory.summary || 'Chưa có tóm tắt.';
-        
-        const coverImg = document.getElementById('storyCover');
-        coverImg.src = currentStory.cover || 'https://placehold.co/150x220/1e293b/cbd5e1?text=No+Cover';
+                // Save progress
+                localStorage.setItem('audioProgress_' + currentAudioKey, current);
+            });
 
-        // Đếm tổng số tập
-        let totalEp = 0;
-        if (currentStory.episodes) {
-            currentStory.episodes.forEach(item => {
-                if (item.type === 'list') {
-                    totalEp += item.items ? item.items.length : 0;
-                } else {
-                    totalEp += 1;
+            currentAudioElement.addEventListener('ended', () => {
+                document.getElementById('playPauseBtn').textContent = '▶';
+                playNextEpisode();
+            });
+
+            // Progress bar click to seek
+            const progressWrapper = document.getElementById('progressBarWrapper');
+            progressWrapper.addEventListener('click', (e) => {
+                let rect = progressWrapper.getBoundingClientRect();
+                let clickX = e.clientX - rect.left;
+                let width = rect.width;
+                let duration = currentAudioElement.duration || 0;
+                if (duration > 0) {
+                    currentAudioElement.currentTime = (clickX / width) * duration;
                 }
             });
         }
-        document.getElementById('episodeCountBadge').textContent = `${totalEp} tập audio`;
 
-        renderAudioList();
-    }
-
-    function renderAudioList() {
-        const container = document.getElementById('audioContainerBox');
-        const episodes = currentStory.episodes || [];
-
-        if (episodes.length === 0) {
-            container.innerHTML = `<div class="empty-audio">Chưa có tập audio nào.<br>Bấm nút dấu cộng ở góc dưới bên trái để thêm ngay!</div>`;
-            return;
-        }
-
-        container.innerHTML = episodes.map((item, idx) => {
-            if (item.type === 'list') {
-                // Đây là danh sách nhóm (bo tròn)
-                const subItems = item.items || [];
-                return `
-                    <div class="list-group-card">
-                        <div class="list-group-header" onclick="toggleGroup(this)">
-                            <span>📁 ${escapeHtml(item.name)} (${subItems.length})</span>
-                            <span style="font-size: 12px; color: var(--text-secondary);">▼ Mở/Đóng</span>
-                        </div>
-                        <div class="list-group-body">
-                            ${subItems.length === 0 ? '<div style="font-size:12px; color:var(--text-secondary); text-align:center; padding:6px;">Danh sách trống</div>' : subItems.map(ep => renderEpisodeItem(ep, idx)).join('')}
-                        </div>
-                    </div>
-                `;
+        function togglePlayPause() {
+            if (currentAudioElement.paused) {
+                currentAudioElement.play();
+                document.getElementById('playPauseBtn').textContent = '⏸';
             } else {
-                // Tập audio đơn lẻ
-                return renderEpisodeItem(item, null);
+                currentAudioElement.pause();
+                document.getElementById('playPauseBtn').textContent = '▶';
             }
-        }).join('');
-    }
-
-    function renderEpisodeItem(ep, groupIdx) {
-        const epId = ep.id;
-        const isChecked = selectedEpisodesSet.has(epId);
-        return `
-            <div class="episode-item" id="ep_item_${epId}">
-                <div class="episode-checkbox ${isChecked ? 'checked' : ''}" onclick="toggleSelectEpisode('${epId}')"></div>
-                <div class="episode-info" onclick="handleEpisodeClick('${epId}')">
-                    <p class="episode-name">${escapeHtml(ep.title)}</p>
-                    <p class="episode-date">${ep.date || 'Gần đây'}</p>
-                </div>
-                <button class="play-btn" onclick="playEpisode('${epId}')">
-                    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    Nghe
-                </button>
-            </div>
-        `;
-    }
-
-    function toggleGroup(headerEl) {
-        const bodyEl = headerEl.nextElementSibling;
-        bodyEl.classList.toggle('collapsed');
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-
-    // --- FAB & Modals Management ---
-    function openPlusMenu() {
-        document.getElementById('modalOverlay').classList.add('active');
-        document.getElementById('plusMenuSheet').classList.add('active');
-    }
-
-    function closeAllModals() {
-        document.getElementById('modalOverlay').classList.remove('active');
-        document.querySelectorAll('.bottom-sheet').forEach(sheet => sheet.classList.remove('active'));
-    }
-
-    function openAddListModal() {
-        closeAllModals();
-        document.getElementById('modalOverlay').classList.add('active');
-        document.getElementById('addListSheet').classList.add('active');
-        document.getElementById('newListNameInput').value = '';
-    }
-
-    function openAddAudioModal() {
-        closeAllModals();
-        document.getElementById('modalOverlay').classList.add('active');
-        document.getElementById('addAudioSheet').classList.add('active');
-        document.getElementById('audioTitleInput').value = '';
-        document.getElementById('audioFileInput').value = '';
-
-        // Cập nhật select danh sách nếu có
-        const select = document.getElementById('audioListSelect');
-        const groupSelect = document.getElementById('listSelectGroup');
-        
-        const lists = (currentStory.episodes || []).filter(item => item.type === 'list');
-        if (lists.length > 0) {
-            groupSelect.style.display = 'block';
-            select.innerHTML = '<option value="">-- Không chọn (Audio chung) --</option>' + 
-                lists.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
-        } else {
-            groupSelect.style.display = 'none';
-        }
-    }
-
-    async function saveNewList() {
-        const name = document.getElementById('newListNameInput').value.trim();
-        if (!name) {
-            showToast('Vui lòng nhập tên danh sách!');
-            return;
         }
 
-        if (!currentStory.episodes) currentStory.episodes = [];
-
-        const newList = {
-            type: 'list',
-            id: 'list_' + Date.now(),
-            name: name,
-            items: []
-        };
-
-        currentStory.episodes.push(newList);
-        await persistStoryChanges('Đã tạo danh sách mới thành công!');
-        closeAllModals();
-    }
-
-    async function saveNewAudio() {
-        const title = document.getElementById('audioTitleInput').value.trim();
-        const fileInput = document.getElementById('audioFileInput');
-        const targetListId = document.getElementById('audioListSelect').value;
-
-        if (!title) {
-            showToast('Vui lòng nhập tên tập audio!');
-            return;
+        function skipTime(sec) {
+            currentAudioElement.currentTime = Math.max(0, Math.min(currentAudioElement.duration || 0, currentAudioElement.currentTime + sec));
         }
 
-        if (!fileInput.files || !fileInput.files[0]) {
-            showToast('Vui lòng chọn file âm thanh (.mp3)!');
-            return;
-        }
-
-        const audioFile = fileInput.files[0];
-        showToast('Đang xử lý tệp âm thanh...');
-
-        const audioBase64 = await fileToBase64(audioFile);
-
-        const newEp = {
-            id: 'ep_' + Date.now(),
-            title: title,
-            date: new Date().toLocaleDateString('vi-VN'),
-            audioData: audioBase64
-        };
-
-        if (!currentStory.episodes) currentStory.episodes = [];
-
-        if (targetListId) {
-            // Đẩy vào danh sách tương ứng
-            let foundList = currentStory.episodes.find(item => item.type === 'list' && item.id === targetListId);
-            if (foundList) {
-                if (!foundList.items) foundList.items = [];
-                foundList.items.push(newEp);
-            } else {
-                currentStory.episodes.push(newEp);
+        function playNextEpisode() {
+            if (!currentStory || !currentStory.episodes) return;
+            let episodes = currentStory.episodes;
+            let currentIndex = episodes.findIndex(ep => ep.audioKey === currentAudioKey);
+            if (currentIndex !== -1 && currentIndex < episodes.length - 1) {
+                let nextEp = episodes[currentIndex + 1];
+                selectAndPlay(nextEp.audioKey, encodeURIComponent(nextEp.title));
             }
-        } else {
-            // Đẩy trực tiếp vào danh sách chung
-            currentStory.episodes.push(newEp);
         }
 
-        await persistStoryChanges('Đã thêm tập audio thành công!');
-        closeAllModals();
-    }
-
-    function fileToBase64(file) {
-        return new Promise((resolve) => {
-            let reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(file);
-        });
-    }
-
-    async function persistStoryChanges(successMsg) {
-        try {
-            let db = await openDB();
-            let tx = db.transaction('stories', 'readwrite');
-            let store = tx.objectStore('stories');
-            store.put(currentStory);
-
-            tx.oncomplete = function() {
-                showToast(successMsg);
-                renderStoryData();
-            };
-        } catch (err) {
-            console.error(err);
-            showToast('Lỗi lưu CSDL!');
-        }
-    }
-
-    // --- Trash Management & Deleting ---
-    function openTrashMenu() {
-        document.getElementById('modalOverlay').classList.add('active');
-        document.getElementById('trashMenuSheet').classList.add('active');
-    }
-
-    function promptDeleteStory() {
-        closeAllModals();
-        document.getElementById('modalOverlay').classList.add('active');
-        document.getElementById('confirmDeleteStorySheet').classList.add('active');
-    }
-
-    async function executeDeleteStory() {
-        try {
-            let db = await openDB();
-            let tx = db.transaction('stories', 'readwrite');
-            let store = tx.objectStore('stories');
-            store.delete(currentStoryId);
-
-            tx.oncomplete = function() {
-                showToast('Đã xóa bộ truyện thành công!');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
-            };
-        } catch (err) {
-            console.error(err);
-            showToast('Lỗi khi xóa bộ truyện!');
-        }
-    }
-
-    function startDeleteEpisodesMode() {
-        closeAllModals();
-        isSelectingMode = true;
-        selectedEpisodesSet.clear();
-        document.body.classList.add('selecting-mode');
-        document.getElementById('batchBar').classList.add('active');
-        renderAudioList();
-        showToast('Đang ở chế độ chọn tập để xóa');
-    }
-
-    function cancelSelection() {
-        isSelectingMode = false;
-        selectedEpisodesSet.clear();
-        document.body.classList.remove('selecting-mode');
-        document.getElementById('batchBar').classList.remove('active');
-        renderAudioList();
-    }
-
-    function toggleSelectEpisode(epId) {
-        if (selectedEpisodesSet.has(epId)) {
-            selectedEpisodesSet.delete(epId);
-        } else {
-            selectedEpisodesSet.add(epId);
-        }
-        document.getElementById('selectedCountText').textContent = `Đã chọn ${selectedEpisodesSet.size} tập`;
-        renderAudioList();
-    }
-
-    async function confirmDeleteSelectedEpisodes() {
-        if (selectedEpisodesSet.size === 0) {
-            showToast('Chưa chọn tập nào để xóa!');
-            return;
+        // --- STREAMING_CHUNK:Modals and Sleep Timer implementation ---
+        function openSpeedModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('speedBottomSheet').classList.add('active');
         }
 
-        // Lọc bỏ các tập bị chọn
-        let newEpisodes = [];
-        currentStory.episodes.forEach(item => {
-            if (item.type === 'list') {
-                if (item.items) {
-                    item.items = item.items.filter(ep => !selectedEpisodesSet.has(ep.id));
+        function openTimerModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('timerBottomSheet').classList.add('active');
+        }
+
+        function openPlaylistModal() {
+            renderModalPlaylist();
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('playlistBottomSheet').classList.add('active');
+        }
+
+        function closeAllModals() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.getElementById('speedBottomSheet').classList.remove('active');
+            document.getElementById('timerBottomSheet').classList.remove('active');
+            document.getElementById('playlistBottomSheet').classList.remove('active');
+        }
+
+        function setPlaybackSpeed(speed) {
+            currentSpeed = speed;
+            currentAudioElement.playbackRate = speed;
+            localStorage.setItem('audioSpeed', speed);
+            document.getElementById('currentSpeedDisplay').textContent = speed.toFixed(1) + 'x';
+            
+            // Update UI active buttons
+            document.querySelectorAll('.speed-option-btn').forEach(btn => {
+                if (btn.textContent.includes(speed + 'x')) {
+                    btn.classList.add('active');
+                } else if (['0.75x', '1.0x', '1.25x', '1.5x', '2.0x', '2.5x'].some(s => btn.textContent.includes(s))) {
+                    btn.classList.remove('active');
                 }
-                newEpisodes.push(item);
-            } else {
-                if (!selectedEpisodesSet.has(item.id)) {
-                    newEpisodes.push(item);
-                }
-            }
-        });
-
-        currentStory.episodes = newEpisodes;
-        await persistStoryChanges('Đã xóa các tập đã chọn!');
-        cancelSelection();
-    }
-
-    function handleEpisodeClick(epId) {
-        if (isSelectingMode) {
-            toggleSelectEpisode(epId);
-        } else {
-            playEpisode(epId);
+            });
+            closeAllModals();
         }
-    }
 
-    function playEpisode(epId) {
-        // Lưu episode đang phát để liên kết qua Player view
-        localStorage.setItem('currentEpisodeId', epId);
-        showToast('Chuyển tới trình phát audio...');
-        // Tạm thời hiển thị toast hoặc chuẩn bị chuyển qua trang player
-        // window.location.href = 'player.html';
-    }
-</script>
+        function setSleepTimer(minutes) {
+            sleepTimerEndTime = Date.now() + minutes * 60 * 1000;
+            document.getElementById('currentTimerDisplay').textContent = minutes + 'p';
+            closeAllModals();
+            
+            if (sleepTimerInterval) clearInterval(sleepTimerInterval);
+            sleepTimerInterval = setInterval(() => {
+                let remaining = sleepTimerEndTime - Date.now();
+                if (remaining <= 0) {
+                    currentAudioElement.pause();
+                    document.getElementById('playPauseBtn').textContent = '▶';
+                    cancelSleepTimer();
+                }
+            }, 1000);
+        }
+
+        function cancelSleepTimer() {
+            sleepTimerEndTime = null;
+            if (sleepTimerInterval) clearInterval(sleepTimerInterval);
+            document.getElementById('currentTimerDisplay').textContent = 'Tắt';
+            closeAllModals();
+        }
+
+        function openImageViewer() {
+            let coverImg = document.getElementById('playerCoverImg').src;
+            document.getElementById('fullImageViewerImg').src = coverImg;
+            document.getElementById('imageViewerOverlay').classList.add('active');
+        }
+
+        function closeImageViewer() {
+            document.getElementById('imageViewerOverlay').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
