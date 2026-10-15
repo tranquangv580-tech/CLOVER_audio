@@ -27,7 +27,6 @@
         transition: background 0.4s ease, color 0.4s ease;
     }
 
-    /* Nền Bầu Trời Sao (Dark) / Mây Trôi (Light) */
     body::before {
         content: '';
         position: fixed;
@@ -41,50 +40,46 @@
         background: radial-gradient(circle at 50% 20%, #e0f2fe 0%, #f0f4f8 70%);
     }
 
-    /* Thanh Top Bar */
-    .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10; }
+    /* Top Bar */
+    .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; z-index: 10; }
     .back-btn, .theme-toggle-btn { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; font-size: 18px; backdrop-filter: blur(10px); transition: 0.2s; }
     .back-btn:active, .theme-toggle-btn:active { transform: scale(0.92); }
-    .page-header-title { font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+    .page-header-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
 
-    /* Cover & Info Section */
-    .player-cover-container { text-align: center; margin-bottom: 20px; position: relative; }
-    .player-cover { width: 180px; height: 240px; object-fit: cover; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); border: 1px solid var(--border-color); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; }
+    /* Cover & Info */
+    .player-cover-container { text-align: center; margin-bottom: 16px; position: relative; }
+    .player-cover { width: 160px; height: 210px; object-fit: cover; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); border: 1px solid var(--border-color); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; background: var(--card-bg); }
     .player-cover:active { transform: scale(0.96); }
 
-    .story-title-display { font-size: 18px; font-weight: 700; margin-bottom: 6px; text-align: center; color: var(--text-main); padding: 0 10px; }
-    .episode-title-display { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 20px; font-weight: 500; }
+    .story-title-display { font-size: 17px; font-weight: 700; margin-bottom: 4px; text-align: center; color: var(--text-main); padding: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .episode-title-display { font-size: 13px; color: var(--text-secondary); text-align: center; margin-bottom: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; }
 
-    /* Progress Bar Section */
-    .progress-container { background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; margin-bottom: 20px; backdrop-filter: blur(10px); }
-    .progress-bar-wrapper { position: relative; margin-bottom: 10px; cursor: pointer; height: 20px; display: flex; align-items: center; }
+    /* Progress Bar */
+    .progress-container { background: var(--card-bg); border: 1px solid var(--border-color); padding: 14px 16px; border-radius: 16px; margin-bottom: 20px; backdrop-filter: blur(10px); }
+    .progress-bar-wrapper { position: relative; margin-bottom: 8px; cursor: pointer; height: 24px; display: flex; align-items: center; touch-action: none; }
     .progress-bar-bg { width: 100%; height: 6px; background: rgba(150,150,150,0.2); border-radius: 3px; position: relative; overflow: hidden; }
-    .progress-bar-fill { height: 100%; background: var(--accent-color); width: 0%; border-radius: 3px; transition: width 0.1s linear; }
+    .progress-bar-fill { height: 100%; background: var(--accent-color); width: 0%; border-radius: 3px; }
     .time-info-row { display: flex; justify-content: space-between; font-size: 12px; font-family: monospace; color: var(--text-secondary); font-weight: 600; }
 
     /* Main Controls */
-    .main-controls { display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 24px; }
-    .control-btn { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; font-weight: 700; transition: 0.2s; backdrop-filter: blur(10px); }
+    .main-controls { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px; }
+    .control-btn { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: 700; transition: 0.2s; backdrop-filter: blur(10px); }
     .control-btn:active { transform: scale(0.9); }
-    .play-pause-btn { width: 68px; height: 68px; background: var(--accent-color); border-color: var(--accent-color); color: #fff; font-size: 26px; box-shadow: 0 8px 20px rgba(217, 90, 82, 0.4); }
+    .play-pause-btn { width: 64px; height: 64px; background: var(--accent-color); border-color: var(--accent-color); color: #fff; font-size: 24px; box-shadow: 0 8px 20px rgba(217, 90, 82, 0.4); }
     .play-pause-btn:hover { background: var(--accent-hover); }
 
-    /* Options Accordions / Panels (Tốc độ & Hẹn giờ) */
-    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    /* Bottom Options Grid */
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
     .setting-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; backdrop-filter: blur(10px); cursor: pointer; transition: 0.2s; }
     .setting-card:active { transform: scale(0.98); }
     .setting-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; display: block; }
     .setting-value { font-size: 14px; font-weight: 700; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
 
-    /* Playlist Section */
-    .section-box-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; align-items: center; }
-    .playlist-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; max-height: 220px; overflow-y: auto; padding: 8px; margin-bottom: 20px; backdrop-filter: blur(10px); }
-    .playlist-item { padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; margin-bottom: 4px; border: 1px solid transparent; }
-    .playlist-item:hover { background: rgba(255,255,255,0.05); }
-    .playlist-item.active { background: rgba(217, 90, 82, 0.15); border-color: var(--accent-color); color: var(--accent-color); }
-    .playlist-item-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex-grow: 1; }
+    /* Full Playlist Button / Section */
+    .playlist-trigger-btn { width: 100%; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px 16px; border-radius: 14px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); margin-bottom: 16px; transition: 0.2s; }
+    .playlist-trigger-btn:active { transform: scale(0.98); }
 
-    /* Modals / Bottom Sheets for Speed & Sleep Timer */
+    /* Modals / Bottom Sheets */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(5px); }
     .modal-overlay.active { opacity: 1; visibility: visible; }
     .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--glass-bg); border: 1px solid var(--border-color); border-radius: 24px 24px 0 0; padding: 24px 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.35s cubic-bezier(0.1, 0.9, 0.2, 1); max-height: 80vh; overflow-y: auto; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(15px); }
@@ -92,7 +87,7 @@
 
     .sheet-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; text-align: center; }
     .speed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-    .speed-option-btn { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-align: center; transition: 0.2s; }
+    .speed-option-btn { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; transition: 0.2s; }
     .speed-option-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: #fff; }
     .speed-option-btn:active { transform: scale(0.95); }
 
@@ -106,30 +101,30 @@
     .dual-timer-row > div { flex: 1; }
     .timer-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: block; font-weight: 600; }
 
+    /* Playlist inside Modal */
+    .modal-playlist-container { max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .playlist-item { padding: 12px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border: 1px solid var(--border-color); background: var(--card-bg); }
+    .playlist-item:hover { background: rgba(255,255,255,0.05); }
+    .playlist-item.active { background: rgba(217, 90, 82, 0.15); border-color: var(--accent-color); color: var(--accent-color); }
+    .playlist-item-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex-grow: 1; }
+
     /* Image Viewer Overlay */
     .image-viewer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; backdrop-filter: blur(8px); }
     .image-viewer-overlay.active { opacity: 1; visibility: visible; }
     .image-viewer-img { max-width: 90%; max-height: 80%; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transform: scale(0.7); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .image-viewer-overlay.active .image-viewer-img { transform: scale(1); }
     .image-viewer-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.15); border: none; color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+
+    .error-message { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; padding: 16px; border-radius: 12px; text-align: center; margin-top: 40px; font-size: 14px; }
+    .error-message button { margin-top: 12px; background: #ef4444; border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 </style>
 
-
-<div class="top-row">
-    <a href="detail.html" class="back-btn">&#8592;</a>
-    <span class="page-header-title">Đang Phát Audio</span>
-    <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleIcon" title="Đổi giao diện Ngày / Đêm">🌙</button>
-</div>
-
-<div class="player-cover-container">
-    <img src="" alt="Bìa truyện" class="player-cover" id="playerCoverImg" onclick="viewCover()" title="Bấm để xem ảnh lớn">
-</div>
 
 <div class="story-title-display" id="playerStoryTitle">Đang tải truyện...</div>
 <div class="episode-title-display" id="playerEpisodeTitle">Đang tải tập...</div>
 
 <div class="progress-container">
-    <div class="progress-bar-wrapper" id="progressBarWrapper" onclick="seekAudio(event)">
+    <div class="progress-bar-wrapper" id="progressBarWrapper">
         <div class="progress-bar-bg">
             <div class="progress-bar-fill" id="progressBarFill"></div>
         </div>
@@ -163,386 +158,7 @@
     </div>
 </div>
 
-<div class="section-box-title">
-    <span>Danh sách tập</span>
-    <span id="playlistCountInfo" style="font-size: 11px; color: var(--text-secondary);">0 tập</span>
-</div>
-<div class="playlist-container" id="playerPlaylistContainer">
-    <div style="color: var(--text-secondary); font-size: 12px; text-align: center; padding: 15px;">Đang tải danh sách...</div>
-</div>
-
-<!-- MODAL CHỌN TỐC ĐỘ -->
-<div class="modal-overlay" id="speedModalOverlay" onclick="closeSpeedModal()"></div>
-<div class="bottom-sheet" id="speedModalSheet">
-    <div class="sheet-title">Tùy Chỉnh Tốc Độ Phát</div>
-    <div class="speed-grid">
-        <button class="speed-option-btn" onclick="setSpeed(0.5)">0.5x</button>
-        <button class="speed-option-btn" onclick="setSpeed(0.75)">0.75x</button>
-        <button class="speed-option-btn" onclick="setSpeed(1.0)">1.0x</button>
-        <button class="speed-option-btn" onclick="setSpeed(1.25)">1.25x</button>
-        <button class="speed-option-btn" onclick="setSpeed(1.5)">1.5x</button>
-        <button class="speed-option-btn" onclick="setSpeed(2.0)">2.0x</button>
-    </div>
-    <label class="timer-label">Hoặc nhập tốc độ tùy chỉnh (VD: 1.15):</label>
-    <input type="number" step="0.05" min="0.25" max="4.0" class="popup-input" id="customSpeedInput" placeholder="Nhập tốc độ...">
-    <button class="btn-primary" onclick="applyCustomSpeed()">Áp dụng tốc độ</button>
-</div>
-
-<!-- MODAL HẸN GIỜ TẮT -->
-<div class="modal-overlay" id="timerModalOverlay" onclick="closeTimerModal()"></div>
-<div class="bottom-sheet" id="timerModalSheet">
-    <div class="sheet-title">Hẹn Giờ Tắt Audio</div>
-    <div class="speed-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 15px;">
-        <button class="speed-option-btn" onclick="setSleepTimerMinutes(0)">Tắt hẹn giờ</button>
-        <button class="speed-option-btn" onclick="setSleepTimerMinutes(15)">15 phút</button>
-        <button class="speed-option-btn" onclick="setSleepTimerMinutes(30)">30 phút</button>
-        <button class="speed-option-btn" onclick="setSleepTimerMinutes(60)">60 phút</button>
-    </div>
-    <div class="dual-timer-row">
-        <div>
-            <label class="timer-label">Số tiếng (Giờ)</label>
-            <input type="number" min="0" max="24" class="popup-input" id="timerHoursInput" value="0">
-        </div>
-        <div>
-            <label class="timer-label">Số phút</label>
-            <input type="number" min="0" max="59" class="popup-input" id="timerMinutesInput" value="0">
-        </div>
-    </div>
-    <button class="btn-primary" onclick="applyCustomTimer()">Bắt đầu hẹn giờ</button>
-</div>
-
-<!-- ẢNH BÌA PHÓNG TO -->
-<div class="image-viewer-overlay" id="imageViewerOverlay" onclick="closeImageViewer()">
-    <img src="" alt="Bìa Full" class="image-viewer-img" id="imageViewerImg" onclick="event.stopPropagation()">
-    <button class="image-viewer-close" onclick="closeImageViewer()">&times;</button>
-</div>
-
-<audio id="audioElement"></audio>
-
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
-        });
-    }
-
-    // --- QUẢN LÝ THEME (BẦU TRỜI SAO / MÂY BAN NGÀY) ---
-    function initTheme() {
-        const savedTheme = localStorage.getItem('appTheme') || 'dark';
-        if (savedTheme === 'light') {
-            document.body.classList.add('light-theme');
-            document.getElementById('themeToggleIcon').textContent = '☀️';
-        } else {
-            document.body.classList.remove('light-theme');
-            document.getElementById('themeToggleIcon').textContent = '🌙';
-        }
-    }
-    function toggleTheme() {
-        const isLight = document.body.classList.toggle('light-theme');
-        localStorage.setItem('appTheme', isLight ? 'light' : 'dark');
-        document.getElementById('themeToggleIcon').textContent = isLight ? '☀️' : '🌙';
-    }
-    initTheme();
-
-    // --- BIẾN TOÀN CỤC ---
-    const currentStoryId = localStorage.getItem('currentStoryId') || '';
-    let currentAudioKey = localStorage.getItem('currentAudioKey') || '';
-    let currentEpisodeTitle = localStorage.getItem('currentEpisodeTitle') || '';
-    let currentStoryData = null;
-    let audioElement = document.getElementById('audioElement');
-    let currentPlaybackSpeed = parseFloat(localStorage.getItem('audioSpeed') || '1.0');
-    
-    let sleepTimerInterval = null;
-    let sleepTimerRemainingSeconds = 0;
-
-    function openDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open('AudioBookDB', 2);
-            request.onsuccess = e => resolve(e.target.result);
-            request.onerror = e => reject(e.target.error);
-        });
-    }
-
-    window.addEventListener('DOMContentLoaded', async () => {
-        if (!currentStoryId) {
-            window.location.href = 'index.html';
-            return;
-        }
-        audioElement.playbackRate = currentPlaybackSpeed;
-        document.getElementById('currentSpeedDisplay').textContent = currentPlaybackSpeed.toFixed(2).replace(/\.0+$/, '') + 'x';
-        
-        await loadStoryAndAudio();
-    });
-
-    async function loadStoryAndAudio() {
-        try {
-            let db = await openDB();
-            let tx = db.transaction('stories', 'readonly');
-            let req = tx.objectStore('stories').get(currentStoryId);
-
-            req.onsuccess = async function(e) {
-                currentStoryData = e.target.result;
-                if (!currentStoryData) {
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-                // Render thông tin truyện
-                const coverSrc = currentStoryData.cover || 'https://via.placeholder.com/150';
-                document.getElementById('playerCoverImg').src = coverSrc;
-                document.getElementById('playerStoryTitle').textContent = currentStoryData.name;
-
-                renderPlayerPlaylist();
-
-                // Nếu chưa có currentAudioKey, lấy tập đầu tiên
-                if (!currentAudioKey && currentStoryData.episodes && currentStoryData.episodes.length > 0) {
-                    currentAudioKey = currentStoryData.episodes[0].audioKey;
-                    currentEpisodeTitle = currentStoryData.episodes[0].title;
-                    localStorage.setItem('currentAudioKey', currentAudioKey);
-                    localStorage.setItem('currentEpisodeTitle', currentEpisodeTitle);
-                }
-
-                document.getElementById('playerEpisodeTitle').textContent = currentEpisodeTitle || 'Đang phát';
-
-                // Lấy file audio từ IndexedDB store 'audios'
-                await loadAudioBlobAndPlay(db, currentAudioKey);
-            };
-        } catch (err) {
-            console.error("Lỗi tải dữ liệu player:", err);
-        }
-    }
-
-    async function loadAudioBlobAndPlay(db, audioKey) {
-        let tx = db.transaction('audios', 'readonly');
-        let req = tx.objectStore('audios').get(audioKey);
-
-        req.onsuccess = async function(e) {
-            let audioBlob = e.target.result;
-            if (!audioBlob) {
-                alert('Không tìm thấy tệp âm thanh trong cơ sở dữ liệu!');
-                return;
-            }
-
-            let audioUrl = URL.createObjectURL(audioBlob);
-            audioElement.src = audioUrl;
-
-            // Khôi phục tiến trình nghe trước đó của tập này
-            let savedTime = parseFloat(localStorage.getItem(`audioProgress_${audioKey}`) || '0');
-            audioElement.currentTime = savedTime;
-
-            audioElement.play().then(() => {
-                document.getElementById('playPauseBtn').textContent = '❚❚';
-            }).catch(err => {
-                console.log("Autoplay bị chặn hoặc chờ tương tác:", err);
-                document.getElementById('playPauseBtn').textContent = '▶';
-            });
-        };
-    }
-
-    // --- ĐỊNH DẠNG THỜI GIAN X:Y:Z (X: Tiếng, Y: Phút, Z: Giây) ---
-    function formatTimeXYZ(totalSeconds) {
-        if (isNaN(totalSeconds) || totalSeconds < 0) return '0:0:0';
-        let hours = Math.floor(totalSeconds / 3600);
-        let minutes = Math.floor((totalSeconds % 3600) / 60);
-        let seconds = Math.floor(totalSeconds % 60);
-        return `${hours}:${minutes}:${seconds}`;
-    }
-
-    // --- SỰ KIỆN AUDIO ELEMENT ---
-    audioElement.addEventListener('timeupdate', () => {
-        if (!isNaN(audioElement.duration) && audioElement.duration > 0) {
-            let percent = (audioElement.currentTime / audioElement.duration) * 100;
-            document.getElementById('progressBarFill').style.width = percent + '%';
-            
-            // Hiển thị thời gian X:Y:Z (chia tỷ lệ với tốc độ phát)
-            document.getElementById('currentTimeDisplay').textContent = formatTimeXYZ(audioElement.currentTime);
-            document.getElementById('totalTimeDisplay').textContent = formatTimeXYZ(audioElement.duration);
-
-            // Lưu tiến trình định kỳ
-            localStorage.setItem(`audioProgress_${currentAudioKey}`, audioElement.currentTime);
-        }
-    });
-
-    audioElement.addEventListener('ended', () => {
-        // Tự động chuyển tập tiếp theo khi nghe hết
-        playNextEpisode();
-    });
-
-    function togglePlayPause() {
-        if (audioElement.paused) {
-            audioElement.play();
-            document.getElementById('playPauseBtn').textContent = '❚❚';
-        } else {
-            audioElement.pause();
-            document.getElementById('playPauseBtn').textContent = '▶';
-        }
-    }
-
-    function skipTime(seconds) {
-        audioElement.currentTime = Math.max(0, Math.min(audioElement.duration || 0, audioElement.currentTime + seconds));
-    }
-
-    function seekAudio(event) {
-        const wrapper = document.getElementById('progressBarWrapper');
-        const rect = wrapper.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const width = rect.width;
-        if (width > 0 && audioElement.duration) {
-            let ratio = Math.max(0, Math.min(1, clickX / width));
-            audioElement.currentTime = ratio * audioElement.duration;
-        }
-    }
-
-    // --- TỐC ĐỘ PHÁT ---
-    function openSpeedModal() {
-        document.getElementById('speedModalOverlay').classList.add('active');
-        document.getElementById('speedModalSheet').classList.add('active');
-        document.getElementById('customSpeedInput').value = currentPlaybackSpeed;
-    }
-    function closeSpeedModal() {
-        document.getElementById('speedModalOverlay').classList.remove('active');
-        document.getElementById('speedModalSheet').classList.remove('active');
-    }
-    function setSpeed(speed) {
-        currentPlaybackSpeed = speed;
-        audioElement.playbackRate = speed;
-        localStorage.setItem('audioSpeed', speed);
-        document.getElementById('currentSpeedDisplay').textContent = speed.toFixed(2).replace(/\.0+$/, '') + 'x';
-        closeSpeedModal();
-    }
-    function applyCustomSpeed() {
-        let val = parseFloat(document.getElementById('customSpeedInput').value);
-        if (val && val >= 0.25 && val <= 4.0) {
-            setSpeed(val);
-        } else {
-            alert('Vui lòng nhập tốc độ hợp lệ từ 0.25x đến 4.0x');
-        }
-    }
-
-    // --- HẸN GIỜ TẮT ---
-    function openTimerModal() {
-        document.getElementById('timerModalOverlay').classList.add('active');
-        document.getElementById('timerModalSheet').classList.add('active');
-    }
-    function closeTimerModal() {
-        document.getElementById('timerModalOverlay').classList.remove('active');
-        document.getElementById('timerModalSheet').classList.remove('active');
-    }
-    function setSleepTimerMinutes(minutes) {
-        if (minutes === 0) {
-            cancelSleepTimer();
-            alert('Đã tắt hẹn giờ.');
-        } else {
-            startSleepTimerCountdown(minutes * 60);
-            alert(`Đã hẹn giờ tắt sau ${minutes} phút.`);
-        }
-        closeTimerModal();
-    }
-    function applyCustomTimer() {
-        let hrs = parseInt(document.getElementById('timerHoursInput').value) || 0;
-        let mins = parseInt(document.getElementById('timerMinutesInput').value) || 0;
-        let totalSecs = (hrs * 3600) + (mins * 60);
-
-        if (totalSecs <= 0) {
-            cancelSleepTimer();
-            alert('Đã tắt hẹn giờ.');
-        } else {
-            startSleepTimerCountdown(totalSecs);
-            alert(`Đã hẹn giờ tắt sau ${hrs} giờ ${mins} phút.`);
-        }
-        closeTimerModal();
-    }
-
-    function startSleepTimerCountdown(totalSeconds) {
-        if (sleepTimerInterval) clearInterval(sleepTimerInterval);
-        sleepTimerRemainingSeconds = totalSeconds;
-        
-        updateTimerDisplayUI();
-
-        sleepTimerInterval = setInterval(() => {
-            sleepTimerRemainingSeconds--;
-            updateTimerDisplayUI();
-
-            if (sleepTimerRemainingSeconds <= 0) {
-                clearInterval(sleepTimerInterval);
-                sleepTimerInterval = null;
-                audioElement.pause();
-                document.getElementById('playPauseBtn').textContent = '▶';
-                document.getElementById('currentTimerDisplay').textContent = 'Tắt';
-                alert('Hẹn giờ tắt đã hoàn tất. Audio đã dừng phát.');
-            }
-        }, 1000);
-    }
-
-    function cancelSleepTimer() {
-        if (sleepTimerInterval) {
-            clearInterval(sleepTimerInterval);
-            sleepTimerInterval = null;
-        }
-        sleepTimerRemainingSeconds = 0;
-        document.getElementById('currentTimerDisplay').textContent = 'Tắt';
-    }
-
-    function updateTimerDisplayUI() {
-        let m = Math.floor(sleepTimerRemainingSeconds / 60);
-        let s = sleepTimerRemainingSeconds % 60;
-        document.getElementById('currentTimerDisplay').textContent = `${m}p ${s}s`;
-    }
-
-    // --- DANH SÁCH TẬP & TỰ ĐỘNG CHUYỂN TẬP ---
-    function renderPlayerPlaylist() {
-        const container = document.getElementById('playerPlaylistContainer');
-        let episodes = currentStoryData.episodes || [];
-        document.getElementById('playlistCountInfo').textContent = `${episodes.length} tập`;
-
-        if (episodes.length === 0) {
-            container.innerHTML = `<div style="color: var(--text-secondary); font-size: 12px; text-align: center; padding: 15px;">Chưa có tập audio nào.</div>`;
-            return;
-        }
-
-        container.innerHTML = episodes.map((ep) => {
-            let isActive = ep.audioKey === currentAudioKey;
-            return `
-                <div class="playlist-item ${isActive ? 'active' : ''}" onclick="switchEpisode('${ep.audioKey}', '${ep.title}')">
-                    <span class="playlist-item-title">${ep.title}</span>
-                    <span>${isActive ? '▶ Đang nghe' : ''}</span>
-                </div>
-            `;
-        }).join('');
-    }
-
-    async function switchEpisode(audioKey, title) {
-        if (audioKey === currentAudioKey) return;
-        currentAudioKey = audioKey;
-        currentEpisodeTitle = title;
-        localStorage.setItem('currentAudioKey', audioKey);
-        localStorage.setItem('currentEpisodeTitle', title);
-
-        document.getElementById('playerEpisodeTitle').textContent = title;
-        renderPlayerPlaylist();
-
-        let db = await openDB();
-        await loadAudioBlobAndPlay(db, audioKey);
-    }
-
-    function playNextEpisode() {
-        let episodes = currentStoryData.episodes || [];
-        let currentIndex = episodes.findIndex(ep => ep.audioKey === currentAudioKey);
-        if (currentIndex !== -1 && currentIndex + 1 < episodes.length) {
-            let nextEp = episodes[currentIndex + 1];
-            switchEpisode(nextEp.audioKey, nextEp.title);
-        } else {
-            console.log('Đã phát hết danh sách.');
-        }
-    }
-
-    // --- ẢNH BÌA PHÓNG TO ---
-    function viewCover() {
-        const src = document.getElementById('playerCoverImg').src;
-        document.getElementById('imageViewerImg').src = src;
-        document.getElementById('imageViewerOverlay').classList.add('active');
-    }
-    function closeImageViewer() {
-        document.getElementById('imageViewerOverlay').classList.remove('active');
-    }
-</script>
+<button class="playlist-trigger-btn" onclick="openPlaylistModal()">
+    <span style="display: flex; align-items: center; gap: 8px;">📑 Danh sách tập truyện</span>
+    <span id="playlistCountInfo" style="color: var(--text-secondary); font-size: 12px;">0 tập</span>
+</button>
