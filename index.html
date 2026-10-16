@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="color-scheme" content="light dark">
     <title>Thư Viện Sách Nói & Audio Tiểu Thuyết</title>
-    <!-- Font chữ hiện đại Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +12,7 @@
         :root {
             --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             
-            /* Dark Theme (Chế độ Ban Đêm sâu thẳm, tối ưu cho màn hình OLED di động) */
+            /* Dark Theme */
             --bg-gradient-dark: linear-gradient(135deg, #020617 0%, #090d1a 50%, #0f172a 100%);
             --bg-fallback-dark: #020617;
             --card-bg-dark: rgba(15, 23, 42, 0.85);
@@ -24,7 +23,7 @@
             --accent-color-dark: #f43f5e;
             --accent-light-dark: rgba(244, 63, 94, 0.2);
             
-            /* Light Theme (Chế độ Ban Ngày & Ánh Sáng Mây Trời) */
+            /* Light Theme */
             --bg-gradient-light: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #faf5ff 100%);
             --bg-fallback-light: #f0f9ff;
             --card-bg-light: rgba(255, 255, 255, 0.85);
@@ -36,7 +35,6 @@
             --accent-light-light: rgba(225, 29, 72, 0.12);
         }
 
-        /* Biến mặc định theo Chế độ Tối */
         body {
             --bg-gradient: var(--bg-gradient-dark);
             --bg-fallback: var(--bg-fallback-dark);
@@ -50,7 +48,6 @@
             --shadow-color: rgba(0, 0, 0, 0.5);
         }
 
-        /* Chuyển sang Chế độ Sáng */
         body.light-theme {
             --bg-gradient: var(--bg-gradient-light);
             --bg-fallback: var(--bg-fallback-light);
@@ -96,7 +93,6 @@
             overflow: hidden;
         }
 
-        /* Ban Đêm: Mặt Trăng & Đêm Sao */
         .moon {
             position: absolute;
             top: 40px;
@@ -129,7 +125,6 @@
             100% { opacity: 0.9; }
         }
 
-        /* Ban Ngày: Mây & Mặt Trời Ánh Sáng */
         .sun-glow {
             position: absolute;
             top: -50px;
@@ -159,7 +154,6 @@
             100% { transform: translateX(15px); }
         }
 
-        /* Hiển thị hiệu ứng tương ứng với Theme */
         body.light-theme .moon,
         body.light-theme .stars {
             opacity: 0;
@@ -240,7 +234,6 @@
             stroke-linejoin: round;
         }
 
-        /* Thanh Tìm Kiếm Hiện Đại */
         .search-wrapper {
             position: relative;
             width: 100%;
@@ -403,6 +396,7 @@
             background: var(--card-bg);
             border-radius: 20px;
             border: 1px dashed var(--card-border);
+            line-height: 1.6;
         }
 
         .modal-overlay {
@@ -522,7 +516,6 @@
             transform: scale(0.98);
         }
 
-        /* Toast thông báo */
         #toast-container {
             position: fixed;
             bottom: 24px;
@@ -577,12 +570,10 @@
                 <p>Không gian audio tiểu thuyết cá nhân</p>
             </div>
             <div class="header-actions">
-                <!-- Nút Đổi Theme Tối / Sáng -->
                 <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Đổi giao diện Ngày / Đêm">
                     <svg id="themeIconMoon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     <svg id="themeIconSun" viewBox="0 0 24 24" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 </button>
-                <!-- Nút Thêm Truyện Mới -->
                 <button class="icon-btn primary" onclick="openStoryModal()" title="Thêm tiểu thuyết mới">
                     <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
@@ -636,7 +627,6 @@
     <div id="toast-container"></div>
 
     <script>
-        // Quản lý Chế Độ Sáng / Tối (Theme Switcher)
         function initTheme() {
             const savedTheme = localStorage.getItem('appTheme') || 'dark';
             if (savedTheme === 'light') {
@@ -660,22 +650,29 @@
             showToast(isLight ? 'Đã chuyển sang Chế độ Ban Ngày ☀️' : 'Đã chuyển sang Chế độ Ban Đêm 🌙');
         }
 
-        // Khởi tạo CSDL IndexedDB
-        function openDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('AudioBookDB', 2);
-                request.onupgradeneeded = e => {
-                    let db = e.target.result;
-                    if (!db.objectStoreNames.contains('stories')) {
-                        db.createObjectStore('stories', { keyPath: 'id' });
-                    }
-                    if (!db.objectStoreNames.contains('audios')) {
-                        db.createObjectStore('audios');
-                    }
-                };
-                request.onsuccess = e => resolve(e.target.result);
-                request.onerror = e => reject(e.target.error);
-            });
+        const STORAGE_KEY = 'audio_book_stories_v2';
+
+        function loadStoriesFromStorage() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                if (data) {
+                    return JSON.parse(data);
+                }
+            } catch (err) {
+                console.error('Error reading localStorage:', err);
+            }
+            return [];
+        }
+
+        function saveStoriesToStorage(stories) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(stories));
+                return true;
+            } catch (err) {
+                console.error('Error saving to localStorage:', err);
+                showToast('Bộ nhớ trình duyệt đã đầy hoặc bị hạn chế!');
+                return false;
+            }
         }
 
         let allStoriesCache = [];
@@ -699,20 +696,14 @@
             }, 3000);
         }
 
-        async function loadStories() {
+        function loadStories() {
             try {
-                let db = await openDB();
-                let tx = db.transaction('stories', 'readonly');
-                let store = tx.objectStore('stories');
-                let request = store.getAll();
-
-                request.onsuccess = function(e) {
-                    allStoriesCache = e.target.result || [];
-                    renderStoryList(allStoriesCache);
-                };
+                allStoriesCache = loadStoriesFromStorage();
+                renderStoryList(allStoriesCache);
             } catch (err) {
                 console.error(err);
                 showToast('Lỗi tải danh sách tiểu thuyết!');
+                document.getElementById('bookListContainer').innerHTML = `<div class="empty-state">Không thể tải danh sách tiểu thuyết.<br>Vui lòng làm mới trang!</div>`;
             }
         }
 
@@ -722,7 +713,7 @@
             
             countText.textContent = `Tất cả tiểu thuyết (${stories.length})`;
 
-            if (stories.length > 0) {
+            if (stories && stories.length > 0) {
                 container.innerHTML = stories.map(story => {
                     const audioCount = story.episodes ? story.episodes.length : 0;
                     const coverImg = story.cover || 'https://placehold.co/150x220/1e293b/cbd5e1?text=No+Cover';
@@ -731,7 +722,7 @@
                         <div class="book-card" onclick="goToDetail('${story.id}')">
                             <img src="${coverImg}" alt="Bìa truyện" class="book-cover">
                             <div class="book-info">
-                                <h3 class="book-title">${escapeHtml(story.name)}</h3>
+                                <h3 class="book-title">${escapeHtml(story.name || '')}</h3>
                                 <p class="book-author">${escapeHtml(story.author || 'Đang cập nhật')}</p>
                                 <div class="book-audio-badge">
                                     <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
@@ -749,7 +740,7 @@
         function filterStories() {
             const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
             const filtered = allStoriesCache.filter(story => 
-                story.name.toLowerCase().includes(keyword) || 
+                (story.name && story.name.toLowerCase().includes(keyword)) || 
                 (story.author && story.author.toLowerCase().includes(keyword))
             );
             renderStoryList(filtered);
@@ -783,7 +774,11 @@
 
             let coverData = '';
             if (coverInput.files && coverInput.files[0]) {
-                coverData = await fileToBase64(coverInput.files[0]);
+                try {
+                    coverData = await fileToBase64(coverInput.files[0]);
+                } catch (e) {
+                    console.error(e);
+                }
             }
 
             const newStory = {
@@ -795,41 +790,31 @@
                 episodes: []
             };
 
-            try {
-                let db = await openDB();
-                let tx = db.transaction('stories', 'readwrite');
-                let store = tx.objectStore('stories');
-                store.put(newStory);
-
-                tx.oncomplete = function() {
-                    closeStoryModal();
-                    loadStories();
-                    document.getElementById('newStoryName').value = '';
-                    document.getElementById('newStoryAuthor').value = '';
-                    document.getElementById('newStorySummary').value = '';
-                    coverInput.value = '';
-                    showToast('Đã thêm bộ tiểu thuyết mới thành công!');
-                };
-            } catch (err) {
-                console.error(err);
-                showToast('Lỗi khi lưu bộ tiểu thuyết!');
+            let currentStories = loadStoriesFromStorage();
+            currentStories.unshift(newStory);
+            
+            if (saveStoriesToStorage(currentStories)) {
+                closeStoryModal();
+                loadStories();
+                document.getElementById('newStoryName').value = '';
+                document.getElementById('newStoryAuthor').value = '';
+                document.getElementById('newStorySummary').value = '';
+                coverInput.value = '';
+                showToast('Đã thêm bộ tiểu thuyết mới thành công!');
             }
         }
 
         function fileToBase64(file) {
-            return new Response(file).arrayBuffer().then(buffer => {
-                let binary = '';
-                let bytes = new Uint8Array(buffer);
-                let len = bytes.byteLength;
-                for (let i = 0; i < len; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return 'data:' + file.type + ';base64,' + btoa(binary);
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
             });
         }
 
         function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
     </script>
 </body>
