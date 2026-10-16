@@ -3,747 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="color-scheme" content="light dark">
-    <title>Thư Viện Sách Nói & Audio Tiểu Thuyết</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Ứng Dụng Nghe Sách Nói</title>
     <style>
-        :root {
-            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            
-            /* Dark Theme */
-            --bg-gradient-dark: linear-gradient(135deg, #020617 0%, #090d1a 50%, #0f172a 100%);
-            --bg-fallback-dark: #020617;
-            --card-bg-dark: rgba(15, 23, 42, 0.85);
-            --card-border-dark: rgba(255, 255, 255, 0.08);
-            --card-hover-dark: rgba(30, 41, 59, 0.95);
-            --text-primary-dark: #f8fafc;
-            --text-secondary-dark: #94a3b8;
-            --accent-color-dark: #f43f5e;
-            --accent-light-dark: rgba(244, 63, 94, 0.2);
-            
-            /* Light Theme */
-            --bg-gradient-light: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #faf5ff 100%);
-            --bg-fallback-light: #f0f9ff;
-            --card-bg-light: rgba(255, 255, 255, 0.85);
-            --card-border-light: rgba(226, 232, 240, 0.9);
-            --card-hover-light: rgba(255, 255, 255, 1);
-            --text-primary-light: #0f172a;
-            --text-secondary-light: #64748b;
-            --accent-color-light: #e11d48;
-            --accent-light-light: rgba(225, 29, 72, 0.12);
-        }
+        body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; margin: 0; padding: 16px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
+        .app-title { font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 15px; color: #d95a52; }
+        
+        /* Cụm nút chức năng đầu trang */
+        .action-row { display: flex; gap: 10px; margin-bottom: 16px; }
+        .main-btn { flex: 1; background: #d95a52; color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: 0.2s; }
+        .main-btn:hover { background: #e06d67; }
+        .backup-btn { background: #24242c; border: 1px solid #333; color: #ccc; }
+        .backup-btn:hover { background: #2e2e38; color: #fff; }
 
-        body {
-            --bg-gradient: var(--bg-gradient-dark);
-            --bg-fallback: var(--bg-fallback-dark);
-            --card-bg: var(--card-bg-dark);
-            --card-border: var(--card-border-dark);
-            --card-hover: var(--card-hover-dark);
-            --text-primary: var(--text-primary-dark);
-            --text-secondary: var(--text-secondary-dark);
-            --accent: var(--accent-color-dark);
-            --accent-bg: var(--accent-light-dark);
-            --shadow-color: rgba(0, 0, 0, 0.5);
-        }
+        /* Danh sách truyện dạng lưới */
+        .novel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .novel-card { background: #1a1a20; border: 1px solid #2a2a32; border-radius: 12px; padding: 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; }
+        .novel-card:hover { border-color: #d95a52; background: #1f1f27; }
+        .novel-cover { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; background: #222; }
+        .novel-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .novel-author { font-size: 11px; color: #888; }
 
-        body.light-theme {
-            --bg-gradient: var(--bg-gradient-light);
-            --bg-fallback: var(--bg-fallback-light);
-            --card-bg: var(--card-bg-light);
-            --card-border: var(--card-border-light);
-            --card-hover: var(--card-hover-light);
-            --text-primary: var(--text-primary-light);
-            --text-secondary: var(--text-secondary-light);
-            --accent: var(--accent-color-light);
-            --accent-bg: var(--accent-light-light);
-            --shadow-color: rgba(148, 163, 184, 0.25);
-        }
-
-        * {
-            box-sizing: border-box;
-            transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease, transform 0.2s ease;
-        }
-
-        body {
-            background: var(--bg-gradient);
-            background-color: var(--bg-fallback);
-            color: var(--text-primary);
-            font-family: var(--font-main);
-            margin: 0;
-            padding: 20px 16px 40px;
-            max-width: 540px;
-            margin-left: auto;
-            margin-right: auto;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .sky-decorations {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .moon {
-            position: absolute;
-            top: 40px;
-            right: 8%;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            box-shadow: -10px 8px 0 2px #fef08a, 0 0 20px rgba(254, 240, 138, 0.25);
-            opacity: 0.9;
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-
-        .stars {
-            position: absolute;
-            inset: 0;
-            background-image: 
-                radial-gradient(1.5px 1.5px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-                radial-gradient(1.5px 1.5px at 80px 120px, #fef08a, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 200px 70px, #ffffff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 310px 180px, #cbd5e1, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 450px 250px, #ffffff, rgba(0,0,0,0)),
-                radial-gradient(1.5px 1.5px at 150px 350px, #fef08a, rgba(0,0,0,0));
-            background-size: 500px 500px;
-            opacity: 0.7;
-            animation: twinkle 4s infinite alternate ease-in-out;
-        }
-
-        @keyframes twinkle {
-            0% { opacity: 0.3; }
-            100% { opacity: 0.9; }
-        }
-
-        .sun-glow {
-            position: absolute;
-            top: -50px;
-            right: -30px;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(253, 224, 71, 0.4) 0%, rgba(253, 186, 116, 0.15) 50%, rgba(255,255,255,0) 70%);
-            border-radius: 50%;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-
-        .clouds {
-            position: absolute;
-            inset: 0;
-            background-image: 
-                radial-gradient(50px 25px at 60px 80px, rgba(255, 255, 255, 0.8), rgba(255,255,255,0)),
-                radial-gradient(70px 35px at 280px 140px, rgba(255, 255, 255, 0.7), rgba(255,255,255,0)),
-                radial-gradient(60px 30px at 180px 40px, rgba(255, 255, 255, 0.6), rgba(255,255,255,0));
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            animation: floatClouds 20s infinite alternate ease-in-out;
-        }
-
-        @keyframes floatClouds {
-            0% { transform: translateX(-10px); }
-            100% { transform: translateX(15px); }
-        }
-
-        body.light-theme .moon,
-        body.light-theme .stars {
-            opacity: 0;
-        }
-
-        body.light-theme .sun-glow,
-        body.light-theme .clouds {
-            opacity: 1;
-        }
-
-        .app-header {
-            margin-bottom: 24px;
-        }
-
-        .header-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .app-title-group h1 {
-            font-size: 22px;
-            font-weight: 800;
-            margin: 0;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .app-title-group p {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin: 3px 0 0 0;
-            font-weight: 500;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .icon-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            border: 1px solid var(--card-border);
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
-
-        .icon-btn:active {
-            transform: scale(0.92);
-        }
-
-        .icon-btn.primary {
-            background: var(--accent);
-            color: #ffffff;
-            border: none;
-            box-shadow: 0 6px 16px rgba(244, 63, 94, 0.35);
-        }
-
-        .icon-btn svg {
-            width: 22px;
-            height: 22px;
-            stroke-width: 2;
-            stroke: currentColor;
-            fill: none;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .search-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 18px;
-            height: 18px;
-            stroke: var(--text-secondary);
-            fill: none;
-            stroke-width: 2;
-        }
-
-        .search-input {
-            width: 100%;
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 13px 16px 13px 46px;
-            border-radius: 16px;
-            font-size: 14px;
-            font-family: var(--font-main);
-            font-weight: 500;
-            outline: none;
-            box-shadow: 0 4px 14px var(--shadow-color);
-        }
-
-        .search-input::placeholder {
-            color: var(--text-secondary);
-            opacity: 0.8;
-        }
-
-        .search-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-bg);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-            padding: 0 2px;
-        }
-
-        .section-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .book-list {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .book-card {
-            display: flex;
-            align-items: center;
-            background: var(--card-bg);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            padding: 12px;
-            gap: 16px;
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
-            box-shadow: 0 6px 18px var(--shadow-color);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .book-card:hover {
-            background: var(--card-hover);
-            transform: translateY(-2px);
-            border-color: rgba(244, 63, 94, 0.3);
-        }
-
-        .book-card:active {
-            transform: scale(0.98);
-        }
-
-        .book-cover {
-            width: 78px;
-            height: 108px;
-            border-radius: 14px;
-            object-fit: cover;
-            flex-shrink: 0;
-            background: rgba(0,0,0,0.2);
-            box-shadow: 0 6px 14px rgba(0,0,0,0.3);
-        }
-
-        .book-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .book-title {
-            font-size: 16px;
-            font-weight: 700;
-            margin: 0 0 6px 0;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.3;
-        }
-
-        .book-author {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin: 0 0 10px 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .book-audio-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--accent);
-            background: var(--accent-bg);
-            padding: 5px 12px;
-            border-radius: 30px;
-            width: fit-content;
-        }
-
-        .book-audio-badge svg {
-            width: 14px;
-            height: 14px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2.2;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 500;
-            background: var(--card-bg);
-            border-radius: 20px;
-            border: 1px dashed var(--card-border);
-            line-height: 1.6;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .bottom-sheet {
-            position: fixed;
-            bottom: -100%;
-            left: 0;
-            width: 100%;
-            background: var(--bg-gradient);
-            background-color: var(--bg-fallback);
-            border-radius: 28px 28px 0 0;
-            padding: 24px 20px 32px;
-            box-sizing: border-box;
-            z-index: 1001;
-            transition: bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1);
-            max-height: 88vh;
-            overflow-y: auto;
-            border-top: 1px solid var(--card-border);
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
-            max-width: 540px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .bottom-sheet.active {
-            bottom: 0;
-        }
-
-        .sheet-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 22px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--card-border);
-        }
-
-        .sheet-title {
-            font-size: 18px;
-            font-weight: 800;
-            margin: 0;
-            color: var(--text-primary);
-        }
-
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            margin-bottom: 6px;
-        }
-
-        .form-input, .form-textarea {
-            width: 100%;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 13px;
-            border-radius: 14px;
-            font-size: 14px;
-            font-family: var(--font-main);
-            outline: none;
-        }
-
-        .form-input:focus, .form-textarea:focus {
-            border-color: var(--accent);
-        }
-
-        .submit-btn {
-            width: 100%;
-            background: var(--accent);
-            color: #ffffff;
-            border: none;
-            padding: 15px;
-            border-radius: 16px;
-            font-size: 15px;
-            font-weight: 700;
-            font-family: var(--font-main);
-            cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 6px 18px rgba(244, 63, 94, 0.35);
-        }
-
-        .submit-btn:active {
-            transform: scale(0.98);
-        }
-
-        #toast-container {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            pointer-events: none;
-            width: 90%;
-            max-width: 380px;
-            align-items: center;
-        }
-
-        .custom-toast {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            color: var(--text-primary);
-            padding: 12px 20px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 600;
-            box-shadow: 0 8px 24px var(--shadow-color);
-            opacity: 0;
-            transform: translateY(15px);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border: 1px solid var(--card-border);
-            text-align: center;
-        }
-
-        .custom-toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        /* Modal / Bottom Sheet */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(4px); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .bottom-sheet { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background-color: #1a1a1e; border-radius: 24px 24px 0 0; padding: 20px; box-sizing: border-box; z-index: 1001; transition: bottom 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); max-height: 85vh; overflow-y: auto; }
+        .bottom-sheet.active { bottom: 0; }
+        
+        .popup-label { font-size: 12px; color: #aaa; margin-bottom: 5px; display: block; }
+        .popup-input, .file-input { width: 100%; background: #24242a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; font-size: 13px; box-sizing: border-box; margin-bottom: 12px; outline: none; }
+        .submit-btn { width: 100%; background: #d95a52; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div class="sky-decorations">
-        <div class="moon"></div>
-        <div class="stars"></div>
-        <div class="sun-glow"></div>
-        <div class="clouds"></div>
+    <div class="app-title">Thư Viện Sách Nói</div>
+
+    <div class="action-row">
+        <button class="main-btn" onclick="openStoryModal()">+ Thêm truyện mới</button>
+        <button class="main-btn backup-btn" onclick="exportBackupData()">💾 Sao lưu</button>
+        <button class="main-btn backup-btn" onclick="document.getElementById('importFileBox').click()">📥 Khôi phục</button>
+        <input type="file" id="importFileBox" accept=".json" style="display: none;" onchange="importBackupData(event)">
     </div>
 
-    <div class="app-header">
-        <div class="header-top">
-            <div class="app-title-group">
-                <h1>Thư Viện Sách Nói</h1>
-                <p>Không gian audio tiểu thuyết cá nhân</p>
-            </div>
-            <div class="header-actions">
-                <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Đổi giao diện Ngày / Đêm">
-                    <svg id="themeIconMoon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                    <svg id="themeIconSun" viewBox="0 0 24 24" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                </button>
-                <button class="icon-btn primary" onclick="openStoryModal()" title="Thêm tiểu thuyết mới">
-                    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                </button>
-            </div>
-        </div>
-
-        <div class="search-wrapper">
-            <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="searchInput" class="search-input" placeholder="Tìm tên sách, tác giả..." oninput="filterStories()">
-        </div>
-    </div>
-
-    <div class="section-header">
-        <span class="section-title" id="storyCountText">Tất cả tiểu thuyết</span>
-    </div>
-
-    <div class="book-list" id="bookListContainer">
-        <div class="empty-state">Đang tải danh sách tiểu thuyết...</div>
+    <div class="novel-grid" id="novelGridContainer">
+        <div style="color: #888; font-size: 13px; text-align: center; grid-column: span 2; padding: 30px;">Đang tải thư viện...</div>
     </div>
 
     <div class="modal-overlay" id="storyModalOverlay" onclick="closeStoryModal()"></div>
     <div class="bottom-sheet" id="storyModalSheet">
-        <div class="sheet-header">
-            <h3 class="sheet-title">Thêm Bộ Tiểu Thuyết Mới</h3>
-            <button class="close-btn" onclick="closeStoryModal()">&times;</button>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+            <strong style="font-size: 15px;">Thêm bộ truyện mới</strong>
+            <span style="cursor: pointer; font-size: 20px; color: #aaa;" onclick="closeStoryModal()">&times;</span>
         </div>
         
-        <div class="form-group">
-            <label class="form-label">Tên tiểu thuyết</label>
-            <input type="text" class="form-input" id="newStoryName" placeholder="VD: Đấu Phá Thương Khung">
-        </div>
+        <label class="popup-label">Tên truyện</label>
+        <input type="text" class="popup-input" id="newStoryName" placeholder="VD: Đấu Phá Thương Khung">
 
-        <div class="form-group">
-            <label class="form-label">Tác giả</label>
-            <input type="text" class="form-input" id="newStoryAuthor" placeholder="VD: Thiên Tằm Thổ Đậu">
-        </div>
+        <label class="popup-label">Tác giả</label>
+        <input type="text" class="popup-input" id="newStoryAuthor" placeholder="VD: Thiên Tằm Thổ Đậu">
 
-        <div class="form-group">
-            <label class="form-label">Ảnh bìa truyện</label>
-            <input type="file" class="form-input" id="newStoryCoverInput" accept="image/*">
-        </div>
+        <label class="popup-label">Thể loại / Thẻ</label>
+        <input type="text" class="popup-input" id="newStoryTag" placeholder="VD: Tiên Hiệp">
 
-        <div class="form-group">
-            <label class="form-label">Tóm tắt nội dung</label>
-            <textarea class="form-textarea" id="newStorySummary" rows="3" placeholder="Nhập tóm tắt sơ lược..."></textarea>
-        </div>
+        <label class="popup-label">Ảnh bìa truyện</label>
+        <input type="file" class="file-input" id="newStoryCoverInput" accept="image/*">
 
-        <button class="submit-btn" onclick="saveNewStory()">Tạo Bộ Truyện</button>
+        <label class="popup-label">Tóm tắt nội dung</label>
+        <textarea class="popup-input" id="newStorySummary" rows="3" placeholder="Nhập tóm tắt sơ lược về truyện..."></textarea>
+
+        <button class="submit-btn" onclick="saveNewStory()">Tạo bộ truyện</button>
     </div>
 
-    <div id="toast-container"></div>
-
     <script>
-        function initTheme() {
-            const savedTheme = localStorage.getItem('appTheme') || 'dark';
-            if (savedTheme === 'light') {
-                document.body.classList.add('light-theme');
-                document.getElementById('themeIconMoon').style.display = 'none';
-                document.getElementById('themeIconSun').style.display = 'block';
-            } else {
-                document.body.classList.remove('light-theme');
-                document.getElementById('themeIconMoon').style.display = 'block';
-                document.getElementById('themeIconSun').style.display = 'none';
-            }
+        if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
+        .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
+    });
+}
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('AudioBookDB', 2);
+                request.onupgradeneeded = e => {
+                    let db = e.target.result;
+                    if (!db.objectStoreNames.contains('stories')) {
+                        db.createObjectStore('stories', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('audios')) {
+                        db.createObjectStore('audios');
+                    }
+                };
+                request.onsuccess = e => resolve(e.target.result);
+                request.onerror = e => reject(e.target.error);
+            });
         }
-
-        function toggleTheme() {
-            const isLight = document.body.classList.toggle('light-theme');
-            localStorage.setItem('appTheme', isLight ? 'light' : 'dark');
-            
-            document.getElementById('themeIconMoon').style.display = isLight ? 'none' : 'block';
-            document.getElementById('themeIconSun').style.display = isLight ? 'block' : 'none';
-            
-            showToast(isLight ? 'Đã chuyển sang Chế độ Ban Ngày ☀️' : 'Đã chuyển sang Chế độ Ban Đêm 🌙');
-        }
-
-        const STORAGE_KEY = 'audio_book_stories_v2';
-
-        function loadStoriesFromStorage() {
-            try {
-                const data = localStorage.getItem(STORAGE_KEY);
-                if (data) {
-                    return JSON.parse(data);
-                }
-            } catch (err) {
-                console.error('Error reading localStorage:', err);
-            }
-            return [];
-        }
-
-        function saveStoriesToStorage(stories) {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(stories));
-                return true;
-            } catch (err) {
-                console.error('Error saving to localStorage:', err);
-                showToast('Bộ nhớ trình duyệt đã đầy hoặc bị hạn chế!');
-                return false;
-            }
-        }
-
-        let allStoriesCache = [];
 
         window.addEventListener('DOMContentLoaded', () => {
-            initTheme();
             loadStories();
         });
 
-        function showToast(message) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'custom-toast';
-            toast.textContent = message;
-            container.appendChild(toast);
-            
-            setTimeout(() => { toast.classList.add('show'); }, 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function loadStories() {
+        async function loadStories() {
             try {
-                allStoriesCache = loadStoriesFromStorage();
-                renderStoryList(allStoriesCache);
+                let db = await openDB();
+                let tx = db.transaction('stories', 'readonly');
+                let store = tx.objectStore('stories');
+                let request = store.getAll();
+
+                request.onsuccess = function(e) {
+                    let stories = e.target.result || [];
+                    const container = document.getElementById('novelGridContainer');
+
+                    if (stories.length > 0) {
+                        container.innerHTML = stories.map(story => `
+                            <div class="novel-card" onclick="goToDetail('${story.id}')">
+                                <img src="${story.cover || 'https://via.placeholder.com/150'}" alt="Bìa" class="novel-cover">
+                                <div class="novel-name">${story.name}</div>
+                                <div class="novel-author">${story.author || 'Đang cập nhật'}</div>
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = `<div style="color: #888; font-size: 13px; text-align: center; grid-column: span 2; padding: 30px;">Chưa có bộ truyện nào. Hãy bấm thêm mới!</div>`;
+                    }
+                };
             } catch (err) {
                 console.error(err);
-                showToast('Lỗi tải danh sách tiểu thuyết!');
-                document.getElementById('bookListContainer').innerHTML = `<div class="empty-state">Không thể tải danh sách tiểu thuyết.<br>Vui lòng làm mới trang!</div>`;
             }
-        }
-
-        function renderStoryList(stories) {
-            const container = document.getElementById('bookListContainer');
-            const countText = document.getElementById('storyCountText');
-            
-            countText.textContent = `Tất cả tiểu thuyết (${stories.length})`;
-
-            if (stories && stories.length > 0) {
-                container.innerHTML = stories.map(story => {
-                    const audioCount = story.episodes ? story.episodes.length : 0;
-                    const coverImg = story.cover || 'https://placehold.co/150x220/1e293b/cbd5e1?text=No+Cover';
-                    
-                    return `
-                        <div class="book-card" onclick="goToDetail('${story.id}')">
-                            <img src="${coverImg}" alt="Bìa truyện" class="book-cover">
-                            <div class="book-info">
-                                <h3 class="book-title">${escapeHtml(story.name || '')}</h3>
-                                <p class="book-author">${escapeHtml(story.author || 'Đang cập nhật')}</p>
-                                <div class="book-audio-badge">
-                                    <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                                    <span>${audioCount} tập audio</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                container.innerHTML = `<div class="empty-state">Chưa có bộ tiểu thuyết nào trong thư viện.<br>Bấm nút dấu cộng ở góc trên để thêm ngay!</div>`;
-            }
-        }
-
-        function filterStories() {
-            const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
-            const filtered = allStoriesCache.filter(story => 
-                (story.name && story.name.toLowerCase().includes(keyword)) || 
-                (story.author && story.author.toLowerCase().includes(keyword))
-            );
-            renderStoryList(filtered);
         }
 
         function goToDetail(storyId) {
@@ -755,7 +140,6 @@
             document.getElementById('storyModalOverlay').classList.add('active');
             document.getElementById('storyModalSheet').classList.add('active');
         }
-
         function closeStoryModal() {
             document.getElementById('storyModalOverlay').classList.remove('active');
             document.getElementById('storyModalSheet').classList.remove('active');
@@ -764,57 +148,169 @@
         async function saveNewStory() {
             const name = document.getElementById('newStoryName').value.trim();
             const author = document.getElementById('newStoryAuthor').value.trim();
+            const tag = document.getElementById('newStoryTag').value.trim();
             const summary = document.getElementById('newStorySummary').value.trim();
             const coverInput = document.getElementById('newStoryCoverInput');
 
             if (!name) {
-                showToast('Vui lòng nhập tên tiểu thuyết!');
+                alert('Vui lòng nhập tên truyện!');
                 return;
             }
 
             let coverData = '';
             if (coverInput.files && coverInput.files[0]) {
-                try {
-                    coverData = await fileToBase64(coverInput.files[0]);
-                } catch (e) {
-                    console.error(e);
-                }
+                coverData = await fileToBase64(coverInput.files[0]);
             }
 
             const newStory = {
                 id: 'story_' + Date.now(),
                 name: name,
                 author: author || 'Đang cập nhật',
+                tag: tag || 'Tổng hợp',
                 summary: summary || 'Chưa có tóm tắt.',
                 cover: coverData,
                 episodes: []
             };
 
-            let currentStories = loadStoriesFromStorage();
-            currentStories.unshift(newStory);
-            
-            if (saveStoriesToStorage(currentStories)) {
-                closeStoryModal();
-                loadStories();
-                document.getElementById('newStoryName').value = '';
-                document.getElementById('newStoryAuthor').value = '';
-                document.getElementById('newStorySummary').value = '';
-                coverInput.value = '';
-                showToast('Đã thêm bộ tiểu thuyết mới thành công!');
+            try {
+                let db = await openDB();
+                let tx = db.transaction('stories', 'readwrite');
+                let store = tx.objectStore('stories');
+                store.put(newStory);
+
+                tx.oncomplete = function() {
+                    closeStoryModal();
+                    loadStories();
+                    document.getElementById('newStoryName').value = '';
+                    document.getElementById('newStoryAuthor').value = '';
+                    document.getElementById('newStoryTag').value = '';
+                    document.getElementById('newStorySummary').value = '';
+                    coverInput.value = '';
+                    alert('Thêm bộ truyện thành công!');
+                };
+            } catch (err) {
+                console.error(err);
+                alert('Lỗi khi lưu bộ truyện!');
             }
         }
 
         function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
+            return new Promise((resolve) => {
+                let reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
                 reader.readAsDataURL(file);
             });
         }
 
-        function escapeHtml(text) {
-            return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        // --- TÍNH NĂNG SAO LƯU & KHÔI PHỤC DỮ LIỆU ĐÃ TỐI ƯU ---
+
+        async function exportBackupData() {
+            try {
+                let db = await openDB();
+                
+                let stories = await new Promise((resolve, reject) => {
+                    let tx = db.transaction('stories', 'readonly');
+                    let req = tx.objectStore('stories').getAll();
+                    req.onsuccess = e => resolve(e.target.result || []);
+                    req.onerror = e => reject(e.target.error);
+                });
+
+                let audioStore = db.transaction('audios', 'readonly').objectStore('audios');
+                let audioKeys = await new Promise((resolve, reject) => {
+                    let req = audioStore.getAllKeys();
+                    req.onsuccess = e => resolve(e.target.result || []);
+                    req.onerror = e => reject(e.target.error);
+                });
+                
+                let audioFilesObj = {};
+                for (let key of audioKeys) {
+                    let fileBlob = await new Promise((resolve) => {
+                        let req = audioStore.get(key);
+                        req.onsuccess = e => resolve(e.target.result);
+                        req.onerror = () => resolve(null);
+                    });
+                    if (fileBlob) {
+                        audioFilesObj[key] = await fileToBase64(fileBlob);
+                    }
+                }
+
+                let backupData = {
+                    version: 2,
+                    date: new Date().toISOString(),
+                    stories: stories,
+                    audios: audioFilesObj
+                };
+
+                let jsonString = JSON.stringify(backupData);
+                let blob = new Blob([jsonString], { type: 'application/json' });
+                let url = URL.createObjectURL(blob);
+                
+                let downloadAnchor = document.createElement('a');
+                downloadAnchor.href = url;
+                downloadAnchor.download = `AudioBook_Backup_${Date.now()}.json`;
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                
+                setTimeout(() => {
+                    document.body.removeChild(downloadAnchor);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+
+                alert('Xuất file sao lưu dữ liệu thành công!');
+            } catch (err) {
+                console.error("Lỗi sao lưu:", err);
+                alert('Lỗi khi xuất dữ liệu sao lưu! Dung lượng dữ liệu có thể quá lớn.');
+            }
+        }
+
+        function base64ToBlob(base64) {
+            let parts = base64.split(';base64,');
+            let contentType = parts[0].split(':')[1];
+            let raw = window.atob(parts[1]);
+            let rawLength = raw.length;
+            let uInt8Array = new Uint8Array(rawLength);
+            for (let i = 0; i < rawLength; ++i) {
+                uInt8Array[i] = raw.charCodeAt(i);
+            }
+            return new Blob([uInt8Array], { type: contentType });
+        }
+
+        async function importBackupData(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    let backupData = JSON.parse(e.target.result);
+                    if (!backupData.stories || !backupData.audios) {
+                        alert('Tệp sao lưu không hợp lệ!');
+                        return;
+                    }
+
+                    let db = await openDB();
+
+                    let txStories = db.transaction('stories', 'readwrite');
+                    let storyStore = txStories.objectStore('stories');
+                    for (let story of backupData.stories) {
+                        storyStore.put(story);
+                    }
+
+                    let txAudios = db.transaction('audios', 'readwrite');
+                    let audioStore = txAudios.objectStore('audios');
+                    for (let key in backupData.audios) {
+                        let blobFile = base64ToBlob(backupData.audios[key]);
+                        audioStore.put(blobFile, key);
+                    }
+
+                    alert('Khôi phục dữ liệu thành công! Trang web sẽ được tải lại.');
+                    location.reload();
+                } catch (err) {
+                    console.error(err);
+                    alert('Lỗi đọc tệp sao lưu. Tệp có thể bị hỏng.');
+                }
+            };
+            reader.readAsText(file);
         }
     </script>
 </body>

@@ -3,341 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Thêm Bộ Truyện Mới - Thư Viện Sách Nói</title>
-    <!-- Font chữ Plus Jakarta Sans -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <title>Thêm truyện mới</title>
     <style>
-        :root {
-            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            
-            /* Dark Theme */
-            --bg-gradient-dark: radial-gradient(circle at 85% 15%, #1e1b4b 0%, #0f172a 40%, #020617 100%);
-            --card-bg-dark: rgba(30, 41, 59, 0.65);
-            --card-border-dark: rgba(255, 255, 255, 0.1);
-            --card-hover-dark: rgba(51, 65, 85, 0.8);
-            --text-primary-dark: #f8fafc;
-            --text-secondary-dark: #94a3b8;
-            --accent-color-dark: #f43f5e;
-            --accent-light-dark: rgba(244, 63, 94, 0.18);
-            
-            /* Light Theme */
-            --bg-gradient-light: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #faf5ff 100%);
-            --card-bg-light: rgba(255, 255, 255, 0.75);
-            --card-border-light: rgba(226, 232, 240, 0.8);
-            --card-hover-light: rgba(255, 255, 255, 0.95);
-            --text-primary-light: #0f172a;
-            --text-secondary-light: #64748b;
-            --accent-color-light: #e11d48;
-            --accent-light-light: rgba(225, 29, 72, 0.12);
-        }
+        body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; margin: 0; padding: 16px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
+        .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 16px; }
+        .page-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+        
+        .form-group { margin-bottom: 14px; }
+        .form-label { font-size: 12px; color: #aaa; display: block; margin-bottom: 6px; }
+        .form-input, .form-textarea { width: 100%; background: #1c1c24; border: 1px solid #2d2d38; color: #fff; padding: 10px; border-radius: 8px; font-size: 13px; box-sizing: border-box; outline: none; }
+        .form-textarea { resize: vertical; height: 90px; }
+        .form-input:focus, .form-textarea:focus { border-color: #d95a52; }
 
-        body {
-            --bg-gradient: var(--bg-gradient-dark);
-            --card-bg: var(--card-bg-dark);
-            --card-border: var(--card-border-dark);
-            --card-hover: var(--card-hover-dark);
-            --text-primary: var(--text-primary-dark);
-            --text-secondary: var(--text-secondary-dark);
-            --accent: var(--accent-color-dark);
-            --accent-bg: var(--accent-light-dark);
-            --shadow-color: rgba(0, 0, 0, 0.35);
-        }
-
-        body.light-theme {
-            --bg-gradient: var(--bg-gradient-light);
-            --card-bg: var(--card-bg-light);
-            --card-border: var(--card-border-light);
-            --card-hover: var(--card-hover-light);
-            --text-primary: var(--text-primary-light);
-            --text-secondary: var(--text-secondary-light);
-            --accent: var(--accent-color-light);
-            --accent-bg: var(--accent-light-light);
-            --shadow-color: rgba(148, 163, 184, 0.2);
-        }
-
-        * {
-            box-sizing: border-box;
-            transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease, transform 0.2s ease;
-        }
-
-        body {
-            background: var(--bg-gradient);
-            background-attachment: fixed;
-            color: var(--text-primary);
-            font-family: var(--font-main);
-            margin: 0;
-            padding: 20px 16px 40px;
-            max-width: 540px;
-            margin-left: auto;
-            margin-right: auto;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .sky-decorations {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: -1; overflow: hidden;
-        }
-
-        .moon {
-            position: absolute; top: 40px; right: 8%; width: 70px; height: 70px;
-            border-radius: 50%; box-shadow: -12px 10px 0 2px #fef08a, 0 0 25px rgba(254, 240, 138, 0.3);
-            opacity: 0.9; transition: opacity 0.5s ease;
-        }
-
-        .stars {
-            position: absolute; inset: 0;
-            background-image: 
-                radial-gradient(1.5px 1.5px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-                radial-gradient(1.5px 1.5px at 80px 120px, #fef08a, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 200px 70px, #ffffff, rgba(0,0,0,0));
-            background-size: 500px 500px; opacity: 0.7;
-            animation: twinkle 4s infinite alternate ease-in-out;
-        }
-
-        @keyframes twinkle { 0% { opacity: 0.4; } 100% { opacity: 0.85; } }
-
-        .sun-glow {
-            position: absolute; top: -50px; right: -30px; width: 220px; height: 220px;
-            background: radial-gradient(circle, rgba(253, 224, 71, 0.4) 0%, rgba(253, 186, 116, 0.15) 50%, rgba(255,255,255,0) 70%);
-            border-radius: 50%; opacity: 0; transition: opacity 0.5s ease;
-        }
-
-        .clouds {
-            position: absolute; inset: 0;
-            background-image: 
-                radial-gradient(50px 25px at 60px 80px, rgba(255, 255, 255, 0.8), rgba(255,255,255,0)),
-                radial-gradient(70px 35px at 280px 140px, rgba(255, 255, 255, 0.7), rgba(255,255,255,0));
-            opacity: 0; transition: opacity 0.5s ease;
-        }
-
-        body.light-theme .moon, body.light-theme .stars { opacity: 0; }
-        body.light-theme .sun-glow, body.light-theme .clouds { opacity: 1; }
-
-        .app-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-        }
-
-        .icon-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            border: 1px solid var(--card-border);
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            text-decoration: none;
-        }
-
-        .icon-btn:active { transform: scale(0.92); }
-        .icon-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-
-        .page-title {
-            font-size: 19px;
-            font-weight: 800;
-            margin: 0;
-            background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .form-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--card-border);
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 8px 32px var(--shadow-color);
-        }
-
-        .form-group { margin-bottom: 18px; }
-
-        .form-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-        }
-
-        .form-input, .form-textarea {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.15);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 13px 16px;
-            border-radius: 14px;
-            font-size: 14px;
-            font-family: var(--font-main);
-            outline: none;
-        }
-
-        body.light-theme .form-input,
-        body.light-theme .form-textarea {
-            background: rgba(255, 255, 255, 0.6);
-        }
-
-        .form-input:focus, .form-textarea:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-bg);
-        }
-
-        .form-textarea { resize: vertical; min-height: 100px; }
-
-        .preview-cover {
-            width: 90px;
-            height: 120px;
-            border-radius: 12px;
-            object-fit: cover;
-            margin-top: 10px;
-            display: none;
-            border: 1px solid var(--card-border);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-
-        .submit-btn {
-            width: 100%;
-            background: var(--accent);
-            color: #ffffff;
-            border: none;
-            padding: 15px;
-            border-radius: 16px;
-            font-size: 15px;
-            font-weight: 700;
-            font-family: var(--font-main);
-            cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 6px 20px rgba(244, 63, 94, 0.35);
-        }
-
-        .submit-btn:active { transform: scale(0.98); }
-
-        #toast-container {
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            z-index: 2000; display: flex; flex-direction: column; gap: 8px;
-            pointer-events: none; width: 90%; max-width: 380px; align-items: center;
-        }
-
-        .custom-toast {
-            background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            color: var(--text-primary); padding: 12px 20px; border-radius: 30px;
-            font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px var(--shadow-color);
-            opacity: 0; transform: translateY(15px); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border: 1px solid var(--card-border); text-align: center;
-        }
-
-        .custom-toast.show { opacity: 1; transform: translateY(0); }
+        .submit-btn { width: 100%; background: #d95a52; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 10px; }
+        .submit-btn:hover { background: #e06d67; }
     </style>
 </head>
 <body>
 
-    <div class="sky-decorations">
-        <div class="moon"></div>
-        <div class="stars"></div>
-        <div class="sun-glow"></div>
-        <div class="clouds"></div>
+    <a href="index.html" class="back-btn">&#8592; Quay lại</a>
+    <div class="page-title">Thêm bộ truyện mới</div>
+
+    <div class="form-group">
+        <label class="form-label">Tên truyện</label>
+        <input type="text" class="form-input" id="storyNameInput" placeholder="Nhập tên truyện...">
     </div>
 
-    <div class="app-header">
-        <a href="index.html" class="icon-btn" title="Quay lại">
-            <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        </a>
-        <h1 class="page-title">Thêm Bộ Truyện Mới</h1>
-        <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Đổi giao diện">
-            <svg id="themeIconMoon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            <svg id="themeIconSun" viewBox="0 0 24 24" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        </button>
+    <div class="form-group">
+        <label class="form-label">Tác giả</label>
+        <input type="text" class="form-input" id="storyAuthorInput" placeholder="Nhập tên tác giả...">
     </div>
 
-    <div class="form-card">
-        <div class="form-group">
-            <label class="form-label">Tên truyện</label>
-            <input type="text" class="form-input" id="storyNameInput" placeholder="VD: Đấu Phá Thương Khung...">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Tác giả</label>
-            <input type="text" class="form-input" id="storyAuthorInput" placeholder="VD: Thiên Tằm Thổ Đậu...">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Thể loại / Thẻ</label>
-            <input type="text" class="form-input" id="storyTagInput" placeholder="VD: Tiên Hiệp, Huyền Huyễn...">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Ảnh bìa truyện</label>
-            <input type="file" class="form-input" id="storyCoverInput" accept="image/*" onchange="handleCoverSelect(event)">
-            <img id="coverPreview" class="preview-cover" alt="Xem trước bìa">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Tóm tắt nội dung</label>
-            <textarea class="form-textarea" id="storySummaryInput" placeholder="Nhập tóm tắt sơ lược về câu chuyện..."></textarea>
-        </div>
-
-        <button class="submit-btn" onclick="saveNewStory()">Lưu Bộ Truyện</button>
+    <div class="form-group">
+        <label class="form-label">Thể loại / Thẻ</label>
+        <input type="text" class="form-input" id="storyTagInput" placeholder="VD: Tiên Hiệp, Ngôn Tình...">
     </div>
 
-    <div id="toast-container"></div>
+    <div class="form-group">
+        <label class="form-label">Ảnh bìa truyện</label>
+        <input type="file" class="form-input" id="storyCoverInput" accept="image/*">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Tóm tắt nội dung</label>
+        <textarea class="form-textarea" id="storySummaryInput" placeholder="Nhập tóm tắt sơ lược về truyện..."></textarea>
+    </div>
+
+    <button class="submit-btn" onclick="saveNewStory()">Lưu bộ truyện</button>
 
     <script>
-        // Đồng bộ Theme với localStorage
-        function initTheme() {
-            const savedTheme = localStorage.getItem('appTheme') || 'dark';
-            if (savedTheme === 'light') {
-                document.body.classList.add('light-theme');
-                document.getElementById('themeIconMoon').style.display = 'none';
-                document.getElementById('themeIconSun').style.display = 'block';
-            }
-        }
-
-        function toggleTheme() {
-            const isLight = document.body.classList.toggle('light-theme');
-            localStorage.setItem('appTheme', isLight ? 'light' : 'dark');
-            
-            document.getElementById('themeIconMoon').style.display = isLight ? 'none' : 'block';
-            document.getElementById('themeIconSun').style.display = isLight ? 'block' : 'none';
-            
-            showToast(isLight ? 'Chế độ Ban Ngày ☀️' : 'Chế độ Ban Đêm 🌙');
-        }
-
-        function showToast(message) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'custom-toast';
-            toast.textContent = message;
-            container.appendChild(toast);
-            
-            setTimeout(() => { toast.classList.add('show'); }, 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // Mở IndexedDB
+        if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Đã đăng ký Service Worker để chạy Offline'))
+        .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
+    });
+}
+        // Mở cơ sở dữ liệu với phiên bản tăng lên 2 để tự động tạo kho lưu trữ 'stories'
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open('AudioBookDB', 2);
+                
                 request.onupgradeneeded = function(e) {
                     let db = e.target.result;
                     if (!db.objectStoreNames.contains('stories')) {
@@ -347,22 +73,10 @@
                         db.createObjectStore('audios');
                     }
                 };
+
                 request.onsuccess = e => resolve(e.target.result);
                 request.onerror = e => reject(e.target.error);
             });
-        }
-
-        function handleCoverSelect(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const img = document.getElementById('coverPreview');
-                    img.src = evt.target.result;
-                    img.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
         }
 
         async function saveNewStory() {
@@ -373,11 +87,11 @@
             const coverInput = document.getElementById('storyCoverInput');
 
             if (!name) {
-                showToast('Vui lòng nhập tên bộ truyện!');
+                alert('Vui lòng nhập tên truyện!');
                 return;
             }
 
-            let coverUrl = '';
+            let coverUrl = 'https://via.placeholder.com/120x165/333/fff?text=No+Cover';
 
             if (coverInput.files && coverInput.files[0]) {
                 const file = coverInput.files[0];
@@ -405,24 +119,17 @@
                 store.put(newStory);
 
                 tx.oncomplete = function() {
-                    showToast('Đã lưu bộ truyện mới thành công!');
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1000);
+                    alert('Thêm truyện mới thành công!');
+                    window.location.href = 'index.html';
                 };
 
-                tx.onerror = function() {
-                    showToast('Lỗi khi ghi dữ liệu!');
+                tx.onerror = function(e) {
+                    alert('Lỗi transaction: ' + (e.target.error ? e.target.error.message : 'Không xác định'));
                 };
-            } catch (err) {
-                console.error(err);
-                showToast('Lỗi thao tác cơ sở dữ liệu!');
+            } catch (error) {
+                alert('Lỗi hệ thống chi tiết: ' + error.message);
             }
         }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initTheme();
-        });
     </script>
 </body>
 </html>
